@@ -1,0 +1,5 @@
+node_modules
+dist
+test
+.env
+src/auth/hashcaller-a97e5-firebase-adminsdk-iaax2-66d1c9ca4d.json
