@@ -4,6 +4,7 @@ import { NextFunction, Request, Response } from "express";
 import * as firebaseAdmin from 'firebase-admin';
 import * as firebaseServiceAccount from './hashcaller-a97e5-firebase-adminsdk-iaax2-66d1c9ca4d.json';
 import { async } from "rxjs";
+import { DH_UNABLE_TO_CHECK_GENERATOR } from "constants";
 
 @Injectable()
 export class FirebaseMiddleware implements NestMiddleware {
@@ -28,16 +29,22 @@ export class FirebaseMiddleware implements NestMiddleware {
     }
     async use(req: Request, res: Response, next: NextFunction) {
 
-        // const token = req.header('Authorization').replace('Bearer', '').trim()
+        const token = req.header('Authorization').replace('Bearer', '').trim()
 
-        // this.validateRequest(req, token);
-
-
+        await this.validateRequest(req, token); 
         next();
     }
     private async validateRequest(req: Request, token) {
         const tokenVerify = await firebaseAdmin.auth().verifyIdToken(token)
-        console.log(tokenVerify)
+        if (tokenVerify.admin == true) {
+            console.log("Admin");
+        } else {
+            console.log("Not admin");
+        }
+        req.body.uid = tokenVerify.uid; // setting user id in the request object
+        // console.log(req.body.username);
+        console.log(tokenVerify.uid)
+        console.log("token verify is "+tokenVerify)
 
     }
 

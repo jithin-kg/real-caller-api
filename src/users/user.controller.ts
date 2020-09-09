@@ -14,10 +14,18 @@ export class Usercontroller {
         secuser.email = user.email;
         // secuser.accountType = user.accountType== undefined ?"premium":"regular";
         secuser.accountType = user.accountType = "premium";
+        secuser.uid = user.uid;
         
-        const result = await this.userService.signup(secuser)
+        
+        setTimeout(()=>{
+         this.userService.signup(secuser).then(data=>{
+             console.log("after 5 secs")
+            return { message: data };
+         })
+            
+        }, 5000)
         // console.log(`result is ${result}`)
-        return { result: result };
+       
     }
     @Get('test')
     async test(){
