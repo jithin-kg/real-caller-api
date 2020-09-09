@@ -36,6 +36,7 @@ export class FirebaseMiddleware implements NestMiddleware {
     }
     private async validateRequest(req: Request, token) {
         const tokenVerify = await firebaseAdmin.auth().verifyIdToken(token)
+        
         if (tokenVerify.admin == true) {
             console.log("Admin");
         } else {

@@ -14,7 +14,7 @@ export class Usercontroller {
         secuser.email = user.email;
         // secuser.accountType = user.accountType== undefined ?"premium":"regular";
         secuser.accountType = user.accountType = "premium";
-        secuser.uid = user.uid;
+        // secuser.uid = user.uid;
         
         
         setTimeout(()=>{
