@@ -4,4 +4,6 @@ export class ContactDto {
     phoneNumber?: string;
     carrier?: string;
     location?: string;
+    line_type?: string;
+    country?:string
 }

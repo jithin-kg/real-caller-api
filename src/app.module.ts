@@ -10,7 +10,7 @@ import { ContactModule } from './contact/contact.module';
 @Module({
   imports: [UserModule,
     ContactModule,
-    MongooseModule.forRoot("mongodb+srv://rlclerDBUser:IJVezz622jI7k83m@rlcaller-rest-cluster0-40d1h.mongodb.net/test?retryWrites=true&w=majority")
+    MongooseModule.forRoot("mongodb+srv://rlclerDBUser:IJVezz622jI7k83m@rlcaller-rest-cluster0-40d1h.mongodb.net/phoneNumberPrefixLocationMap?retryWrites=true&w=majority")
   ],
   controllers: [AppController],
   providers: [AppService],

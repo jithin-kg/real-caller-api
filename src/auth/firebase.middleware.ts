@@ -30,7 +30,7 @@ export class FirebaseMiddleware implements NestMiddleware {
     async use(req: Request, res: Response, next: NextFunction) {
 
         const token = req.header('Authorization').replace('Bearer', '').trim()
-         console.log(req.header('Authorization'))   
+         console.log(req.header('Authorization')) ;  
         await this.validateRequest(req, token); 
         next();
     }

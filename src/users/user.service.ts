@@ -21,9 +21,10 @@ export class Userservice {
        
           const user = await this.userModel.findOne({uid:userDto.uid})
           if(user== null ){
-            await validateOrReject(userDto)
+            await validateOrReject(userDto) //validation
               try{  
                 const createdUser = new this.userModel(userDto);
+               
                 const savedUser = await createdUser.save()
                 console.log("user from database is " + savedUser)
                 
@@ -62,4 +63,5 @@ export class Userservice {
         // return result.id;
         // return "1"
     }
+  
 }

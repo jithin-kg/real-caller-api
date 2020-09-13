@@ -14,8 +14,12 @@ export class Contact extends Document {
 
     @Prop({ required: true })
     location: string
-    // @Prop({required:true})
-    // coutryCode:string
+
+    @Prop({ required: true })
+    line_type: string
+
+    @Prop({required:true})
+    country:string
 
 }
 
