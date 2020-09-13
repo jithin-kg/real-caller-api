@@ -11,6 +11,9 @@ export class User extends Document {
 
     @Prop({ required: true })
     accountType?: string;
+
+    @Prop({ required: true })
+    uid?: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

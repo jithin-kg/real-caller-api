@@ -1,6 +1,6 @@
-import { IsString, IsEmail } from "class-validator";
+import { IsEmail, Allow, IsString }  from 'class-validator'
 
-export class UserDto {
+export class UserDto extends Map {
     @IsString()
     firstName: string;
     @IsEmail()
@@ -8,5 +8,5 @@ export class UserDto {
     @IsString()
     accountType: string;
     @IsString()
-    uid:String;
+    uid:string;
 }
