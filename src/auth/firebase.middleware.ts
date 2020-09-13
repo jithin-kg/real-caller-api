@@ -1,4 +1,4 @@
-import { Injectable, NestMiddleware } from "@nestjs/common";
+import { Injectable, NestMiddleware, HttpException, HttpStatus } from "@nestjs/common";
 import { NextFunction, Request, Response } from "express";
 
 import * as firebaseAdmin from 'firebase-admin';
@@ -35,17 +35,27 @@ export class FirebaseMiddleware implements NestMiddleware {
         next();
     }
     private async validateRequest(req: Request, token) {
-        const tokenVerify = await firebaseAdmin.auth().verifyIdToken(token)
+        try{
+            const tokenVerify = await firebaseAdmin.auth().verifyIdToken(token)
         
-        if (tokenVerify.admin == true) {
-            console.log("Admin");
-        } else {
-            console.log("Not admin");
+            if (tokenVerify.admin == true) {
+                console.log("Admin");
+            } else {
+                console.log("Not admin");
+            }
+            req.body.uid = tokenVerify.uid; // setting user id in the request object
+            // console.log(req.body.username);
+            console.log(tokenVerify.uid)
+            console.log("token verify is "+tokenVerify)
+        }catch(e){
+            /**
+             * can be thrown due to expired/ invalid token
+             */
+            console.log("token verification failed")
+            throw new HttpException("Bad request" , HttpStatus.BAD_REQUEST)
+            
         }
-        req.body.uid = tokenVerify.uid; // setting user id in the request object
-        // console.log(req.body.username);
-        console.log(tokenVerify.uid)
-        console.log("token verify is "+tokenVerify)
+        
 
     }
 

@@ -5,6 +5,7 @@ import { ContactDto } from "./contact.dto";
 import { Indiaprefixlocationmaps } from "src/carrierService/carrier.info.schema";
 import { CarrierService } from "src/carrierService/carrier.service";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
+import { ContactController } from "./contact.controller";
 
 const worker = require("workerpool");
 // const sm = require('./worker/serviceHelper.js')
@@ -41,6 +42,8 @@ export class ContactService {
                         let contactObj = new this.contactModel(cntct)
                         savedContact = await contactObj.save()
                         console.log(savedContact);
+                    }else{
+                        console.log("alredy exising");
                     }
                    }catch(e){
                        console.log("error while fetching "+e)

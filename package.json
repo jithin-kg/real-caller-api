@@ -24,19 +24,12 @@
     "@nestjs/common": "^7.4.4",
     "@nestjs/core": "^7.4.4",
     "@nestjs/mongoose": "^7.0.2",
-<<<<<<< HEAD
-    "@nestjs/platform-express": "^7.0.0",
-    "class-transformer": "^0.3.1",
-    "class-validator": "^0.12.2",
-    "firebase-admin": "^9.0.0",
-    "mongoose": "^5.9.28",
-=======
     "@nestjs/platform-express": "^7.4.4",
+    "class-transformer": "^0.3.1",
     "class-validator": "^0.12.2",
     "firebase-admin": "^9.1.1",
     "libphonenumber-js": "^1.7.57",
     "mongoose": "^5.10.5",
->>>>>>> temporary
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^6.6.3",

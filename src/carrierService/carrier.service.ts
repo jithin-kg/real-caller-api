@@ -3,6 +3,7 @@ import { Indiaprefixlocationmaps } from "./carrier.info.schema";
 import { Model } from "mongoose";
 import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import { CarrierInfoDTO } from "./carrier.info.dto";
+import { HttpException } from "@nestjs/common";
 
 export class CarrierService{
     static prefix:string
@@ -22,6 +23,7 @@ export class CarrierService{
             //  console.log(CarrierService.prefix+":info in carrierservice "+info );
         }catch(e){
             console.log("error while getting carrierinfo" + e)
+        
         }
         if(info != null )
         return info

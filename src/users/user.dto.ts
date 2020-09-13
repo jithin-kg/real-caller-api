@@ -2,11 +2,11 @@ import { IsEmail, Allow, IsString }  from 'class-validator'
 
 export class UserDto extends Map {
     @IsString()
-    firstName: string;
+    firstName?: string;
     @IsEmail()
-    email: string;
+    email?: string;
     @IsString()
-    accountType: string;
+    accountType?: string;
     @IsString()
-    uid:string;
+    uid?:string;
 }
