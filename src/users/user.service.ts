@@ -1,4 +1,4 @@
-import { Injectable, HttpException, HttpStatus } from "@nestjs/common";
+import { Injectable, HttpException, HttpStatus, Inject } from "@nestjs/common";
 import { Model } from 'mongoose'
 
 import { UserDto } from "./user.dto";
@@ -7,26 +7,34 @@ import { InjectModel } from "@nestjs/mongoose";
 import { validateOrReject } from "class-validator";
 import { async } from "rxjs";
 import { create } from "domain";
+import { Db } from "mongodb";
 
 
 @Injectable()
 export class Userservice {
-    constructor(@InjectModel("User") private readonly userModel: Model<User>) { }
+    // constructor(@InjectModel("User") private readonly userModel: Model<User>) { }
+    constructor(@Inject('DATABASE_CONNECTION') private db:Db ) { }
 
     async signup(userDto: UserDto): Promise<string> {
         
         
       try{
-    
-       
-          const user = await this.userModel.findOne({uid:userDto.uid})
+  
+          console.log("user dto user id is "+userDto.uid);
+
+          const user = await this.db.collection('users').findOne({uid:userDto.uid})
+          console.log("user is "+user);
+
           if(user== null ){
             await validateOrReject(userDto) //validation
               try{  
-                const createdUser = new this.userModel(userDto);
-               
-                const savedUser = await createdUser.save()
-                console.log("user from database is " + savedUser)
+                let newUser = new User();
+                newUser.accountType = userDto.accountType;
+                newUser.email = userDto.email;
+                newUser.firstName = userDto.firstName;
+                newUser.uid = userDto.uid;
+
+               await this.db.collection('users').insertOne(newUser);
                 
                 return "1"
               }catch(err){
@@ -44,24 +52,8 @@ export class Userservice {
       }
         
         
-        // console.log()
-        // return "1"
-        //TODO check for bad request by validating fields , empty
-
-        // console.log("service user dto is"+ userDto);
-        // const createduser = new this.userModel(userDto);
-        // console.log("req body firebase user id "+ userDto.uid)
-        // const user = await this.userModel.findOne({firebaseUserId:userDto.uid})
-        // console.log("user found is "+user);
-        // return "1"
-        // if(user == null){
-        //    throw new HttpException("Bad request", HttpStatus.BAD_REQUEST) 
-        // }
-
-        // console.log('user service created user is ' + createduser)
-        // const result = await createduser.save();
-        // return result.id;
-        // return "1"
-    }
+     
+       
   
+}
 }

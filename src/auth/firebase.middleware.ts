@@ -2,7 +2,7 @@ import { Injectable, NestMiddleware, HttpException, HttpStatus } from "@nestjs/c
 import { NextFunction, Request, Response } from "express";
 
 import * as firebaseAdmin from 'firebase-admin';
-import * as firebaseServiceAccount from './hashcaller-a97e5-firebase-adminsdk-iaax2-66d1c9ca4d.json';
+import * as firebaseServiceAccount from './hashcaller-a97e5-firebase-adminsdk-iaax2-975c7d32cf.json';
 import { async } from "rxjs";
 import { DH_UNABLE_TO_CHECK_GENERATOR } from "constants";
 
