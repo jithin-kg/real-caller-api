@@ -3,12 +3,13 @@ import { ContactController } from "./contact.controller";
 import { ContactService } from "./contact.service";
 import { MongooseModule } from "@nestjs/mongoose";
 import { Contact, ContactSchema } from "./contact.schema";
-import { Indiaprefixlocationmaps, CarrierInfoSchema } from "src/carrierService/carrier.info.schema";
+import { DatabaseModule } from "src/db/Database.Module";
 
 @Module({
-    imports: [MongooseModule.forFeature([{ name: Contact.name, schema: ContactSchema }, {
-        name: Indiaprefixlocationmaps.name, schema:CarrierInfoSchema
-    }])],
+    // imports: [MongooseModule.forFeature([{ name: Contact.name, schema: ContactSchema }, {
+    //     name: Indiaprefixlocationmaps.name, schema:CarrierInfoSchema
+    // }])],
+    imports: [DatabaseModule],
     controllers: [ContactController],
     providers: [ContactService]
 })

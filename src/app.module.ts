@@ -2,15 +2,16 @@ import { Module, NestModule, MiddlewareConsumer, RequestMethod } from '@nestjs/c
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './users/user.module';
-import { MongooseModule } from '@nestjs/mongoose'
 import { FirebaseMiddleware } from './auth/firebase.middleware';
 import { ContactModule } from './contact/contact.module';
+import { SearchModule } from './search/search.module';
 
 
 @Module({
   imports: [UserModule,
-    ContactModule,
-    MongooseModule.forRoot("mongodb+srv://rlclerDBUser:IJVezz622jI7k83m@rlcaller-rest-cluster0-40d1h.mongodb.net/phoneNumberPrefixLocationMap?retryWrites=true&w=majority")
+    SearchModule,
+    ContactModule
+    // MongooseModule.forRoot("mongodb+srv://rlclerDBUser:IJVezz622jI7k83m@rlcaller-rest-cluster0-40d1h.mongodb.net/phoneNumberPrefixLocationMap?retryWrites=true&w=majority")
   ],
   controllers: [AppController],
   providers: [AppService],

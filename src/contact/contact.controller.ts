@@ -20,7 +20,8 @@ export class ContactController {
 
                 
 
-            this.contactService.upload(contacts)
+           let res = await  this.contactService.upload(contacts)
+           return {message:"good"}
 
         // console.log(contacts);
            

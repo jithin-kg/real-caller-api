@@ -51,7 +51,7 @@ export class FirebaseMiddleware implements NestMiddleware {
             /**
              * can be thrown due to expired/ invalid token
              */
-            console.log("token verification failed")
+            console.log("token verification failed" + e)
             throw new HttpException("Bad request" , HttpStatus.BAD_REQUEST)
             
         }

@@ -6,6 +6,8 @@ import { Indiaprefixlocationmaps } from "src/carrierService/carrier.info.schema"
 import { CarrierService } from "src/carrierService/carrier.service";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { ContactController } from "./contact.controller";
+import { Inject } from "@nestjs/common";
+import { Db } from "mongodb";
 
 const worker = require("workerpool");
 // const sm = require('./worker/serviceHelper.js')
@@ -13,54 +15,69 @@ declare function require(name:string);
 var workerpool = require('workerpool');
 
 export class ContactService {
-    constructor(@InjectModel("Contact") private readonly contactModel: Model<Contact>,
-    @InjectModel("Indiaprefixlocationmaps") private readonly carrierInfoModel: Model<Indiaprefixlocationmaps>) { }
+    // constructor(@InjectModel("Contact") private readonly contactModel: Model<Contact>,
+    // @InjectModel("Indiaprefixlocationmaps") private readonly carrierInfoModel: Model<Indiaprefixlocationmaps>) { }
+    constructor(@Inject('DATABASE_CONNECTION') private db:Db) { }
     async upload(contacts:ContactDto[]){
-       
+        let contactsArrWithCarrierInfo = [];
         let savedContact
         await  contacts.forEach(async cntct=>{
             try{
                 let numWithGeoInfo = parsePhoneNumberFromString(cntct.phoneNumber)
                 let phoneNum = numWithGeoInfo.number.toString()
-                let carrierInfo = await this.getCarrierInfo(phoneNum) 
-                
-                console.log("geo num"+numWithGeoInfo)
-                console.log("carrier info "+carrierInfo)
-                if(carrierInfo  && numWithGeoInfo && phoneNum){
-                    //todo replace all - and spaces from phone numbe
-                    cntct.carrier = carrierInfo.carrier;
-                    cntct.line_type = carrierInfo.line_type;
-                    cntct.location = carrierInfo.location;
-                    cntct.country = numWithGeoInfo.country;
-                    cntct.phoneNumber = phoneNum;
-                    
 
-                   try{
-                    let contactInfoFromDb =  await this.contactModel.findOne({phoneNumber:phoneNum})
+
+
+
+                try{
+                    let contactInfoFromDb =  await this.db.collection('contactsNew').findOne({phoneNumber:phoneNum})
                     console.log("contact fetched is "+ contactInfoFromDb);
                     if(!contactInfoFromDb){
-                        let contactObj = new this.contactModel(cntct)
-                        savedContact = await contactObj.save()
-                        console.log(savedContact);
+                        // let contactObj = new this.contactModel(cntct)
+                        /**
+                         * If the current number not in databse then get carrier information
+                         * and push it into array for later saving into database
+                         * 
+                         */
+                        let carrierInfo = await this.getCarrierInfo(phoneNum) 
+                
+                        console.log("geo num"+numWithGeoInfo)
+                        console.log("carrier info "+carrierInfo)
+
+                        if(carrierInfo  && numWithGeoInfo && phoneNum){
+                            //todo replace all - and spaces from phone numbe
+                            cntct.carrier = carrierInfo.carrier.trim();
+                            cntct.line_type = carrierInfo.line_type.trim();
+                            cntct.location = carrierInfo.location.trim();
+                            cntct.country = numWithGeoInfo.country.trim();
+                            cntct.phoneNumber = phoneNum.trim();
+                                                      
+                        }
+                        // contactsArrWithCarrierInfo.push({"insertOne":{"document":cntct}});
+                
+
                     }else{
                         console.log("alredy exising");
                     }
                    }catch(e){
                        console.log("error while fetching "+e)
                    }
-                    // console.log("carrier info fetched "+carrierInfo);
-                    // let contactObj = new this.contactModel(cntct)
-                    // savedContact = await contactObj.save()
-                    // console.log(savedContact);
-                    console.log(cntct);
-                }
+                
+                    let reslt = await this.db.collection('contactsNew').insertOne(cntct)
+                    // console.log("inserted contacts "+ reslt)
+
+
+               
                
                 
             }catch(e){
                 console.log("error while saving" +e);
             }
             
+           
+            
         })
+       
             return savedContact;
         }
            
@@ -70,7 +87,8 @@ export class ContactService {
 
     async getCarrierInfo(phoneNumber: string):Promise<Indiaprefixlocationmaps> {
     
-    let info:Indiaprefixlocationmaps = await CarrierService.getInfo(phoneNumber, this.carrierInfoModel)
+    let info:Indiaprefixlocationmaps = await CarrierService.getInfo(phoneNumber,this.db)
+
         
     return info;
 

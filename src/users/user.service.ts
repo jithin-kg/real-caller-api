@@ -28,11 +28,7 @@ export class Userservice {
           if(user== null ){
             await validateOrReject(userDto) //validation
               try{  
-                let newUser = new User();
-                newUser.accountType = userDto.accountType;
-                newUser.email = userDto.email;
-                newUser.firstName = userDto.firstName;
-                newUser.uid = userDto.uid;
+                let newUser = this.prepareUser(userDto);
 
                await this.db.collection('users').insertOne(newUser);
                 
@@ -51,9 +47,17 @@ export class Userservice {
           return "0"
       }
         
-        
-     
        
   
 }
+
+private prepareUser(userDto:UserDto):User{
+  let newUser = new User();
+  newUser.accountType = userDto.accountType;
+  newUser.email = userDto.email;
+  newUser.firstName = userDto.firstName;
+  newUser.uid = userDto.uid;
+  return newUser;
+}
+
 }
