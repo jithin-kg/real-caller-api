@@ -5,12 +5,14 @@ import { UserModule } from './users/user.module';
 import { FirebaseMiddleware } from './auth/firebase.middleware';
 import { ContactModule } from './contact/contact.module';
 import { SearchModule } from './search/search.module';
+import { SpamModule } from './spam/spam.module';
 
 
 @Module({
   imports: [UserModule,
     SearchModule,
-    ContactModule
+    ContactModule,
+    SpamModule
     // MongooseModule.forRoot("mongodb+srv://rlclerDBUser:IJVezz622jI7k83m@rlcaller-rest-cluster0-40d1h.mongodb.net/phoneNumberPrefixLocationMap?retryWrites=true&w=majority")
   ],
   controllers: [AppController],

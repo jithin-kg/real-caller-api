@@ -9,10 +9,13 @@ export class Searchcontroller {
     constructor(private readonly service: SearchService) { }
 
     @Post('search')
-    async signUp(@Body() searchData: SearchDTO) {
-        console.log(searchData.phoneNumber);
+    async search(@Body() searchData: SearchDTO) {
+       
     //   await this.sleep()
     let d = await this.service.search(searchData.phoneNumber)
-      return {"message":"1", "cntcts":d}; 
+    
+    // console.log("search result " + d[0]);
+
+    return {"message":"1", "cntcts":d}; 
     }
 }

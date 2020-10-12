@@ -2,6 +2,7 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { Contact } from "./contact.schema";
 import { ContactDto } from "./contact.dto";
+import {SpammerStatus} from './contact.dto';
 import { Indiaprefixlocationmaps } from "src/carrierService/carrier.info.schema";
 import { CarrierService } from "src/carrierService/carrier.service";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
@@ -26,9 +27,6 @@ export class ContactService {
                 let numWithGeoInfo = parsePhoneNumberFromString(cntct.phoneNumber)
                 let phoneNum = numWithGeoInfo.number.toString()
 
-
-
-
                 try{
                     let contactInfoFromDb =  await this.db.collection('contactsNew').findOne({phoneNumber:phoneNum})
                     console.log("contact fetched is "+ contactInfoFromDb);
@@ -43,14 +41,23 @@ export class ContactService {
                 
                         console.log("geo num"+numWithGeoInfo)
                         console.log("carrier info "+carrierInfo)
-
+                        
+                        let ob:SpammerStatus = Object.create(null);
+                        ob.spamCount = 0;
+                        ob.spammer = false;
+                        
                         if(carrierInfo  && numWithGeoInfo && phoneNum){
                             //todo replace all - and spaces from phone numbe
+                           cntct.spammerStatus = ob;
+                            cntct.spammerStatus.spamCount = 0;
                             cntct.carrier = carrierInfo.carrier.trim();
                             cntct.line_type = carrierInfo.line_type.trim();
                             cntct.location = carrierInfo.location.trim();
                             cntct.country = numWithGeoInfo.country.trim();
                             cntct.phoneNumber = phoneNum.trim();
+                            
+                            // cntct.spammerStatus.spammer = "false";
+                           
                                                       
                         }
                         // contactsArrWithCarrierInfo.push({"insertOne":{"document":cntct}});
@@ -62,7 +69,7 @@ export class ContactService {
                    }catch(e){
                        console.log("error while fetching "+e)
                    }
-                
+                    console.log("inserting " + cntct)
                     let reslt = await this.db.collection('contactsNew').insertOne(cntct)
                     // console.log("inserted contacts "+ reslt)
 

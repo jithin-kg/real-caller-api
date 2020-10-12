@@ -1,6 +1,10 @@
-import { IsNotEmpty, IsNumber } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsNumber } from "class-validator";
 
-export class ContactDto {
+export class ContactDto  {
+     
+    public test(){
+
+    }
     @IsNotEmpty()
     name?: string;
     @IsNotEmpty()
@@ -9,5 +13,18 @@ export class ContactDto {
     carrier?: string;
     location?: string;
     line_type?: string;
-    country?:string
+    country?:string;
+    spammerStatus:SpammerStatus
+}
+
+export interface SpammerStatus extends Void{
+   
+    spammer?:boolean;
+    
+    spamCount?: number;
+
+}
+
+interface Void{
+    hasOwnProperty: void
 }
