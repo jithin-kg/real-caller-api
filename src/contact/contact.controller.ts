@@ -21,7 +21,19 @@ export class ContactController {
                 
 
            let res = await  this.contactService.upload(contacts)
-           return {message:"good"}
+           return {"message":"1", "cntcts":res}
+        // return {"message":"1","cntcts": [{"name":"jithin",
+        //                             "phoneNumber":"918086176336", 
+        //                              "carrier":"vodafone",
+        //                              "location":"banglorre",
+        //                              "line_type":"mobile",
+        //                              "country":"IN",
+        //                              "spammerStatus":{
+        //                                  "spammer":"false",
+        //                                  "spamCount":0
+        //                              }
+        //                              }] }; 
+        //    return {message:"good"}
 
         // console.log(contacts);
            

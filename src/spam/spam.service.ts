@@ -36,7 +36,7 @@ export class SpamService {
         return new Promise((resolve, reject)=>{
             // ContactDto    
              this.collection.updateOne({phoneNumber:pno},
-                {$inc:{'spammerStatus.spamCount':10030}}, 
+                {$inc:{'spammerStatus.spamCount':1}}, 
                 (err,data)=>{
                     if(err){
                         reject(err);

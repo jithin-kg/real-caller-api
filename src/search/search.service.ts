@@ -12,7 +12,7 @@ export class SearchService {
     }
 
     async search(pno:string) {
-        
+        pno = pno.replace('+', "")
         let res = [];
        
         // try{
@@ -40,7 +40,7 @@ export class SearchService {
                      reject(err);
                     //  throw new HttpException('Server Error', HttpStatus.INTERNAL_SERVER_ERROR);   
                  }else{
-                    console.log("size " + data.length)
+                    console.log("searchService -------------> size " + data.length)
                      resolve(data);
                   
                  }

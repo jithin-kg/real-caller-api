@@ -1,4 +1,5 @@
 import { Controller, Post, Body, Get } from "@nestjs/common";
+import {Logger} from '../utils/logger';
 import { resolve } from "path";
 import { SpamDTO } from "./spam.dto";
 
@@ -10,7 +11,7 @@ export class Spamcontroller {
 
     @Post('report')
     async report(@Body() spamData: SpamDTO) {
-       
+       Logger.log("spamController", "inside report ");
     //   await this.sleep()
     let d = await this.service.reportSpam(spamData.phoneNumber)
     

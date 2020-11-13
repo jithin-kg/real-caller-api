@@ -19,18 +19,35 @@ export class ContactService {
     // constructor(@InjectModel("Contact") private readonly contactModel: Model<Contact>,
     // @InjectModel("Indiaprefixlocationmaps") private readonly carrierInfoModel: Model<Indiaprefixlocationmaps>) { }
     constructor(@Inject('DATABASE_CONNECTION') private db:Db) { }
-    async upload(contacts:ContactDto[]){
-        let contactsArrWithCarrierInfo = [];
+   
+    initFields(cntct:ContactDto){
+        let ob:SpammerStatus = Object.create(null);
+        ob.spamCount = 0;
+        ob.spammer = false;
+        cntct.spammerStatus = ob;
+        cntct.carrier = ""
+        cntct.line_type = "" 
+        cntct.location = ""
+        cntct.country = ""
+        cntct.line_type = ""
+
+    }
+    
+    async upload(contacts:ContactDto[]) :Promise<ContactDto[]>{
+        
+        let contactsArrWithCarrierInfo:ContactDto[] = [];
         let savedContact
-        await  contacts.forEach(async cntct=>{
+        for await(const cntct of contacts){
             try{
-                let numWithGeoInfo = parsePhoneNumberFromString(cntct.phoneNumber)
+                this.initFields(cntct);
+                //TODO  check the phone number start with + 
+                let numWithGeoInfo = parsePhoneNumberFromString("+"+cntct.phoneNumber)
                 let phoneNum = numWithGeoInfo.number.toString()
 
-                try{
+                // try{
                     let contactInfoFromDb =  await this.db.collection('contactsNew').findOne({phoneNumber:phoneNum})
                     console.log("contact fetched is "+ contactInfoFromDb);
-                    if(!contactInfoFromDb){
+                    if(contactInfoFromDb== null){
                         // let contactObj = new this.contactModel(cntct)
                         /**
                          * If the current number not in databse then get carrier information
@@ -61,31 +78,26 @@ export class ContactService {
                                                       
                         }
                         // contactsArrWithCarrierInfo.push({"insertOne":{"document":cntct}});
-                
+                       
+                        console.log("inserting " + cntct)
+                        let reslt = await this.db.collection('contactsNew').insertOne(cntct)
 
                     }else{
                         console.log("alredy exising");
                     }
-                   }catch(e){
-                       console.log("error while fetching "+e)
-                   }
-                    console.log("inserting " + cntct)
-                    let reslt = await this.db.collection('contactsNew').insertOne(cntct)
-                    // console.log("inserted contacts "+ reslt)
-
-
-               
-               
-                
+                //    }catch(e){
+                //        console.log("error while fetching "+e)
+                //    }
+                   
+                contactsArrWithCarrierInfo.push(cntct);
             }catch(e){
                 console.log("error while saving" +e);
             }
-            
-           
-            
-        })
+        }
+
+        
        
-            return savedContact;
+            return contactsArrWithCarrierInfo;
         }
            
        
