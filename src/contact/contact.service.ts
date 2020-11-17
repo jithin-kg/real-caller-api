@@ -9,6 +9,8 @@ import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { ContactController } from "./contact.controller";
 import { Inject } from "@nestjs/common";
 import { Db } from "mongodb";
+import * as sha1 from 'sha1';
+
 
 const worker = require("workerpool");
 // const sm = require('./worker/serviceHelper.js')
@@ -41,12 +43,18 @@ export class ContactService {
             try{
                 this.initFields(cntct);
                 //TODO  check the phone number start with + 
-                let numWithGeoInfo = parsePhoneNumberFromString("+"+cntct.phoneNumber)
-                let phoneNum = numWithGeoInfo.number.toString()
+                let numWithGeoInfo = await parsePhoneNumberFromString("+"+cntct.phoneNumber)
+
+                let phoneNum = numWithGeoInfo.number.toString();
+                let phoneNumForHashing = phoneNum.replace('+',"");
+                let hashedPhone = await sha1(phoneNumForHashing);
+                
+                console.log('hashed phone number is ',hashedPhone);
+
 
                 // try{
-                    let contactInfoFromDb =  await this.db.collection('contactsNew').findOne({phoneNumber:phoneNum})
-                    console.log("contact fetched is "+ contactInfoFromDb);
+                    let contactInfoFromDb =  await this.db.collection('contactsNew').findOne({phoneNumber:hashedPhone})
+                    console.log("contact fetched is ", contactInfoFromDb);
                     if(contactInfoFromDb== null){
                         // let contactObj = new this.contactModel(cntct)
                         /**
@@ -71,7 +79,7 @@ export class ContactService {
                             cntct.line_type = carrierInfo.line_type.trim();
                             cntct.location = carrierInfo.location.trim();
                             cntct.country = numWithGeoInfo.country.trim();
-                            cntct.phoneNumber = phoneNum.trim();
+                            cntct.phoneNumber = hashedPhone.trim();
                             
                             // cntct.spammerStatus.spammer = "false";
                            
@@ -79,7 +87,7 @@ export class ContactService {
                         }
                         // contactsArrWithCarrierInfo.push({"insertOne":{"document":cntct}});
                        
-                        console.log("inserting " + cntct)
+                        console.log("inserting " , cntct)
                         let reslt = await this.db.collection('contactsNew').insertOne(cntct)
 
                     }else{
@@ -91,7 +99,7 @@ export class ContactService {
                    
                 contactsArrWithCarrierInfo.push(cntct);
             }catch(e){
-                console.log("error while saving" +e);
+                console.log("error while saving" ,e);
             }
         }
 

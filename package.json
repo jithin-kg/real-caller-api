@@ -25,7 +25,9 @@
     "@nestjs/core": "^7.4.4",
     "@nestjs/mongoose": "^7.0.2",
     "@nestjs/platform-express": "^7.4.4",
+    "@types/bcryptjs": "^2.4.2",
     "@types/mongodb": "^3.5.27",
+    "bcryptjs": "^2.4.3",
     "class-transformer": "^0.3.1",
     "class-validator": "^0.12.2",
     "firebase-admin": "^9.2.0",
@@ -34,6 +36,7 @@
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^6.6.3",
+    "sha1": "^1.1.1",
     "workerpool": "^6.0.0"
   },
   "devDependencies": {

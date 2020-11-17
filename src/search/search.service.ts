@@ -3,6 +3,8 @@ import { Model } from 'mongoose'
 import { Db } from "mongodb";
 import { type } from "os";
 import { CollectionNames } from "src/db/collection.names";
+import * as bcryptjs from 'bcryptjs';
+import * as sha1 from 'sha1';
 @Injectable()
 export class SearchService {
      private collection;
@@ -13,13 +15,15 @@ export class SearchService {
 
     async search(pno:string) {
         pno = pno.replace('+', "")
+        let hashedPhone = await sha1(pno);
+
         let res = [];
        
         // try{
             try{
                 //TODO SANITISE INPUT REMOEV + IN PHONE NUMBER OR REGULAR EXPRESSION CRASHES while searching
                 //and need to sanitise input
-                let r = await this.getContacts(pno);
+                let r = await this.getContacts(hashedPhone);
                 return r
             }catch(e){
                 console.log(e);
@@ -32,6 +36,7 @@ export class SearchService {
     }
     getContacts(pno){
         return new Promise((resolve, reject)=>{
+            
             this.collection.find({phoneNumber:new RegExp(pno)})
         .limit(4)
             .toArray((err, data)=>{
