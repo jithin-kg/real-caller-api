@@ -9,7 +9,7 @@ import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { ContactController } from "./contact.controller";
 import { Inject } from "@nestjs/common";
 import { Db } from "mongodb";
-import * as sha1 from 'sha1';
+const hash = require('crypto').createHash;
 
 
 const worker = require("workerpool");
@@ -47,7 +47,7 @@ export class ContactService {
 
                 let phoneNum = numWithGeoInfo.number.toString();
                 let phoneNumForHashing = phoneNum.replace('+',"");
-                let hashedPhone = await sha1(phoneNumForHashing);
+                let hashedPhone = await hash('sha256').update(phoneNumForHashing).digest('base64');
                 
                 console.log('hashed phone number is ',hashedPhone);
 

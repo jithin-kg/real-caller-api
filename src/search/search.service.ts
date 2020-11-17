@@ -4,7 +4,8 @@ import { Db } from "mongodb";
 import { type } from "os";
 import { CollectionNames } from "src/db/collection.names";
 import * as bcryptjs from 'bcryptjs';
-import * as sha1 from 'sha1';
+
+const hash = require('crypto').createHash;
 @Injectable()
 export class SearchService {
      private collection;
@@ -15,7 +16,8 @@ export class SearchService {
 
     async search(pno:string) {
         pno = pno.replace('+', "")
-        let hashedPhone = await sha1(pno);
+        let hashedPhone = await hash('sha256').update(pno).digest('base64');
+        console.log('hashed phone number', hashedPhone);
 
         let res = [];
        
@@ -36,8 +38,8 @@ export class SearchService {
     }
     getContacts(pno){
         return new Promise((resolve, reject)=>{
-            
-            this.collection.find({phoneNumber:new RegExp(pno)})
+            // this.collection.find({phoneNumber:new RegExp(pno)})
+            this.collection.find({phoneNumber:pno})
         .limit(4)
             .toArray((err, data)=>{
                  if(err){
