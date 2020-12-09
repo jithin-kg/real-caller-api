@@ -5,10 +5,11 @@ import { ContactDto } from "./contact.dto";
 import {SpammerStatus} from './contact.dto';
 import { Indiaprefixlocationmaps } from "src/carrierService/carrier.info.schema";
 import { CarrierService } from "src/carrierService/carrier.service";
-import { parsePhoneNumberFromString } from "libphonenumber-js";
+import { parsePhoneNumberFromString, PhoneNumber } from "libphonenumber-js";
 import { ContactController } from "./contact.controller";
 import { Inject } from "@nestjs/common";
 import { Db } from "mongodb";
+import { CarrierInfoDTO } from "src/carrierService/carrier.info.dto";
 const hash = require('crypto').createHash;
 
 
@@ -157,9 +158,66 @@ export class ContactService {
   async uploadBulk(contacts:ContactDto[]){
       const bulkOp = await this.db.collection("sampleCollections").initializeUnorderedBulkOp()
      
-    Promise.all(contacts.map(async contact=>{
+    let arr = await Promise.allSettled(contacts.map(async contact=>{
+        let numForLookup = ""
+        try{
+            this.initFields(contact);
+             numForLookup = this.getPreparedNumForLookup(contact.phoneNumber)    
+            let numWithGeoInfo = await parsePhoneNumberFromString(numForLookup)
+            //get hashed phone number
+            let phoneNum = "";
+            if(numWithGeoInfo!= null){
+                phoneNum = numWithGeoInfo.number.toString();
+            }
+        
+            let phoneNumForHashing = phoneNum.replace('+',"");
+            // let hashedPhone = await hash('sha256').update(phoneNumForHashing).digest('base64')
+            // let hashedPhone = await this.getHashedPhonenNum(phoneNumForHashing);
+           
+            // let carrierInfo = await this.getCarrierInfo(numForLookup) 
+
+            // Promise.allSetteled is used for parellel execution
+            //promise.all() fails if one of the promise in array fails
+            //but Promise.allsetteled() does not fail if one of the item fails
+           const [hashedPhone, carrierInfo] = await Promise.allSettled(
+                [
+                    this.getHashedPhonenNum(phoneNumForHashing),
+                    this.getCarrierInfo(numForLookup)
+                ]
+                )
+                
+            let ob:SpammerStatus = Object.create(null);
+            ob.spamCount = 0;
+            ob.spammer = false;
+    
+            contact.spammerStatus = ob;
+            contact.spammerStatus.spamCount = 0;
+            if(carrierInfo.status === "fulfilled"  && carrierInfo.value != undefined){
+                contact.carrier = carrierInfo.value.carrier.trim();
+                contact.line_type = carrierInfo.value.line_type.trim();
+                contact.location = carrierInfo.value.location.trim();
+            
+            }
+            if(hashedPhone.status == "fulfilled"){
+                contact.phoneNumber = hashedPhone.value
+
+            contact.phoneNumber = hashedPhone.value
+            }
+            if(numWithGeoInfo!=null){
+                contact.country = numWithGeoInfo.country;
+            }
+
+            
+        }catch(e){
+            console.log(`${e} for phone no ${numForLookup}`)
+        }
+       
+
          bulkOp.find({phoneNum:contact.phoneNumber}).upsert().updateOne({$setOnInsert:contact})
-    }))
+    })).catch(e=>{
+        console.log(e)
+    })
+
     bulkOp.execute().then(data=>{
         console.log(data)
     }).catch(e=>{
@@ -167,10 +225,25 @@ export class ContactService {
     })
 
   }
+    async getHashedPhonenNum(phoneNumForHashing: string):Promise<string> {
+       let no= await hash('sha256').update(phoneNumForHashing).digest('base64')
+       return no
+    }
+    getPreparedNumForLookup(phone:string) : string{
+        let numForLookup = phone.trim()
+                numForLookup = numForLookup.replace("+", "")
+                //todo replace (and ) with ''
+
+                if(numForLookup[0] != "9" && numForLookup[1] != "1"){
+                    // numForLookup = numForLookup.slice(2,numForLookup.length)
+                    numForLookup = "+91"+numForLookup
+                }
+                return numForLookup
+    }
    
 }
       
-       
+
     
 
     // async  add(num1, num2) {
@@ -189,3 +262,5 @@ export class ContactService {
     //     return  num1 + num2;
     // }
   
+
+    
