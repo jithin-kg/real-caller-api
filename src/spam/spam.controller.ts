@@ -13,7 +13,8 @@ export class Spamcontroller {
     async report(@Body() spamData: SpamDTO) {
        Logger.log("spamController", "inside report ");
     //   await this.sleep()
-    let d = await this.service.reportSpam(spamData.phoneNumber)
+    console.log(`uid is ${spamData.uid}`)
+    let d = await this.service.reportSpam(spamData)
     
     // console.log("search result " + d[0]);
 

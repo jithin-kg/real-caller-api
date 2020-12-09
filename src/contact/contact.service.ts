@@ -37,21 +37,60 @@ export class ContactService {
     
     async upload(contacts:ContactDto[]) :Promise<ContactDto[]>{
         
-        let contactsArrWithCarrierInfo:ContactDto[] = [];
-        let savedContact
-        for await(const cntct of contacts){
+       
+       let contactsArrWithCarrierInfo:ContactDto []=  await this.getContactWithHashedInfo(contacts)
+        for(let i =0; i<contactsArrWithCarrierInfo.length; i++){
+            console.log("inserting " , contactsArrWithCarrierInfo[i])
+            let reslt = await this.db.collection('contactsNew').insertOne(contactsArrWithCarrierInfo[i])
+            console.log(`Inserted contact ${reslt}`)
+        }
+        
+       
+            return contactsArrWithCarrierInfo;
+
+        }
+           
+       
+
+ 
+
+    async getCarrierInfo(phoneNumber: string):Promise<Indiaprefixlocationmaps> {
+    phoneNumber = phoneNumber.replace("(","")
+    phoneNumber = phoneNumber.replace(")","")
+    let info:Indiaprefixlocationmaps = await CarrierService.getInfo(phoneNumber,this.db)
+
+        
+    return info;
+
+
+  }
+
+  async getContactWithHashedInfo(contacts:ContactDto[]) :Promise<ContactDto[]>{
+    let contactsArrWithCarrierInfo:ContactDto[] = [];
+    let savedContact
+    return  new Promise(async(resolve, reject)=>{
+        for await(const cntct of contacts){ 
             try{
                 this.initFields(cntct);
                 //TODO  check the phone number start with + 
-                let numWithGeoInfo = await parsePhoneNumberFromString("+"+cntct.phoneNumber)
-
+                let numForLookup = cntct.phoneNumber.trim()
+                numForLookup = numForLookup.replace("+", "")
+                //todo replace (and ) with ''
+                
+                if(numForLookup[0] != "9" && numForLookup[1] != "1"){
+                    // numForLookup = numForLookup.slice(2,numForLookup.length)
+                    numForLookup = "+91"+numForLookup
+                }
+                
+                let numWithGeoInfo = await parsePhoneNumberFromString(numForLookup)
+    
                 let phoneNum = numWithGeoInfo.number.toString();
                 let phoneNumForHashing = phoneNum.replace('+',"");
                 let hashedPhone = await hash('sha256').update(phoneNumForHashing).digest('base64');
                 
                 console.log('hashed phone number is ',hashedPhone);
-
-
+    
+    
                 // try{
                     let contactInfoFromDb =  await this.db.collection('contactsNew').findOne({phoneNumber:hashedPhone})
                     console.log("contact fetched is ", contactInfoFromDb);
@@ -62,7 +101,7 @@ export class ContactService {
                          * and push it into array for later saving into database
                          * 
                          */
-                        let carrierInfo = await this.getCarrierInfo(phoneNum) 
+                        let carrierInfo = await this.getCarrierInfo(numForLookup) 
                 
                         console.log("geo num"+numWithGeoInfo)
                         console.log("carrier info "+carrierInfo)
@@ -78,48 +117,36 @@ export class ContactService {
                             cntct.carrier = carrierInfo.carrier.trim();
                             cntct.line_type = carrierInfo.line_type.trim();
                             cntct.location = carrierInfo.location.trim();
-                            cntct.country = numWithGeoInfo.country.trim();
+                            cntct.country = numWithGeoInfo.country;
                             cntct.phoneNumber = hashedPhone.trim();
                             
                             // cntct.spammerStatus.spammer = "false";
-                           
+                              
+                        
                                                       
                         }
+                        contactsArrWithCarrierInfo.push(cntct);
                         // contactsArrWithCarrierInfo.push({"insertOne":{"document":cntct}});
                        
-                        console.log("inserting " , cntct)
-                        let reslt = await this.db.collection('contactsNew').insertOne(cntct)
-
+                      
+    
                     }else{
                         console.log("alredy exising");
                     }
                 //    }catch(e){
                 //        console.log("error while fetching "+e)
                 //    }
-                   
-                contactsArrWithCarrierInfo.push(cntct);
+                
             }catch(e){
+                reject(e)
                 console.log("error while saving" ,e);
             }
-        }
-
-        
-       
-            return contactsArrWithCarrierInfo;
-        }
-           
-       
-
- 
-
-    async getCarrierInfo(phoneNumber: string):Promise<Indiaprefixlocationmaps> {
     
-    let info:Indiaprefixlocationmaps = await CarrierService.getInfo(phoneNumber,this.db)
-
+        }
         
-    return info;
-
-
+        return resolve(contactsArrWithCarrierInfo)
+    })
+    
   }
    
 }

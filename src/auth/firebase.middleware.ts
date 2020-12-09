@@ -6,6 +6,13 @@ import * as firebaseServiceAccount from './hashcaller-a97e5-firebase-adminsdk-ia
 import { async } from "rxjs";
 import { DH_UNABLE_TO_CHECK_GENERATOR } from "constants";
 
+/**
+ * Todo
+ * token verification failedError: Firebase ID token has expired.
+ *  Get a fresh ID token from your client app and try again (auth/id-token-expired). 
+ * See https://firebase.google.com/docs/auth/admin/verify-id-tokens 
+ * for details on how to retrieve an ID token.
+ */
 @Injectable()
 export class FirebaseMiddleware implements NestMiddleware {
     constructor() {
