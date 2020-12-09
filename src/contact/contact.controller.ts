@@ -18,10 +18,27 @@ export class ContactController {
            
         }
 
+
+
+
+
+
+        
+         let res = await this.contactService.uploadBulk(contacts)   
                 
 
-           let res = await  this.contactService.upload(contacts)
-           return {"message":"1", "cntcts":res}
+        //    let res = await  this.contactService.upload(contacts)
+           return {"message":"1", "cntcts":[{"name":"jithin",
+           "phoneNumber":"918086176336", 
+            "carrier":"vodafone",
+            "location":"banglorre",
+            "line_type":"mobile",
+            "country":"IN",
+            "spammerStatus":{
+                "spammer":"false",
+                "spamCount":0
+            }
+            }]}
         // return {"message":"1","cntcts": [{"name":"jithin",
         //                             "phoneNumber":"918086176336", 
         //                              "carrier":"vodafone",
@@ -43,3 +60,6 @@ export class ContactController {
     //     return 2;
     // }
 }
+
+
+

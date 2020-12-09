@@ -76,7 +76,7 @@ export class ContactService {
                 let numForLookup = cntct.phoneNumber.trim()
                 numForLookup = numForLookup.replace("+", "")
                 //todo replace (and ) with ''
-                
+
                 if(numForLookup[0] != "9" && numForLookup[1] != "1"){
                     // numForLookup = numForLookup.slice(2,numForLookup.length)
                     numForLookup = "+91"+numForLookup
@@ -147,6 +147,25 @@ export class ContactService {
         return resolve(contactsArrWithCarrierInfo)
     })
     
+  }
+/**
+ * db.users.update({name:"jithinn"}, {$set:{age:23}}, {upsert:true})
+ *  bulk.find({name:"jithin"}).upsert().updateOne({$setOnInsert:{"age":2}, $set:{"new":"idk"} });
+ *  bulk.find({name:"jithin"}).upsert().updateOne({$setOnInsert:{"age":2}, $set:{"new":"idk"} });
+ * @param contacts 
+ */
+  async uploadBulk(contacts:ContactDto[]){
+      const bulkOp = await this.db.collection("sampleCollections").initializeUnorderedBulkOp()
+     
+    Promise.all(contacts.map(async contact=>{
+         bulkOp.find({phoneNum:contact.phoneNumber}).upsert().updateOne({$setOnInsert:contact})
+    }))
+    bulkOp.execute().then(data=>{
+        console.log(data)
+    }).catch(e=>{
+        console.log(e)
+    })
+
   }
    
 }
