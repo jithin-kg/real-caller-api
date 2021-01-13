@@ -1,6 +1,3 @@
-import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
-import { Contact } from "./contact.schema";
 import { ContactDto } from "./contact.dto";
 import {SpammerStatus} from './contact.dto';
 import { Indiaprefixlocationmaps } from "src/carrierService/carrier.info.schema";
