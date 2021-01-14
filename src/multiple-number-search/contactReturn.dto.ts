@@ -1,15 +1,17 @@
 import { IsBoolean, IsNotEmpty, IsNumber, IsString } from "class-validator";
 
-export class ContactDto  {
+export class ContactReturnDto  {
      
     public test(){
 
     }
+    @IsString()
+    hashOne:string
     @IsNotEmpty()
     name?: string;
     @IsNotEmpty()
     @IsNumber()
-    phoneNumber?: string;
+    hashTwo?: string;
     @IsString()
     carrier?: string;
     @IsString()
@@ -18,7 +20,6 @@ export class ContactDto  {
     line_type?: string;
     @IsString()
     country?:string;
-
     spammerStatus:SpammerStatus
 }
 

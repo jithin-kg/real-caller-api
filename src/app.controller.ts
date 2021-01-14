@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, UsePipes, ValidationPipe } from '@nestjs/common';
 import { AppService } from './app.service';
-import { SearchDTO } from './multipleNumberSearch/search.dto';
+import { SearchDTO } from './multiple-number-search/search.dto';
 
 @Controller()
 export class AppController {

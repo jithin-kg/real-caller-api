@@ -6,17 +6,24 @@ import { FirebaseMiddleware } from './auth/firebase.middleware';
 import { ContactModule } from './contact/contact.module';
 import { SearchModule } from './search/search.module';
 import { SpamModule } from './spam/spam.module';
+import { MultipleNumberSearchController } from './multiple-number-search/multiple-number-search.controller';
+import { MultipleNumberSearchService } from './multiple-number-search/multiple-number-search.service';
+import { MultiplenumbersearchModule } from './multiple-number-search/multiplenumbersearch.module';
+import { DatabaseModule } from './db/Database.Module';
+import { NumberTransformService } from './utils/numbertransform.service';
 
 
 @Module({
   imports: [UserModule,
     SearchModule,
     ContactModule,
-    SpamModule
+    SpamModule,
+    MultiplenumbersearchModule,
+    DatabaseModule
     // MongooseModule.forRoot("mongodb+srv://rlclerDBUser:IJVezz622jI7k83m@rlcaller-rest-cluster0-40d1h.mongodb.net/phoneNumberPrefixLocationMap?retryWrites=true&w=majority")
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, MultipleNumberSearchController],
+  providers: [AppService, MultipleNumberSearchService, NumberTransformService]
 })
 
 /**

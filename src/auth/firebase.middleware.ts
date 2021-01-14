@@ -36,13 +36,14 @@ export class FirebaseMiddleware implements NestMiddleware {
     }
     async use(req: Request, res: Response, next: NextFunction) {
 
-        const token = req.header('Authorization').replace('Bearer', '').trim()
+        const token:string = req.header('Authorization').replace('Bearer', '').trim()
         //  console.log(req.header('Authorization')) ;  
         await this.validateRequest(req, token); 
         next();
     }
     private async validateRequest(req: Request, token) {
         try{
+            console.log(token)
             const tokenVerify = await firebaseAdmin.auth().verifyIdToken(token)
         
             if (tokenVerify.admin == true) {
@@ -53,7 +54,7 @@ export class FirebaseMiddleware implements NestMiddleware {
             req.body.uid = tokenVerify.uid; // setting user id in the request object
             // console.log(req.body.username);
             console.log(tokenVerify.uid)
-            console.log("token verify is "+tokenVerify)
+            console.log(tokenVerify)
         }catch(e){
             /**
              * can be thrown due to expired/ invalid token
