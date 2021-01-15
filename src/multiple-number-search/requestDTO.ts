@@ -3,9 +3,9 @@ import { ArrayMaxSize, IsJSON, IsNotEmpty, IsOptional, IsString, Max, MaxLength,
 
 export class RequestDTO{
    @IsString({each:true})
-   @MaxLength(12,{each:true}) // todo set to 64, bit hash length
+   @MaxLength(100,{each:true}) // todo set to 64, bit hash length
    @MinLength(3, {each:true})
-   @ArrayMaxSize(8000)
+   @ArrayMaxSize(10)
    readonly hashedPhoneNum: string[];
    @IsNotEmpty()
    @IsString()

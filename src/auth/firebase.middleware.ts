@@ -35,11 +35,17 @@ export class FirebaseMiddleware implements NestMiddleware {
         })
     }
     async use(req: Request, res: Response, next: NextFunction) {
+        try{
+            const token:string = req.header('Authorization').replace('Bearer', '').trim()
+            await this.validateRequest(req, token); 
+            next();
+            throw new HttpException("Bad request" , HttpStatus.BAD_REQUEST)
+        }
+        catch(e){
 
-        const token:string = req.header('Authorization').replace('Bearer', '').trim()
+        }
         //  console.log(req.header('Authorization')) ;  
-        await this.validateRequest(req, token); 
-        next();
+       
     }
     private async validateRequest(req: Request, token) {
         try{

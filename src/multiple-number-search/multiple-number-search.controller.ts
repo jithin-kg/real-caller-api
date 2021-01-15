@@ -13,10 +13,12 @@ export class MultipleNumberSearchController {
 
     @Post('getDetailsForNumbers')
     async getSpammerDetailsFornumber(@Body() phoneNumbers: RequestDTO){
-      
+      console.log(`req body is ${phoneNumbers}`)
+
      let res = await this.service.getDetailsForNumbers(phoneNumbers)
-     
-       return "got spammer list s"
+     console.log("-----------------returning multiplenubmer search---------------------")
+  
+       return {contacts:res}
        
     }
 }

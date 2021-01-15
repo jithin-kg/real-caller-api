@@ -6,12 +6,12 @@ export class ContactReturnDto  {
 
     }
     @IsString()
-    hashOne:string
+    hashOne:string //old hash recieved from client
     @IsNotEmpty()
     name?: string;
     @IsNotEmpty()
     @IsNumber()
-    hashTwo?: string;
+    hashTwo?: string; // hash after adding secret
     @IsString()
     carrier?: string;
     @IsString()
