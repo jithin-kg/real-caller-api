@@ -18,6 +18,9 @@ export class ContactDto  {
     line_type?: string;
     @IsString()
     country?:string;
+    //the first five digits is used to identify a number geographical information
+    @IsString()
+    firstNDigits:string
 
     spammerStatus:SpammerStatus
 }

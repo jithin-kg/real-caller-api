@@ -7,6 +7,14 @@ import { ContactController } from "./contact.controller";
 import { Inject } from "@nestjs/common";
 import { Db } from "mongodb";
 import { CarrierInfoDTO } from "src/carrierService/carrier.info.dto";
+import { Constants } from "src/utils/constants";
+import { TestDTO } from "./test.dto";
+import { MongoInsertDTO } from "./mongoinsertdto";
+import { ContactSyncDTO } from "./contactsycnDTO";
+import { ContactRequestDTO } from "./contactRequestDTO";
+import { ContactInsertDTO } from "./contactInsertDto";
+import { ContactNewDoc } from "src/multiple-number-search/cotactsNewDoc";
+import { ContactDocument } from "./contactInsertDocument";
 const hash = require('crypto').createHash;
 
 
@@ -20,166 +28,62 @@ export class ContactService {
     // @InjectModel("Indiaprefixlocationmaps") private readonly carrierInfoModel: Model<Indiaprefixlocationmaps>) { }
     constructor(@Inject('DATABASE_CONNECTION') private db:Db) { }
    
-    initFields(cntct:ContactDto){
-        let ob:SpammerStatus = Object.create(null);
-        ob.spamCount = 0;
-        ob.spammer = false;
-        cntct.spammerStatus = ob;
-        cntct.carrier = ""
-        cntct.line_type = "" 
-        cntct.location = ""
-        cntct.country = ""
-        cntct.line_type = ""
-
-    }
+   
     
-    async upload(contacts:ContactDto[]) :Promise<ContactDto[]>{
-        
-       
-       let contactsArrWithCarrierInfo:ContactDto []=  await this.getContactWithHashedInfo(contacts)
-        for(let i =0; i<contactsArrWithCarrierInfo.length; i++){
-            console.log("inserting " , contactsArrWithCarrierInfo[i])
-            let reslt = await this.db.collection('contactsNew').insertOne(contactsArrWithCarrierInfo[i])
-            console.log(`Inserted contact ${reslt}`)
-        }
-        
-       
-            return contactsArrWithCarrierInfo;
-
-        }
+    
            
        
 
  
 
-    async getCarrierInfo(phoneNumber: string):Promise<Indiaprefixlocationmaps> {
-    phoneNumber = phoneNumber.replace("(","")
-    phoneNumber = phoneNumber.replace(")","")
-    let info:Indiaprefixlocationmaps = await CarrierService.getInfo(phoneNumber,this.db)
+    async getCarrierInfo(firstNDigitsToGetCarrierInfo: string, countryCode:number, countryISO:string):Promise<Indiaprefixlocationmaps> {
+        firstNDigitsToGetCarrierInfo = firstNDigitsToGetCarrierInfo.replace("(","")
+        firstNDigitsToGetCarrierInfo = firstNDigitsToGetCarrierInfo.replace(")","")
+    console.log(`searching for carrier info : ${firstNDigitsToGetCarrierInfo}`)
 
-        
+    let info:Indiaprefixlocationmaps = await CarrierService.getInfo(firstNDigitsToGetCarrierInfo,this.db, countryCode, countryISO)
+    
+    
     return info;
 
 
   }
+  initFields(cntct:ContactInsertDTO){
+    let ob:SpammerStatus = Object.create(null);
+    ob.spamCount = 0;
+    ob.spammer = false;
+    cntct.spammerStatus = ob;
+    cntct.carrier = ""
+    cntct.line_type = "" 
+    cntct.location = ""
+    cntct.country = ""
+    cntct.line_type = ""
 
-  async getContactWithHashedInfo(contacts:ContactDto[]) :Promise<ContactDto[]>{
-    let contactsArrWithCarrierInfo:ContactDto[] = [];
-    let savedContact
-    return  new Promise(async(resolve, reject)=>{
-        for await(const cntct of contacts){ 
-            try{
-                this.initFields(cntct);
-                //TODO  check the phone number start with + 
-                let numForLookup = cntct.phoneNumber.trim()
-                numForLookup = numForLookup.replace("+", "")
-                //todo replace (and ) with ''
-
-                if(numForLookup[0] != "9" && numForLookup[1] != "1"){
-                    // numForLookup = numForLookup.slice(2,numForLookup.length)
-                    numForLookup = "+91"+numForLookup
-                }
-                
-                let numWithGeoInfo = await parsePhoneNumberFromString(numForLookup)
-    
-                let phoneNum = numWithGeoInfo.number.toString();
-                let phoneNumForHashing = phoneNum.replace('+',"");
-                let hashedPhone = await hash('sha256').update(phoneNumForHashing).digest('base64');
-                
-                console.log('hashed phone number is ',hashedPhone);
-    
-    
-                // try{
-                    let contactInfoFromDb =  await this.db.collection('contactsNew').findOne({phoneNumber:hashedPhone})
-                    console.log("contact fetched is ", contactInfoFromDb);
-                    if(contactInfoFromDb== null){
-                        // let contactObj = new this.contactModel(cntct)
-                        /**
-                         * If the current number not in databse then get carrier information
-                         * and push it into array for later saving into database
-                         * 
-                         */
-                        let carrierInfo = await this.getCarrierInfo(numForLookup) 
-                
-                        console.log("geo num"+numWithGeoInfo)
-                        console.log("carrier info "+carrierInfo)
-                        
-                        let ob:SpammerStatus = Object.create(null);
-                        ob.spamCount = 0;
-                        ob.spammer = false;
-                        
-                        if(carrierInfo  && numWithGeoInfo && phoneNum){
-                            //todo replace all - and spaces from phone numbe
-                           cntct.spammerStatus = ob;
-                            cntct.spammerStatus.spamCount = 0;
-                            cntct.carrier = carrierInfo.carrier.trim();
-                            cntct.line_type = carrierInfo.line_type.trim();
-                            cntct.location = carrierInfo.location.trim();
-                            cntct.country = numWithGeoInfo.country;
-                            cntct.phoneNumber = hashedPhone.trim();
-                            
-                            // cntct.spammerStatus.spammer = "false";
-                              
-                        
-                                                      
-                        }
-                        contactsArrWithCarrierInfo.push(cntct);
-                        // contactsArrWithCarrierInfo.push({"insertOne":{"document":cntct}});
-                       
-                      
-    
-                    }else{
-                        console.log("alredy exising");
-                    }
-                //    }catch(e){
-                //        console.log("error while fetching "+e)
-                //    }
-                
-            }catch(e){
-                reject(e)
-                console.log("error while saving" ,e);
-            }
-    
-        }
-        
-        return resolve(contactsArrWithCarrierInfo)
-    })
-    
-  }
+}
+  
 /**
  * db.users.update({name:"jithinn"}, {$set:{age:23}}, {upsert:true})
  *  bulk.find({name:"jithin"}).upsert().updateOne({$setOnInsert:{"age":2}, $set:{"new":"idk"} });
  *  bulk.find({name:"jithin"}).upsert().updateOne({$setOnInsert:{"age":2}, $set:{"new":"idk"} });
- * @param contacts 
+ * @param contacts contacts in request body to be saved in database
  */
-  async uploadBulk(contacts:ContactDto[]){
-      const bulkOp = await this.db.collection("sampleCollections").initializeUnorderedBulkOp()
-     
-    let arr = await Promise.allSettled(contacts.map(async contact=>{
-        let numForLookup = ""
+  async uploadBulk(contacts:ContactRequestDTO[], countryCode:number, countryISO:string){
+      console.log("inside upload bule contactservice")
+      const bulkOp = await this.db.collection("contactsOfUser").initializeUnorderedBulkOp()
+        let contactdto:ContactInsertDTO 
+    for await(const contact of contacts){
+        let firstNDigitsToGetCarrierInfo = ""
         try{
-            this.initFields(contact);
-             numForLookup = this.getPreparedNumForLookup(contact.phoneNumber)    
-            let numWithGeoInfo = await parsePhoneNumberFromString(numForLookup)
-            //get hashed phone number
-            let phoneNum = "";
-            if(numWithGeoInfo!= null){
-                phoneNum = numWithGeoInfo.number.toString();
-            }
-        
-            let phoneNumForHashing = phoneNum.replace('+',"");
-            // let hashedPhone = await hash('sha256').update(phoneNumForHashing).digest('base64')
-            // let hashedPhone = await this.getHashedPhonenNum(phoneNumForHashing);
-           
-            // let carrierInfo = await this.getCarrierInfo(numForLookup) 
-
-            // Promise.allSetteled is used for parellel execution
-            //promise.all() fails if one of the promise in array fails
-            //but Promise.allsetteled() does not fail if one of the item fails
+             contactdto = new ContactInsertDTO();
+            contactdto.phoneNumber = contact.phoneNumber.replace("*","").replace("#", "").trim()
+            contactdto.firstNDigits = contact.firstNDigits;
+            contactdto.name = contact.name;
+            this.initFields(contactdto);
+            firstNDigitsToGetCarrierInfo = contact.firstNDigits
            const [hashedPhone, carrierInfo] = await Promise.allSettled(
                 [
-                    this.getHashedPhonenNum(phoneNumForHashing),
-                    this.getCarrierInfo(numForLookup)
+                    this.getHashedPhonenNum(contactdto.phoneNumber),
+                    this.getCarrierInfo(firstNDigitsToGetCarrierInfo, countryCode, countryISO)
                 ]
                 )
                 
@@ -187,39 +91,54 @@ export class ContactService {
             ob.spamCount = 0;
             ob.spammer = false;
     
-            contact.spammerStatus = ob;
-            contact.spammerStatus.spamCount = 0;
-            if(carrierInfo.status === "fulfilled"  && carrierInfo.value != undefined){
-                contact.carrier = carrierInfo.value.carrier.trim();
-                contact.line_type = carrierInfo.value.line_type.trim();
-                contact.location = carrierInfo.value.location.trim();
+            contactdto.spammerStatus = ob;
+            contactdto.spammerStatus.spamCount = 0;
+            if(carrierInfo.status === "fulfilled"  && carrierInfo.value != undefined && carrierInfo!=null){
+                contactdto.carrier = carrierInfo.value.carrier.trim();
+                contactdto.line_type = carrierInfo.value.lineType.trim();
+                contactdto.location = carrierInfo.value.location.trim();
             
             }
             if(hashedPhone.status == "fulfilled"){
-                contact.phoneNumber = hashedPhone.value
-
-            contact.phoneNumber = hashedPhone.value
-            }
-            if(numWithGeoInfo!=null){
-                contact.country = numWithGeoInfo.country;
-            }
-
-            
+                contactdto.phoneNumber = hashedPhone.value
+        
+                contactdto._id =hashedPhone.value
+            }     
         }catch(e){
-            console.log(`${e} for phone no ${numForLookup}`)
+            console.log(`${e} for phone no ${firstNDigitsToGetCarrierInfo}`)
         }
        
+        // console.log(`performing  insert contactservice ${contactdto._id}`)
+        // //  bulkOp.find({phoneNum:contact.phoneNumber}).upsert().updateOne({$setOnInsert:contact})
+        //  bulkOp.insert(contactdto)
+        // const bulktInsert = await this.db.collection("testcollection").initializeUnorderedBulkOp()
+        // const res : MongoInsertDTO[]= [{_id:"1", location:"kerala"}, {_id:"2", location:"banglore"}, {_id:"3", location:"delhi"}] 
+        // for await(const contact of res){
+        //     const obj = new MongoInsertDTO()
+        //     obj._id = contact._id
+        //     obj.location = contact.location
+        //     bulkOp.insert(obj)
+        //     console.log("inserting")
+        // }
+        const doc = new ContactDocument()
+        doc._id = contactdto._id;
+        doc.carrier= contactdto.carrier;
+        doc.country = contactdto.country;
+        doc.lineType = contactdto.line_type;
+        doc.location = contactdto.location;
+        doc.name = contactdto.name;
+        doc.phoneNumber = contactdto.phoneNumber;
+        doc.spammCount = contactdto.spammerStatus.spamCount;
 
-         bulkOp.find({phoneNum:contact.phoneNumber}).upsert().updateOne({$setOnInsert:contact})
-    })).catch(e=>{
-        console.log(e)
-    })
-
-    bulkOp.execute().then(data=>{
-        console.log(data)
-    }).catch(e=>{
-        console.log(e)
-    })
+        bulkOp.insert(doc)
+    }
+    console.log("performing  bulk insert contactservice")
+    try{
+        bulkOp.execute()
+    }catch(e){
+        console.log(`bulk insert contacts error ${e}`)
+    }
+   
 
   }
     async getHashedPhonenNum(phoneNumForHashing: string):Promise<string> {
@@ -236,6 +155,22 @@ export class ContactService {
                     numForLookup = "+91"+numForLookup
                 }
                 return numForLookup
+    }
+
+    async migrate(){
+        // const res:TestDTO[] = await this.db.collection(Constants.COLLECCTION_INDIA_NUMBER_GEOINFO).find({}).toArray()
+        console.log("migrating")
+        const bulktInsert = await this.db.collection("testcollection").initializeUnorderedBulkOp()
+        const res : MongoInsertDTO[]= [{_id:"1", location:"kerala"}, {_id:"2", location:"banglore"}, {_id:"3", location:"delhi"}] 
+        for await(const contact of res){
+            const obj = new MongoInsertDTO()
+            obj._id = contact._id
+            obj.location = contact.location
+            bulktInsert.insert(obj)
+
+            console.log("inserting")
+        }
+        bulktInsert.execute();
     }
    
 }
@@ -260,4 +195,94 @@ export class ContactService {
     // }
   
 
+    // async upload(contacts:ContactDto[]) :Promise<ContactDto[]>{
+        
+       
+    //    let contactsArrWithCarrierInfo:ContactDto []=  await this.getContactWithHashedInfo(contacts)
+    //     for(let i =0; i<contactsArrWithCarrierInfo.length; i++){
+    //         console.log("inserting " , contactsArrWithCarrierInfo[i])
+    //         let reslt = await this.db.collection('contactsNew').insertOne(contactsArrWithCarrierInfo[i])
+    //         console.log(`Inserted contact ${reslt}`)
+    //     }
+        
+       
+    //         return contactsArrWithCarrierInfo;
+
+    // }
+  /**
+   * 
+   * @param contacts @param contacts
+   * @returns ContactsDTO[] with carrier information and geographical information about a number
+   */
+
+//   async getContactWithHashedInfo(contacts:ContactDto[]) :Promise<ContactDto[]>{
+//     let contactsArrWithCarrierInfo:ContactDto[] = [];
+//     let savedContact
+//     return  new Promise(async(resolve, reject)=>{
+//         for await(const cntct of contacts){ 
+//             try{
+//                 this.initFields(cntct);
+//                 //TODO  check if I can perform aggregation, ie whlie inserting search for carrier info within database
+//                 let numForLookup = cntct.firstNDigits.trim()
+                
+//                 let hashedPhone = await hash('sha256').update(cntct.phoneNumber.trim()).digest('base64');
+                
+//                 console.log('hashed phone number is ',hashedPhone);
     
+    
+//                 // try{
+//                     let contactInfoFromDb =  await this.db.collection(Constants.COLLECTION_CONTACTS_NEW).findOne({phoneNumber:hashedPhone})
+//                     console.log("contact fetched is ", contactInfoFromDb);
+//                     if(contactInfoFromDb== null){
+//                         // let contactObj = new this.contactModel(cntct)
+//                         /**
+//                          * If the current number not in databse then get carrier information
+//                          * and push it into array for later saving into database
+//                          * 
+//                          */
+//                         let carrierInfo = await this.getCarrierInfo(numForLookup) 
+                
+//                         console.log("carrier info "+carrierInfo)
+                        
+//                         let ob:SpammerStatus = Object.create(null);
+//                         ob.spamCount = 0;
+//                         ob.spammer = false;
+                        
+//                         if(carrierInfo ){
+//                             //todo replace all - and spaces from phone numbe
+//                            cntct.spammerStatus = ob;
+//                             cntct.spammerStatus.spamCount = 0;
+//                             cntct.carrier = carrierInfo.carrier.trim();
+//                             cntct.line_type = carrierInfo.line_type.trim();
+//                             cntct.location = carrierInfo.location.trim();
+                        
+//                             cntct.phoneNumber = hashedPhone.trim();
+                            
+//                             // cntct.spammerStatus.spammer = "false";
+                              
+                        
+                                                      
+//                         }
+//                         contactsArrWithCarrierInfo.push(cntct);
+//                         // contactsArrWithCarrierInfo.push({"insertOne":{"document":cntct}});
+                       
+                      
+    
+//                     }else{
+//                         console.log("alredy exising");
+//                     }
+//                 //    }catch(e){
+//                 //        console.log("error while fetching "+e)
+//                 //    }
+                
+//             }catch(e){
+//                 reject(e)
+//                 console.log("error while saving" ,e);
+//             }
+    
+//         }
+        
+//         return resolve(contactsArrWithCarrierInfo)
+//     })
+    
+//   }

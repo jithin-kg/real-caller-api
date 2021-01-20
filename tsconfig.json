@@ -15,7 +15,6 @@
     "resolveJsonModule": true,
 
     "moduleResolution": "Node",
-
     "lib": ["ES2020"]
    
   }

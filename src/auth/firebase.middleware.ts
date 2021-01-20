@@ -58,6 +58,7 @@ export class FirebaseMiddleware implements NestMiddleware {
                 // console.log("Not admin");
             }
             req.body.uid = tokenVerify.uid; // setting user id in the request object
+
             // console.log(req.body.username);
             console.log(tokenVerify.uid)
             console.log(tokenVerify)
