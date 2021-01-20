@@ -70,8 +70,10 @@ export class ContactService {
   async uploadBulk(contacts:ContactRequestDTO[], countryCode:number, countryISO:string){
       console.log("inside upload bule contactservice")
       const bulkOp = await this.db.collection("contactsOfUser").initializeUnorderedBulkOp()
-        let contactdto:ContactInsertDTO 
-    for await(const contact of contacts){
+     const contactsWithCarrierInfo: ContactDocument[] = []
+      let contactdto:ContactInsertDTO 
+        // let arr = await Promise.allSettled(contacts.map(async contact=>
+        let arr = await Promise.allSettled(contacts.map(async contact=>{
         let firstNDigitsToGetCarrierInfo = ""
         try{
              contactdto = new ContactInsertDTO();
@@ -93,45 +95,61 @@ export class ContactService {
     
             contactdto.spammerStatus = ob;
             contactdto.spammerStatus.spamCount = 0;
+            
+            let document = new ContactDocument();
+
+
             if(carrierInfo.status === "fulfilled"  && carrierInfo.value != undefined && carrierInfo!=null){
                 contactdto.carrier = carrierInfo.value.carrier.trim();
                 contactdto.line_type = carrierInfo.value.lineType.trim();
                 contactdto.location = carrierInfo.value.location.trim();
+
             
+    
+                document.carrier = carrierInfo.value.carrier.trim();
+                document.lineType = carrierInfo.value.lineType.trim()
+                document.location = carrierInfo.value.location.trim();
+                document.spammCount = 0
             }
             if(hashedPhone.status == "fulfilled"){
                 contactdto.phoneNumber = hashedPhone.value
-        
-                contactdto._id =hashedPhone.value
-            }     
+                contactdto._id = hashedPhone.value
+
+                document._id = hashedPhone.value
+                document.name = contact.name
+
+            }   
+
+            if(carrierInfo.status === "fulfilled" && hashedPhone.status == "fulfilled" ){
+            
+            
+                contactsWithCarrierInfo.push(document);
+            }
+
         }catch(e){
             console.log(`${e} for phone no ${firstNDigitsToGetCarrierInfo}`)
         }
        
-        // console.log(`performing  insert contactservice ${contactdto._id}`)
-        // //  bulkOp.find({phoneNum:contact.phoneNumber}).upsert().updateOne({$setOnInsert:contact})
-        //  bulkOp.insert(contactdto)
-        // const bulktInsert = await this.db.collection("testcollection").initializeUnorderedBulkOp()
-        // const res : MongoInsertDTO[]= [{_id:"1", location:"kerala"}, {_id:"2", location:"banglore"}, {_id:"3", location:"delhi"}] 
-        // for await(const contact of res){
-        //     const obj = new MongoInsertDTO()
-        //     obj._id = contact._id
-        //     obj.location = contact.location
-        //     bulkOp.insert(obj)
-        //     console.log("inserting")
-        // }
-        const doc = new ContactDocument()
-        doc._id = contactdto._id;
-        doc.carrier= contactdto.carrier;
-        doc.country = contactdto.country;
-        doc.lineType = contactdto.line_type;
-        doc.location = contactdto.location;
-        doc.name = contactdto.name;
-        doc.phoneNumber = contactdto.phoneNumber;
-        doc.spammCount = contactdto.spammerStatus.spamCount;
-
-        bulkOp.insert(doc)
+    }))
+    console.log(arr)
+    for await(const c of contactsWithCarrierInfo){
+        bulkOp.insert(c)
     }
+
+    // for(let contactdto of arr){
+    //     const doc = new ContactDocument()
+    //     doc._id = contactdto._id;
+    //     doc.carrier= contactdto.carrier;
+    //     doc.country = contactdto.country;
+    //     doc.lineType = contactdto.line_type;
+    //     doc.location = contactdto.location;
+    //     doc.name = contactdto.name;
+    //     doc.phoneNumber = contactdto.phoneNumber;
+    //     doc.spammCount = contactdto.spammerStatus.spamCount;
+
+    //     bulkOp.insert(doc)
+    // }
+       
     console.log("performing  bulk insert contactservice")
     try{
         bulkOp.execute()
