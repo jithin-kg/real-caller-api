@@ -40,8 +40,9 @@ export class CarrierService{
                 //  info =  await db.collection('indiaprefixlocationmaps').findOne({prefix:`%${CarrierService.prefix}%`})
                 
                 info =  await db.collection(Constants.COLLECTION_NUMBER_PREFIX_GEOINGO).findOne({_id:{ $regex: new RegExp(firstNDigitsToGetCarrierInfo)}}) //phoneNumWithLocalRegionCode
+                // info =  await db.collection(Constants.COLLECTION_NUMBER_PREFIX_GEOINGO).findOne({_id:"9163663"}) //phoneNumWithLocalRegionCode
                 
-                // console.log(`info is ${info.location}`)
+                console.log(`info is ${info.location}`)
             }else if(country!=null &&  country!=countryISO){
                 const phoneUtil = googlePhoneLib.PhoneNumberUtil.getInstance();
                firstNDigitsToGetCarrierInfo = firstNDigitsToGetCarrierInfo.replace("+","").trim()

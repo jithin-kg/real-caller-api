@@ -15,7 +15,10 @@ import { ContactRequestDTO } from "./contactRequestDTO";
 import { ContactInsertDTO } from "./contactInsertDto";
 import { ContactNewDoc } from "src/multiple-number-search/cotactsNewDoc";
 import { ContactDocument } from "./contactInsertDocument";
+import { ContactReturnDto } from "src/multiple-number-search/contactReturn.dto";
+import {ContactReturnDTOItems} from "./contactsReturnDTO"
 const hash = require('crypto').createHash;
+
 
 
 const worker = require("workerpool");
@@ -67,18 +70,20 @@ export class ContactService {
  *  bulk.find({name:"jithin"}).upsert().updateOne({$setOnInsert:{"age":2}, $set:{"new":"idk"} });
  * @param contacts contacts in request body to be saved in database
  */
-  async uploadBulk(contacts:ContactRequestDTO[], countryCode:number, countryISO:string){
+  async uploadBulk(contacts:ContactRequestDTO[], countryCode:number, countryISO:string): Promise<ContactReturnDTOItems[]>{
       console.log("inside upload bule contactservice")
       const bulkOp = await this.db.collection("contactsOfUser").initializeUnorderedBulkOp()
      const contactsWithCarrierInfo: ContactDocument[] = []
-      let contactdto:ContactInsertDTO 
+      let contactdto:ContactInsertDTO ;
+      let contactReturnItem:ContactReturnDTOItems;
+      let contactsReturnArray:ContactReturnDTOItems[] = []
         // let arr = await Promise.allSettled(contacts.map(async contact=>
         let arr = await Promise.allSettled(contacts.map(async contact=>{
         let firstNDigitsToGetCarrierInfo = ""
         try{
              contactdto = new ContactInsertDTO();
-            contactdto.phoneNumber = contact.phoneNumber.replace("*","").replace("#", "").trim()
-            contactdto.firstNDigits = contact.firstNDigits;
+            // contactdto.firstNDigits = contact.firstNDigits.replace("*","").replace("#", "").replace("-","").replace("(","").replace(")","").trim()
+            contactdto.phoneNumber = contact.phoneNumber.trim();
             contactdto.name = contact.name;
             this.initFields(contactdto);
             firstNDigitsToGetCarrierInfo = contact.firstNDigits
@@ -104,12 +109,21 @@ export class ContactService {
                 contactdto.line_type = carrierInfo.value.lineType.trim();
                 contactdto.location = carrierInfo.value.location.trim();
 
-            
     
                 document.carrier = carrierInfo.value.carrier.trim();
                 document.lineType = carrierInfo.value.lineType.trim()
                 document.location = carrierInfo.value.location.trim();
-                document.spammCount = 0
+                document.spammCount = 0;
+
+                contactReturnItem = new ContactReturnDTOItems();
+                contactReturnItem.carrier = carrierInfo.value.carrier.trim();
+                contactReturnItem.lineType = carrierInfo.value.lineType.trim()
+                contactReturnItem.location = carrierInfo.value.location.trim();
+                contactReturnItem.spamCount = 0;
+                contactReturnItem.firstNDigits = contact.firstNDigits
+                console.log(`first n digit while inserting is ${contactReturnItem.firstNDigits}`)
+                contactsReturnArray.push(contactReturnItem);
+                
             }
             if(hashedPhone.status == "fulfilled"){
                 contactdto.phoneNumber = hashedPhone.value
@@ -132,6 +146,10 @@ export class ContactService {
        
     }))
     console.log(arr)
+    /**
+     * I can only bulk insert after completing promise.settle all, otherwise parellel
+     * operation results in data not being inserted if there is a duplicate
+     */
     for await(const c of contactsWithCarrierInfo){
         bulkOp.insert(c)
     }
@@ -152,10 +170,13 @@ export class ContactService {
        
     console.log("performing  bulk insert contactservice")
     try{
-        bulkOp.execute()
+        await bulkOp.execute()
     }catch(e){
         console.log(`bulk insert contacts error ${e}`)
+    }finally{
+        return contactsReturnArray;
     }
+
    
 
   }

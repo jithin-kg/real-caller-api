@@ -14,7 +14,18 @@ export class SpamService {
     constructor(@Inject('DATABASE_CONNECTION') private db:Db ) {
          this.collection = this.db.collection( CollectionNames.CONTACTS_COLLECTION);
     }
-
+    async reportTest(spamData:SpamDTO){
+        let pno = spamData.phoneNumber
+        try{
+            const phoneNum = await (await this.preparePhonenNum(pno)).trim()
+            console.log(`prepared phoneNum is ${phoneNum}`)                                                  
+             const result = await this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).updateOne({_id:phoneNum},
+                {$inc:{'spammCount':1}});
+            console.log(result)
+        }catch(e){
+            console.log(e);
+        }
+    }
     /**
      * 
      * @param pno :String phone num
@@ -28,13 +39,13 @@ export class SpamService {
             try{
                 //TODO SANITISE INPUT REMOEV + IN PHONE NUMBER OR REGULAR EXPRESSION CRASHES while searching
                 //and need to sanitise input
-                const phoneNum = await this.preparePhonenNum(pno)
+                const phoneNum = await (await this.preparePhonenNum(pno)).trim();
                 //check if already the user reported this perticular phone number for spam
                 spamData.phoneNumber = phoneNum
-                const isAlreadyReported = await this.isUserAlreadyReported(spamData)
+                const isAlreadyReported = await this.isUserAlreadyReported(spamData, phoneNum)
                 if(!isAlreadyReported){
                     //the user have not reported this phone number as spam
-                    let r = await this.incrementSpamCounterFortheNumber(pno).catch(e=>{
+                    let r = await this.incrementSpamCounterFortheNumber(phoneNum).catch(e=>{
                         console.log(`error while updating spam record ${e}`)
                     });
                     if(r){
@@ -68,10 +79,10 @@ export class SpamService {
     
     }
 
-    async isUserAlreadyReported(spamData:SpamDTO) : Promise<Boolean>{
+    async isUserAlreadyReported(spamData:SpamDTO, phoneNum:string) : Promise<Boolean>{
         const query = {uid:spamData.uid, phoneNum:spamData.phoneNumber}
        const result = await  this.db.collection("userSpamReportRecord")
-                    .findOne({$and:[{uid:spamData.uid}, {phoneNumber:spamData.phoneNumber}]})
+                    .findOne({$and:[{uid:spamData.uid}, {phoneNumber:phoneNum}]})
                            
             if(result == null){
                 return false
@@ -79,15 +90,15 @@ export class SpamService {
             return true
     }
     async preparePhonenNum(pno:string):Promise<string>{
-        pno = pno.trim().replace("+","")
         pno = await hash('sha256').update(pno).digest('base64')
         return pno;
     }
-     incrementSpamCounterFortheNumber(pno){
+     incrementSpamCounterFortheNumber(pno:string){
         return new Promise((resolve, reject)=>{
             // ContactDto    
-             this.db.collection('contactsNew').updateOne({phoneNumber:pno},
-                {$inc:{'spammerStatus.spamCount':1}}, {upsert:true}
+            console.log(pno)
+             this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).updateOne({_id:pno.trim()},
+                {$inc:{'spammCount':1}}
                 ).then(data=>{
                     resolve(data)
                 }).catch(e=>{
