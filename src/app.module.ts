@@ -11,14 +11,17 @@ import { MultipleNumberSearchService } from './multiple-number-search/multiple-n
 import { MultiplenumbersearchModule } from './multiple-number-search/multiplenumbersearch.module';
 import { DatabaseModule } from './db/Database.Module';
 import { NumberTransformService } from './utils/numbertransform.service';
+import {CallsModule} from "./calls/calls.module";
 
 
 @Module({
-  imports: [UserModule,
+  imports: [
+    UserModule,
     SearchModule,
     ContactModule,
     SpamModule,
     MultiplenumbersearchModule,
+    CallsModule,
     DatabaseModule
     // MongooseModule.forRoot("mongodb+srv://rlclerDBUser:IJVezz622jI7k83m@rlcaller-rest-cluster0-40d1h.mongodb.net/phoneNumberPrefixLocationMap?retryWrites=true&w=majority")
   ],

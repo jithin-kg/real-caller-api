@@ -3,16 +3,17 @@ import { rejects } from 'assert';
 import { Collection, Cursor, Db } from 'mongodb';
 import { resolve } from 'path';
 import { ContactDto, SpammerStatus } from 'src/contact/contact.dto';
-import { CollectionNames } from 'src/db/collection.names';
-import { NumberTransformService } from 'src/utils/numbertransform.service';
-import { ContactAdderssWithHashedNumber } from './contactAddressWithHashedNumDTO';
-import { ContactReturnDto } from './contactReturn.dto';
-import { ContactNewDoc } from './cotactsNewDoc';
-import { RehashedItemWithOldHash } from './RehashedItemwithOldHash';
-import { RequestDTO } from './requestDTO';
+import {CollectionNames} from "../db/collection.names";
+import {RequestDTO} from "../multiple-number-search/requestDTO";
+import {RehashedItemWithOldHash} from "../multiple-number-search/RehashedItemwithOldHash";
+import {ContactReturnDto} from "../multiple-number-search/contactReturn.dto";
+import {ContactAdderssWithHashedNumber} from "../multiple-number-search/contactAddressWithHashedNumDTO";
+import {NumberTransformService} from "../utils/numbertransform.service";
+import {ContactNewDoc} from "../multiple-number-search/cotactsNewDoc";
+
 
 @Injectable()
-export class MultipleNumberSearchService {
+export class CallService {
     private collection:Collection
     constructor(@Inject('DATABASE_CONNECTION') private db:Db, private numberTranformService: NumberTransformService ) {
         this.collection = this.db.collection( CollectionNames.CONTACTS_COLLECTION);
@@ -38,9 +39,10 @@ export class MultipleNumberSearchService {
         // let result:ContactReturnDto[] = []
         return arrWithSearchResults;
     }
-    async rehashArrayItems(arrayOfHahsedNums: ContactAdderssWithHashedNumber[]) : Promise<RehashedItemWithOldHash[]>{
-        let resultArray:RehashedItemWithOldHash[] = []
-    
+    private async rehashArrayItems(arrayOfHahsedNums: ContactAdderssWithHashedNumber[]): Promise<RehashedItemWithOldHash[]>{
+        let resultArray: RehashedItemWithOldHash[];
+        resultArray = [];
+
         return new Promise(async (resolve, rejects)=>{
             for await(const hashedNum of arrayOfHahsedNums){
                 try{
@@ -51,10 +53,10 @@ export class MultipleNumberSearchService {
                     obj.name = "sample"
                     obj.spamCount = 0
                  console.log("--------------------hash ------------------------")
-                   console.log(rehasehdNum) 
+                   console.log(rehasehdNum)
                    console.log("--------------------end hash ------------------------")
                    if(rehasehdNum !=null){
-                      
+
                         resultArray.push(obj)
                    }
                 }catch(e){
@@ -63,7 +65,7 @@ export class MultipleNumberSearchService {
                 }
             }
             resolve(resultArray)
-        } ) 
+        } )
             
         
     }
