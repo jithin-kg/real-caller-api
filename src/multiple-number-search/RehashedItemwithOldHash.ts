@@ -1,7 +1,7 @@
 
 
 export class RehashedItemWithOldHash{
-    oldHash:string;
+    phoneNumber:string;
     newHash:string;
     name:string;
     spamCount:Number;

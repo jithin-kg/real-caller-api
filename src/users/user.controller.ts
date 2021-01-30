@@ -9,16 +9,16 @@ export class Usercontroller {
     @Post('signup')
     async signUp(@Body() user: UserDto) {
         // const secuser: UserDto = Object.create(null);
-        
-        const secuser: UserDto = new UserDto();
-        console.log(user)
-        secuser.firstName = user.firstName;
-        secuser.email = user.email;
-        // secuser.accountType = user.accountType== undefined ?"premium":"regular";
-        secuser.accountType = user.accountType = "premium";
-        secuser.uid = user.uid;
-        // secuser.lastName = "123";
-        Object.freeze(secuser);
+        console.log("users sign up")
+        // const secuser: UserDto = new UserDto();
+        // console.log(user)
+        // secuser.firstName = user.firstName;
+        // secuser.email = user.email;
+        // // secuser.accountType = user.accountType== undefined ?"premium":"regular";
+        // // secuser.accountType = user.accountType = "premium";
+        // secuser.uid = user.uid;
+        // // secuser.lastName = "123";
+        // Object.freeze(secuser);
         
         
         
@@ -30,7 +30,7 @@ export class Usercontroller {
             
         // }, 5000)
         // console.log(`result is ${result}`)
-        let reslt = await this.userService.signup(secuser)
+        let reslt = await this.userService.signup(user)
         return {message:reslt};
         // return {message:}
         

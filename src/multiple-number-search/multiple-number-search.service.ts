@@ -5,6 +5,7 @@ import { resolve } from 'path';
 import { ContactDto, SpammerStatus } from 'src/contact/contact.dto';
 import { CollectionNames } from 'src/db/collection.names';
 import { NumberTransformService } from 'src/utils/numbertransform.service';
+import { ContactAdderssWithHashedNumber } from './contactAddressWithHashedNumDTO';
 import { ContactReturnDto } from './contactReturn.dto';
 import { ContactNewDoc } from './cotactsNewDoc';
 import { RehashedItemWithOldHash } from './RehashedItemwithOldHash';
@@ -24,7 +25,7 @@ export class MultipleNumberSearchService {
      */
     // async getDetailsForNumbers(phoneNumbers: RequestDTO): Promise<ContactReturnDto[]> {
         async getDetailsForNumbers(phoneNumbers: RequestDTO): Promise<RehashedItemWithOldHash[]> {
-        const arrayOfHahsedNums:string[] = phoneNumbers.hashedPhoneNum
+        const arrayOfHahsedNums:ContactAdderssWithHashedNumber[] = phoneNumbers.hashedPhoneNum
         let resultArray:ContactReturnDto[]
         
         let rehashedItems:RehashedItemWithOldHash[] = await this.rehashArrayItems(arrayOfHahsedNums)
@@ -37,18 +38,18 @@ export class MultipleNumberSearchService {
         // let result:ContactReturnDto[] = []
         return arrWithSearchResults;
     }
-    async rehashArrayItems(arrayOfHahsedNums: string[]) : Promise<RehashedItemWithOldHash[]>{
+    async rehashArrayItems(arrayOfHahsedNums: ContactAdderssWithHashedNumber[]) : Promise<RehashedItemWithOldHash[]>{
         let resultArray:RehashedItemWithOldHash[] = []
     
         return new Promise(async (resolve, rejects)=>{
             for await(const hashedNum of arrayOfHahsedNums){
                 try{
-                   let rehasehdNum = await  this.numberTranformService.tranforNum(hashedNum)
+                   let rehasehdNum = await  this.numberTranformService.tranforNum(hashedNum.contactAddressHashed)
                    const obj = new RehashedItemWithOldHash()
-                   obj.oldHash = hashedNum;
+                   obj.phoneNumber = hashedNum.contactAddersString;
                    obj.newHash = rehasehdNum
                     obj.name = "sample"
-                    obj.spamCount = 100
+                    obj.spamCount = 0
                  console.log("--------------------hash ------------------------")
                    console.log(rehasehdNum) 
                    console.log("--------------------end hash ------------------------")
@@ -91,7 +92,7 @@ export class MultipleNumberSearchService {
                         const obj = new RehashedItemWithOldHash()
                         obj.name = contactInfoFromDb.name;
                         obj.lineType = contactInfoFromDb.line_type;
-                        obj.oldHash = rehasehdNum.oldHash;
+                        obj.phoneNumber = rehasehdNum.phoneNumber;
                         obj.newHash = ""
                         obj.spamCount = contactInfoFromDb.spammerStatus.spamCount
                         
@@ -100,6 +101,13 @@ export class MultipleNumberSearchService {
 
                    } else{
                        console.log("not found in db")
+                       const obj = new RehashedItemWithOldHash()
+                        obj.name = "";
+                        obj.lineType = "";
+                        obj.phoneNumber = rehasehdNum.phoneNumber;
+                        obj.newHash = ""
+                        obj.spamCount = 0
+                       resultArray.push(obj)
                    }
                 }catch(e){
                     console.log(`error while processing multiplenumbersearchservice \n`)

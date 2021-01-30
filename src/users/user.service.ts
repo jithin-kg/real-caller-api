@@ -23,7 +23,7 @@ export class Userservice {
           if(user== null ){
             await validateOrReject(userDto) //validation
               try{  
-                let newUser = this.prepareUser(userDto);
+                let newUser = await this.prepareUser(userDto);
 
                await this.db.collection('users').insertOne(newUser);
                 
@@ -47,11 +47,15 @@ export class Userservice {
 }
 
 private prepareUser(userDto:UserDto):User{
-  let newUser = new User();
-  newUser.accountType = userDto.accountType;
+  let newUser = new UserDto();
+  // newUser.accountType = userDto.accountType;
   newUser.email = userDto.email;
   newUser.firstName = userDto.firstName;
   newUser.uid = userDto.uid;
+  newUser.gender = userDto.gender
+  newUser.phoneNumber = userDto.phoneNumber;
+  newUser.lastName = userDto.lastName
+  
   return newUser;
 }
 
