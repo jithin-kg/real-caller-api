@@ -4,6 +4,7 @@ import { resolve } from "path";
 import { SpamDTO } from "./spam.dto";
 
 import { SpamService } from "./spam.service";
+import {UidOnlyRequest} from "./uidOnlyRequest";
 
 @Controller('spam')
 export class Spamcontroller {
@@ -19,5 +20,10 @@ export class Spamcontroller {
     // console.log("search result " + d[0]);
 
     return {"message":"1", "cntcts":d}; 
+    }
+
+    @Post('incrementTotalSpamCount')
+    async incrementTotalSpamCount(@Body() ui:UidOnlyRequest){
+        await this.service.incrementTotalSpamCount()
     }
 }
