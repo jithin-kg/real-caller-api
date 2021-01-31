@@ -139,7 +139,7 @@ export class SpamService {
 
 
     async incrementTotalSpamCount() {
-        await this.db.collection("TotalSpamBlocked").updateOne({},
+        await this.db.collection("totalspamblocks").updateOne({},
             {$inc:{"spamCount": 1}})
     }
 }
