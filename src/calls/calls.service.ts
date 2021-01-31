@@ -12,6 +12,7 @@ import {NumberTransformService} from "../utils/numbertransform.service";
 import {ContactNewDoc} from "../multiple-number-search/cotactsNewDoc";
 
 
+
 @Injectable()
 export class CallService {
     private collection:Collection
@@ -25,7 +26,12 @@ export class CallService {
      * 
      */
     // async getDetailsForNumbers(phoneNumbers: RequestDTO): Promise<ContactReturnDto[]> {
+        /**
+         * 
+         * @param phoneNumbers for handling request to get informatoin for call log data
+         */
         async getDetailsForNumbers(phoneNumbers: RequestDTO): Promise<RehashedItemWithOldHash[]> {
+
         const arrayOfHahsedNums:ContactAdderssWithHashedNumber[] = phoneNumbers.hashedPhoneNum
         let resultArray:ContactReturnDto[]
         
@@ -49,7 +55,7 @@ export class CallService {
                    let rehasehdNum = await  this.numberTranformService.tranforNum(hashedNum.contactAddressHashed)
                    const obj = new RehashedItemWithOldHash()
                    obj.phoneNumber = hashedNum.contactAddressString;
-                   obj.newHash = rehasehdNum
+                   obj.newHash = rehasehdNum   
                     obj.name = "sample"
                     obj.spamCount = 0
                  console.log("--------------------hash ------------------------")

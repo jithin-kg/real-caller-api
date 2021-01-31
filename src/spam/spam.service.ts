@@ -5,6 +5,7 @@ import { type } from "os";
 import { CollectionNames } from "src/db/collection.names";
 import { ContactDto } from "src/contact/contact.dto";
 import { SpamDTO } from "./spam.dto";
+import { ContactDocument } from "src/contact/contactDocument";
 const hash = require('crypto').createHash;
 
 @Injectable()
@@ -42,31 +43,32 @@ export class SpamService {
                 const phoneNum = await (await this.preparePhonenNum(pno)).trim();
                 //check if already the user reported this perticular phone number for spam
                 spamData.phoneNumber = phoneNum
-                const isAlreadyReported = await this.isUserAlreadyReported(spamData, phoneNum)
-                if(!isAlreadyReported){
-                    //the user have not reported this phone number as spam
-                    let r = await this.incrementSpamCounterFortheNumber(phoneNum).catch(e=>{
-                        console.log(`error while updating spam record ${e}`)
-                    });
-                    if(r){
-                        let doc :SpamDTO = Object(null)
-                        doc.uid = spamData.uid
-                        doc.phoneNumber = phoneNum
-
-                       const iResponse =  await this.db.
-                                    collection('userSpamReportRecord').insertOne(doc)
-                                    .catch(e=>{
-                                        console.log(`error while inserting new  spam report ${e} `)
-                                    })
-                        if(iResponse){
-                            console.log("suscesfully inserted new spam record")
-                            //insert / upsirt
-                            return "Successfully reported the number as spam"
+                const isAvailable = await this.isNumberExistInDb(spamData.phoneNumber)
+                if(isAvailable){
+                    const isAlreadyReported = await this.isUserAlreadyReported(spamData, phoneNum)
+                    if(!isAlreadyReported){
+                        //the user have not reported this phone number as spam
+                        let r = await this.incrementSpamCounterFortheNumber(phoneNum).catch(e=>{
+                            console.log(`error while updating spam record ${e}`)
+                        });
+                        if(r){
+                          await this.associateTheReportedUserWithTheNumber(spamData, phoneNum)
                         }
+                        console.log("updated spam recoed" + r);
+                      
                     }
-                    console.log("updated spam recoed" + r);
-                  
+                }else{
+                    //insert new Record/because the spammer number is not present in db
+                    let doc = new ContactDocument();
+                    doc.spamCount = 1;
+                    doc._id = spamData.phoneNumber;
+                    spamData.phoneNumber
+                   let result = await this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).insertOne(doc)
+                    if(result){
+                        this.associateTheReportedUserWithTheNumber(spamData, phoneNum)
+                    }
                 }
+                
                 
                 return "You have already reported this number"
             }catch(e){
@@ -77,6 +79,15 @@ export class SpamService {
       
           
     
+    }
+
+    async isNumberExistInDb(phoneNumber:string) : Promise<Boolean>{
+       const res =  await this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).findOne({_id:phoneNumber})
+       console.log(res);
+       if(res)
+       return true;
+
+       return false
     }
 
     async isUserAlreadyReported(spamData:SpamDTO, phoneNum:string) : Promise<Boolean>{
@@ -98,40 +109,34 @@ export class SpamService {
             // ContactDto    
             console.log(pno)
              this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).updateOne({_id:pno.trim()},
-                {$inc:{'spammCount':1}}
+                {$inc:{'spamCount':1}}
                 ).then(data=>{
                     resolve(data)
                 }).catch(e=>{
                     reject(e)
                 })
 //                 //TODO when inserting insert data 
-//                 // When you added the score to a player with :
 
-// // PlayersList.insert({name: 'test', score:3});
-
-// // I suppose, you could increase the score. But not anymore.
-
-// // It's because you passed a text parameter instead of an integer. When you add a player you should use parseInt():
-
-// //  PlayersList.insert({
-// //   name: name,
-// //   score: parseInt(score),
-// //   createdBy: Meteor.userId()
-// // })
-// // https://stackoverflow.com/questions/28837301/meteor-methods-and-mongo-inc-non-number-error/29078249
-// o
-
-
-//                 {$inc:{'spammerStatus.spamCount': {qty:1}}}, 
-//                 (err,data)=>{
-//                     if(err){
-//                         reject(err);
-//                     }else{
-//                         resolve(data);
-//                     }
-//                 })
             
         })
     }
+    private async associateTheReportedUserWithTheNumber(spamData: SpamDTO, phoneNum: any) {
+        let doc :SpamDTO = Object(null)
+        doc.uid = spamData.uid
+        doc.phoneNumber = phoneNum
+
+        const iResponse =  await this.db.
+        collection('userSpamReportRecord').insertOne(doc)
+            .catch(e=>{
+                console.log(`error while inserting new  spam report ${e} `)
+            })
+        if(iResponse){
+            console.log("suscesfully inserted new spam record")
+            //insert / upsirt
+            return "Successfully reported the number as spam"
+        }
+    }
+
+
 }
 

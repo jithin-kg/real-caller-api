@@ -33,7 +33,7 @@ export class ContactController {
          let res = await this.contactService.uploadBulk(contactsDTO.contacts, contactsDTO.countryCode, contactsDTO.countryISO)   
 
          return {message:"1", "cntcts":res}
-        //    let res = await  this.contactService.upload(contacts)
+        //    let res = await  this.contactService.upload(contacts)d
         //    return {"message":"1", "cntcts":[{"name":"jithin",
         //    "phoneNumber":"918086176336", 
         //     "carrier":"vodafone",

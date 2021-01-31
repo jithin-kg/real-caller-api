@@ -8,6 +8,7 @@ import awesomePhonenumber, * as awsomePhoneNumber from "awesome-phonenumber"
 import { Constants } from "src/utils/constants";
 
 import * as googlePhoneLib from "google-libphonenumber" ;
+import { isNotEmpty } from "class-validator";
 
 export class CarrierService{
     static prefix:string
@@ -15,10 +16,13 @@ export class CarrierService{
     static async  getInfo(firstNDigitsToGetCarrierInfo:string, db:Db, countryCode: number, countryISO:string) : Promise<Indiaprefixlocationmaps>{
         
         let info: Indiaprefixlocationmaps
+        let countryCodeForInsertingInDB  = ""
        /**
         * for awsome phone number to auto-detect the country we need + in the begining
+        * 
         */
-    
+    //todo while saving prefixlocaionmapping in database/api I need to add the coutry also,
+    //then only we know which coutry is the prefix belongs to and update data accordingly
         
         try{
             if(firstNDigitsToGetCarrierInfo !=null)
@@ -52,14 +56,18 @@ export class CarrierService{
                     let prefixForComparing =  countryCode + firstNDigitsToGetCarrierInfo
                     prefixForComparing = prefixForComparing.replace("+", "").substr(0, 7).trim()
                     info = await db.collection(Constants.COLLECTION_NUMBER_PREFIX_GEOINGO).findOne({_id: {$regex: new RegExp(prefixForComparing)}})
+                    console.log(info)
+                    countryCodeForInsertingInDB = countryISO;
                 }else{
                     firstNDigitsToGetCarrierInfo = firstNDigitsToGetCarrierInfo.replace("+","").substr(0, 7).trim();
                     info = await db.collection(Constants.COLLECTION_NUMBER_PREFIX_GEOINGO).findOne({_id: {$regex: new RegExp(firstNDigitsToGetCarrierInfo)}})
+                    console.log(info)
                 }
                 
             }else{
                 firstNDigitsToGetCarrierInfo = firstNDigitsToGetCarrierInfo.replace("+","").substr(0, 7).trim();
                 info = await db.collection(Constants.COLLECTION_NUMBER_PREFIX_GEOINGO).findOne({_id: {$regex: new RegExp(firstNDigitsToGetCarrierInfo)}})
+                console.log(info)
             }
             //todo check other countries as well
             //if nothing matches check in the users table and check if the user belong to which country
