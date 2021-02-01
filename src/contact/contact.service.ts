@@ -6,6 +6,7 @@ import { parsePhoneNumberFromString, PhoneNumber } from "libphonenumber-js";
 import { ContactController } from "./contact.controller";
 import { Inject } from "@nestjs/common";
 import { Db } from "mongodb";
+import * as chalk from "chalk";
 
 import { MongoInsertDTO } from "./mongoinsertdto";
 import { ContactRequestDTO } from "./contactRequestDTO";
@@ -77,7 +78,7 @@ export class ContactService {
     try{
         await bulkOp.execute()
     }catch(e){
-        console.log(`bulk insert contacts error ${e}`)
+        console.log(chalk.red(`bulk insert contacts error ${e}`))
     }finally{
         return this.contactsListForResponse;
     }
@@ -106,11 +107,13 @@ export class ContactService {
                         contactWithCarrierInfo.carrier = carrierInfo.value.carrier.trim();
                         contactWithCarrierInfo.lineType = carrierInfo.value.lineType.trim()
                         contactWithCarrierInfo.location = carrierInfo.value.location.trim();
-                        contactWithCarrierInfo.spamCount = 0;
-                        contactWithCarrierInfo.phoneNumber = contact.phoneNumber
-                        contactWithCarrierInfo.hashedPhoneNumber = contact.hashedPhoneNumber
-                        contactWithCarrierInfo.name = contact.name;
+                        
+                      
                     }
+                    contactWithCarrierInfo.spamCount = 0;
+                    contactWithCarrierInfo.hashedPhoneNumber = contact.hashedPhoneNumber
+                    contactWithCarrierInfo.name = contact.name;
+                    contactWithCarrierInfo.phoneNumber = contact.phoneNumber
 
 
 
@@ -120,7 +123,7 @@ export class ContactService {
 
 
             }catch(e){
-                console.log(`${e} for phone no `)
+                console.log(chalk.red(`${e} for phone no `))
             }
 
 
@@ -143,7 +146,7 @@ export class ContactService {
 
             }catch (e){
 
-                console.log(`error while hashing phone number ${e}`)
+                console.log(chalk.red(`error while hashing phone number ${e}`))
             }
         }))
     }

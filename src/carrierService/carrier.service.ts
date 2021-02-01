@@ -6,6 +6,7 @@ import { HttpException } from "@nestjs/common";
 import { Db } from "mongodb";
 import awesomePhonenumber, * as awsomePhoneNumber from "awesome-phonenumber"
 import { Constants } from "src/utils/constants";
+import * as chalk from "chalk";
 
 import * as googlePhoneLib from "google-libphonenumber" ;
 import { isNotEmpty } from "class-validator";
@@ -46,7 +47,7 @@ export class CarrierService{
                 info =  await db.collection(Constants.COLLECTION_NUMBER_PREFIX_GEOINGO).findOne({_id:{ $regex: new RegExp(firstNDigitsToGetCarrierInfo)}}) //phoneNumWithLocalRegionCode
                 // info =  await db.collection(Constants.COLLECTION_NUMBER_PREFIX_GEOINGO).findOne({_id:"9163663"}) //phoneNumWithLocalRegionCode
                 
-                console.log(`info is ${info.location}`)
+            
             }else if(country!=null &&  country!=countryISO){
                 const phoneUtil = googlePhoneLib.PhoneNumberUtil.getInstance();
                firstNDigitsToGetCarrierInfo = firstNDigitsToGetCarrierInfo.replace("+","").trim()
@@ -78,7 +79,7 @@ export class CarrierService{
         
             //  console.log(CarrierService.prefix+":info in carrierservice "+info );
         }catch(e){
-            console.log("error while getting carrierinfo " + e)
+            console.log(chalk.red(`error while getting carrierinfo ${e} `))
         
         }
         // if(info != null )
