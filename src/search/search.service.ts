@@ -17,6 +17,8 @@ export class SearchService {
     async search(pno:string) {
         // pno = pno.replace('+', "")
         let hashedPhone = await hash('sha256').update(pno).digest('base64');
+        //'0M2ty/u2TJYSLCTd3Mz37Sb+eCEpWuTa7ixUPdye5oE='
+        
         console.log('hashed phone number', hashedPhone);
 
         let res = [];
@@ -55,3 +57,6 @@ export class SearchService {
         })
     }
 }
+
+// 1QZNour+mmFYF/F3rohGc7gs3vQYAsmL2us9MURT40M=
+// 1QZNour+mmFYF/F3rohGc7gs3vQYAsmL2us9MURT40M=

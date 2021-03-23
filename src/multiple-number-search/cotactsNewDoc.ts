@@ -20,7 +20,7 @@ export class ContactNewDoc  {
     @IsString()
     country?:string;
 
-    spammerStatus:SpammerStatus
+    spamCount:Number
 }
 
 //todo make interface to class,because there is no interfaces in js

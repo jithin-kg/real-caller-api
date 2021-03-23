@@ -36,7 +36,7 @@ export class CallService {
         let resultArray:ContactReturnDto[]
         
         let rehashedItems:RehashedItemWithOldHash[] = await this.rehashArrayItems(arrayOfHahsedNums)
-
+        //0M2ty/u2TJYSLCTd3Mz37Sb+eCEpWuTa7ixUPdye5oE= newhash
        let arrWithSearchResults:RehashedItemWithOldHash[] =  await this.searchInDBForRehashedItems(rehashedItems)
 
 
@@ -84,7 +84,7 @@ export class CallService {
                 try{
                                    
                     console.log(`searching in db rehasehdNum is ${rehasehdNum}`)
-                   const contactInfoFromDb:ContactNewDoc = await this.db.collection("contactsNew").findOne({phoneNumber: rehasehdNum.newHash})
+                   const contactInfoFromDb:ContactNewDoc = await this.db.collection("contactsOfUser").findOne({_id: rehasehdNum.newHash})
                    if(contactInfoFromDb !=null){
                         // const ob = new ContactReturnDto()
                         // ob.hashOne = rehasehdNum.oldHash
@@ -102,7 +102,7 @@ export class CallService {
                         obj.lineType = contactInfoFromDb.line_type;
                         obj.phoneNumber = rehasehdNum.phoneNumber;
                         obj.newHash = ""
-                        obj.spamCount = contactInfoFromDb.spammerStatus.spamCount
+                        obj.spamCount = contactInfoFromDb.spamCount
                         
                         resultArray.push(obj)
                         // ob.carrier = rehasehdNum.carr

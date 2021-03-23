@@ -74,9 +74,11 @@ export class MultipleNumberSearchService {
         return new Promise(async (resolve, rejects)=>{
             for await( const rehasehdNum of arrayOfHahsedNums){
                 try{
-                                   
-                    console.log(`searching in db rehasehdNum is ${rehasehdNum}`)
-                   const contactInfoFromDb:ContactNewDoc = await this.db.collection("contactsNew").findOne({phoneNumber: rehasehdNum.newHash})
+                    console.log("rehsehdNum is  ",rehasehdNum.newHash)
+                    console.log(`searching in db rehasehdNum is ${rehasehdNum}`) 
+                    // const contactInfoFromDb:ContactNewDoc = await this.db.collection("contactsOfUser").findOne({phoneNumber: })
+                    const contactInfoFromDb:ContactNewDoc = await this.db.collection("contactsOfUser").findOne({_id: rehasehdNum.newHash})
+                 
                    if(contactInfoFromDb !=null){
                         // const ob = new ContactReturnDto()
                         // ob.hashOne = rehasehdNum.oldHash
@@ -94,7 +96,7 @@ export class MultipleNumberSearchService {
                         obj.lineType = contactInfoFromDb.line_type;
                         obj.phoneNumber = rehasehdNum.phoneNumber;
                         obj.newHash = ""
-                        obj.spamCount = contactInfoFromDb.spammerStatus.spamCount
+                        obj.spamCount = contactInfoFromDb.spamCount
                         
                         resultArray.push(obj)
                         // ob.carrier = rehasehdNum.carr

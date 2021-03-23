@@ -113,8 +113,7 @@ export class ContactService {
                     contactWithCarrierInfo.spamCount = 0;
                     contactWithCarrierInfo.hashedPhoneNumber = contact.hashedPhoneNumber
                     contactWithCarrierInfo.name = contact.name;
-                    contactWithCarrierInfo.phoneNumber = contact.phoneNumber
-
+                    contactWithCarrierInfo.phoneNumber = contact.phoneNumber;
 
 
                     console.log(`first n digit while inserting is ${contactWithCarrierInfo.phoneNumber}`)
@@ -160,7 +159,7 @@ export class ContactService {
         contactReturnObj.lineType = cntct.lineType
         contactReturnObj.location = cntct.location
         contactReturnObj.spamCount = cntct.spamCount
-        contactReturnObj.name = ""
+        contactReturnObj.name = cntct.name
         return contactReturnObj;
 
     }
