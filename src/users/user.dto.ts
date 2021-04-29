@@ -11,23 +11,25 @@ uid:'dGAOxDY8V9M4thGMFn65ORcyzaw1'
 export class UserDto {
     
 
-    @IsString()
-    email: string;
+    // @IsString()
+    // email: string;
     
     @IsString()
     firstName : string;
-
-    @IsString()
-    gender:string
+    
+    @IsString({})
+    gender?:string
 
     @IsString()
     lastName:string;
     
     @IsString()
-    phoneNumber:string;
+    phoneNumber?:string;
     
     @IsString()
     uid?:string;
+    
+    image?:Buffer
 
     
 }

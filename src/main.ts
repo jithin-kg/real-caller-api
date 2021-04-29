@@ -4,7 +4,8 @@ import { ValidationPipe } from '@nestjs/common';
 import * as dotenv from 'dotenv';
 
 import * as bodyParser from 'body-parser';
-
+//important mongodb security
+// https://docs.mongodb.com/manual/faq/fundamentals/#faq-developers-when-to-use-gridfs
 dotenv.config();
 
 async function bootstrap() {
@@ -22,6 +23,7 @@ async function bootstrap() {
    * I used body parser to recieve large amount of request body
    * https://stackoverflow.com/questions/52783959/nest-js-request-entity-too-large-payloadtoolargeerror-request-entity-too-larg/52785747
    */
+  
   app.use(bodyParser.json({limit: '50mb'}));
   app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 

@@ -12,6 +12,7 @@ import { MultiplenumbersearchModule } from './multiple-number-search/multiplenum
 import { DatabaseModule } from './db/Database.Module';
 import { NumberTransformService } from './utils/numbertransform.service';
 import {CallsModule} from "./calls/calls.module";
+import { MulterModule } from '@nestjs/platform-express';
 
 
 @Module({
@@ -22,7 +23,8 @@ import {CallsModule} from "./calls/calls.module";
     SpamModule,
     MultiplenumbersearchModule,
     CallsModule,
-    DatabaseModule
+    DatabaseModule,
+    MulterModule.register({dest: './files',})
     // MongooseModule.forRoot("mongodb+srv://rlclerDBUser:IJVezz622jI7k83m@rlcaller-rest-cluster0-40d1h.mongodb.net/phoneNumberPrefixLocationMap?retryWrites=true&w=majority")
   ],
   controllers: [AppController, MultipleNumberSearchController],

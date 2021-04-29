@@ -34,11 +34,34 @@ export class FirebaseMiddleware implements NestMiddleware {
             credential: firebaseAdmin.credential.cert(params)
         })
     }
+
+
+    /**
+     * This function is called from user signup router to get user id 
+     * because we are using multi part for file handling
+     * @param req
+     * @returns 
+     */
+    static async getUserId(req:any): Promise<string> {
+    
+           return new Promise(async (resolve, reject)=>{
+            try{
+              const token:string = req.header('Authorization').replace('Bearer', '').trim()
+            const tokenVerify = await firebaseAdmin.auth().verifyIdToken(token)
+            const userId = tokenVerify.uid;
+            resolve(userId)
+            }catch(e){
+                reject(e)
+            }
+           })
+        
+        
+    }
     async use(req: Request, res: Response, next: NextFunction) {
         try{
             const token:string = req.header('Authorization').replace('Bearer', '').trim()
             await this.validateRequest(req, token); 
-            next();
+            next()
             throw new HttpException("Bad request" , HttpStatus.BAD_REQUEST)
         }
         catch(e){
@@ -47,7 +70,7 @@ export class FirebaseMiddleware implements NestMiddleware {
         //  console.log(req.header('Authorization')) ;  
        
     }
-    private async validateRequest(req: Request, token) {
+     async validateRequest(req: Request, token) {
         try{
             console.log(token)
             const tokenVerify = await firebaseAdmin.auth().verifyIdToken(token)
@@ -58,7 +81,7 @@ export class FirebaseMiddleware implements NestMiddleware {
                 // console.log("Not admin");
             }
             req.body.uid = tokenVerify.uid; // setting user id in the request object
-
+            
             // console.log(req.body.username);
             console.log(tokenVerify.uid)
             console.log(tokenVerify)

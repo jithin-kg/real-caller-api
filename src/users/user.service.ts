@@ -3,19 +3,36 @@ import { UserDto } from "./user.dto";
 import { User } from "./user.schema";
 import { validateOrReject } from "class-validator";
 import { Db } from "mongodb";
+import { UserInfoResponseDTO } from "./userResponse.dto";
 
+import * as fs from 'fs'
 
 @Injectable()
 export class Userservice {
+    
+    async getUserInfoByid(id: String) :Promise<UserInfoResponseDTO|null> {
+      const result = await this.db.collection('users').findOne({uid:id})
+      const user = new UserInfoResponseDTO()
+
+      if(result!=null || result!=undefined){
+        // user.email = result.email
+        user.firstName = result.firstName
+        user.lastName = result.lastName
+        return user;
+      }
+
+      return user;
+    }
     // constructor(@InjectModel("User") private readonly userModel: Model<User>) { }
     constructor(@Inject('DATABASE_CONNECTION') private db:Db ) { }
 
-    async signup(userDto: UserDto): Promise<string> {
+    async signup(userDto: UserDto, imgFile: Express.Multer.File): Promise<UserInfoResponseDTO> {
         
-        
+      
       try{
-  
-          console.log("user dto user id is "+userDto.uid);
+         const fileBuffer: Buffer =  await this.getImageBuffer(imgFile)
+
+          console.log(`user dto user id is ${userDto.uid}`);
 
           const user = await this.db.collection('users').findOne({uid:userDto.uid})
           console.log("user is "+user);
@@ -23,33 +40,56 @@ export class Userservice {
           if(user== null ){
             await validateOrReject(userDto) //validation
               try{  
-                let newUser = await this.prepareUser(userDto);
-
-               await this.db.collection('users').insertOne(newUser);
-                
-                return "1"
+               let newUser = await this.prepareUser(userDto);
+               newUser.image = fileBuffer
+               const res = await this.db.collection('users').insertOne(newUser);
+               const user = new UserInfoResponseDTO()
+              //  user.email = newUser.email
+               user.firstName = newUser.firstName
+               user.lastName = "sample"
+               user.gender = "sample"
+                return user
               }catch(err){
                   console.log("error while saving", err);
-                  return "0"
+                  const user = new UserInfoResponseDTO()
+                  //todo change this is return error
+                  return user
               }
           }else{
               console.log("user exist")
-              return "1";
+              const user = new UserInfoResponseDTO()
+              //  user.email = userDto.email
+               user.firstName = userDto.firstName
+               user.lastName = ""
+               user.gender = ""
+              return user;
           }
           
       }catch(err){
           console.log("validation erros ", err);
-          return "0"
+          const user = new UserInfoResponseDTO()
+          return user
       }
         
        
   
 }
+ async getImageBuffer(imgFile:  Express.Multer.File): Promise<Buffer> {
+   
+  return new Promise((resolve, reject)=>{
+   fs.readFile(imgFile.path.toString(),(err, data)=>{
+      if(err){
+          reject(err)
+      }
+      resolve(data)
+    });
+  })
+}
 
 private prepareUser(userDto:UserDto):User{
   let newUser = new UserDto();
   // newUser.accountType = userDto.accountType;
-  newUser.email = userDto.email;
+  // newUser.email = userDto.email;
   newUser.firstName = userDto.firstName;
   newUser.uid = userDto.uid;
   newUser.gender = userDto.gender
@@ -60,3 +100,5 @@ private prepareUser(userDto:UserDto):User{
 }
 
 }
+
+

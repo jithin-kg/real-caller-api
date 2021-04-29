@@ -1,15 +1,53 @@
-import { Controller, Post, Body, Get } from "@nestjs/common";
+import { Controller, Post, Body, Get, UseInterceptors, UploadedFile, Req } from "@nestjs/common";
 import { Userservice } from "./user.service";
 import { UserDto } from "./user.dto";
-
+import { UserInfoRequest } from "./userinfoRequest.dto";
+import { FileInterceptor } from "@nestjs/platform-express";
+import {editFileName, imageFileFilter } from './file/file-upload.utils'
+import {diskStorage} from 'multer'
+import { FirebaseMiddleware } from "src/auth/firebase.middleware";
+import { SignupBodyDto } from "./singupBody";
 @Controller('user')
 export class Usercontroller {
     constructor(private readonly userService: Userservice) { }
 
+
+    @Post("getUserInfoForUid")
+    async getUserInfo(@Body()param: UserInfoRequest ){
+        const id = param.uid;
+        console.log("getUserInfoForUid")
+       const user =  await this.userService.getUserInfoByid(id)
+         console.log(`returning user ${user}`)
+        return {result: user}
+    }
     @Post('signup')
-    async signUp(@Body() user: UserDto) {
+    @UseInterceptors(FileInterceptor('image', {
+        storage: diskStorage({
+            destination: './files',
+            filename: editFileName,
+          }), 
+          fileFilter:imageFileFilter}),)
+    async signUp(@Req() reqest: any,
+                              @UploadedFile() file: Express.Multer.File,
+                          @Body() body:SignupBodyDto    ) {
+
+       
+        const userId = await FirebaseMiddleware.getUserId(reqest)
+        // this.validateRequest(reqest)
+
+        
         // const secuser: UserDto = Object.create(null);
-        console.log("users sign up")
+
+
+        // const user = new UserDto()
+        // user.firstName = firstName;
+        // user.lastName = lastName
+        // user.uid = uid,
+        // user.gender = "male"
+        // user.phoneNumber = "sample"
+
+        
+    //   await this.userService.signup(userInfo, file)
         // const secuser: UserDto = new UserDto();
         // console.log(user)
         // secuser.firstName = user.firstName;
@@ -20,8 +58,7 @@ export class Usercontroller {
         // // secuser.lastName = "123";
         // Object.freeze(secuser);
         
-        
-        
+    
         // setTimeout(()=>{
         //  this.userService.signup(secuser).then(data=>{
         //      console.log("after 5 secs")
@@ -30,12 +67,15 @@ export class Usercontroller {
             
         // }, 5000)
         // console.log(`result is ${result}`)
-        let reslt = await this.userService.signup(user)
-        return {message:reslt};
+        // let result = await this.userService.signup(userInfo)
+        return {"result":"hi"};
         // return {message:}
         
        
     }
+    // validateRequest(request: any) {
+    //    if(request.body.firstName)
+    // }
     @Get('test')
     async test(){
         console.log("tessting");

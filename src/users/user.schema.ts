@@ -4,4 +4,5 @@ export class User  {
     email?: string;
     accountType?: string;
     uid?: string;
+    image? : Buffer
 }
