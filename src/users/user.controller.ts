@@ -27,12 +27,19 @@ export class Usercontroller {
             filename: editFileName,
           }), 
           fileFilter:imageFileFilter}),)
-    async signUp(@Req() reqest: any,
-                              @UploadedFile() file: Express.Multer.File,
-                          @Body() body:SignupBodyDto    ) {
+    async signUp
+        (
+        @Req() reqest: any,
+        @UploadedFile() file: Express.Multer.File,
+        @Body() body:SignupBodyDto
+         ) {
 
        
         const userId = await FirebaseMiddleware.getUserId(reqest)
+
+        const user = await this.userService.signup(body, file, userId)
+        return {"result":user};
+
         // this.validateRequest(reqest)
 
         
@@ -47,7 +54,7 @@ export class Usercontroller {
         // user.phoneNumber = "sample"
 
         
-    //   await this.userService.signup(userInfo, file)
+    //   
         // const secuser: UserDto = new UserDto();
         // console.log(user)
         // secuser.firstName = user.firstName;
@@ -68,7 +75,6 @@ export class Usercontroller {
         // }, 5000)
         // console.log(`result is ${result}`)
         // let result = await this.userService.signup(userInfo)
-        return {"result":"hi"};
         // return {message:}
         
        

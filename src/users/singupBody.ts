@@ -6,4 +6,6 @@ export class SignupBodyDto {
 
     @IsString()
     lastName: string
+
+    
 }
