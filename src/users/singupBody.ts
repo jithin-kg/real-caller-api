@@ -1,4 +1,4 @@
-import { IsString } from "class-validator";
+import {IsNumber, isString, IsString} from "class-validator";
 
 export class SignupBodyDto {
     @IsString()
@@ -6,6 +6,19 @@ export class SignupBodyDto {
 
     @IsString()
     lastName: string
+    @IsString()
+    hashedNum: string;
 
-    
+    @IsString()
+    phoneNumber: string;
+
+    @IsString()
+    countryCode :string
+
+    @IsString()
+    countryISO: string
+
+
+
+
 }

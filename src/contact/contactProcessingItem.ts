@@ -10,5 +10,6 @@ export class ContactProcessingItem {
     lineType: string = "";
     country:string = "";
     spamCount:number = 0
-    name:string = "";
+    firstName:string = "";
+    lastName: string = "";
 }

@@ -8,6 +8,7 @@ export class Indiaprefixlocationmaps{
     carrier?:string;
 
     lineType?:string;
+
     country:string
   
 }

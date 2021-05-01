@@ -14,9 +14,17 @@ export class NumberTransformService {
      * @constant secret from -my secret
      */
     async tranforNum(hashedPhoneNum:string): Promise<string>{
-        let no = await hash('sha256').update(hashedPhoneNum).digest('base64')
-        //todo add secret 
-        return no;
+        return new Promise((async (resolve, reject) => {
+            try {
+                let no = await hash('sha256').update(hashedPhoneNum).digest('base64')
+                //todo add secret
+                resolve (no);
+            } catch (e) {
+                console.error(`error while tranforming number ${e}`)
+                reject(e)
+            }
+        }))
+
 
     }
     

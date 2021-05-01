@@ -5,7 +5,7 @@ import { CarrierService } from "src/carrierService/carrier.service";
 import { parsePhoneNumberFromString, PhoneNumber } from "libphonenumber-js";
 import { ContactController } from "./contact.controller";
 import { Inject } from "@nestjs/common";
-import { Db } from "mongodb";
+import {BulkWriteInsertOneOperation, BulkWriteOperation, Db} from "mongodb";
 import * as chalk from "chalk";
 
 import { MongoInsertDTO } from "./mongoinsertdto";
@@ -14,6 +14,8 @@ import {ContactProcessingItem} from "./contactProcessingItem"
 import {ContactDocument} from "./contactDocument";
 import {ContactReturnDto} from "../multiple-number-search/contactReturn.dto";
 import {ContactResponseItem} from "./ContactResponseItem";
+import {ContactObjectTransformHelper} from "../utils/ContactObjectTransformHelper";
+import {CollectionNames} from "../db/collection.names";
 const hash = require('crypto').createHash;
 
 
@@ -56,7 +58,7 @@ export class ContactService {
  */
   async uploadBulk(contacts:ContactRequestDTO[], countryCode:number, countryISO:string): Promise<ContactResponseItem[]>{
       console.log("inside upload bule contactservice")
-      const bulkOp = await this.db.collection("contactsOfUser").initializeUnorderedBulkOp()
+      const bulkOp = await this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).initializeUnorderedBulkOp()
 
       this.contactsListWithCarrierInfoProcessing = []
       this.contactsListForResponse = []
@@ -82,14 +84,9 @@ export class ContactService {
     }finally{
         return this.contactsListForResponse;
     }
-
-   
-
   }
 
     private async setCarrierInfoIncontacts(contacts: ContactRequestDTO[], countryCode: number, countryISO: string) {
-
-
         let arr = await Promise.allSettled(contacts.map(async contact=>{
 
             try{
@@ -104,15 +101,16 @@ export class ContactService {
                     let contactWithCarrierInfo = new ContactProcessingItem();
 
                     if( carrierInfo.value != undefined){
-                        contactWithCarrierInfo.carrier = carrierInfo.value.carrier.trim();
-                        contactWithCarrierInfo.lineType = carrierInfo.value.lineType.trim()
-                        contactWithCarrierInfo.location = carrierInfo.value.location.trim();
-                        
-                      
+                        ContactObjectTransformHelper.setCarrierInfoPromiseType(contactWithCarrierInfo, carrierInfo)
+                        console.log(contactWithCarrierInfo.carrier)
+                        // contactWithCarrierInfo.carrier = carrierInfo.value.carrier.trim();
+                        // contactWithCarrierInfo.lineType = carrierInfo.value.lineType.trim()
+                        // contactWithCarrierInfo.location = carrierInfo.value.location.trim();
+
                     }
                     contactWithCarrierInfo.spamCount = 0;
                     contactWithCarrierInfo.hashedPhoneNumber = contact.hashedPhoneNumber
-                    contactWithCarrierInfo.name = contact.name;
+                    contactWithCarrierInfo.firstName = contact.name;
                     contactWithCarrierInfo.phoneNumber = contact.phoneNumber;
 
 
@@ -132,12 +130,10 @@ export class ContactService {
     private async rehashAllNumbers() {
         await Promise.allSettled(this.contactsListWithCarrierInfoProcessing.map(async  cntct=>{
             try{
-
-
                 let hashedNum = await this.getHashedPhonenNum(cntct.hashedPhoneNumber)
                 cntct.hashedPhoneNumber = hashedNum
 
-                let contactDoc = await this.prepareContactDocForInsertingIntoDb(cntct)
+                let contactDoc =  ContactObjectTransformHelper.prepareContactDocForInsertingIntoDb(cntct)
                 let contactReturnObj = await this.prepareContactReturnObj(cntct)
 
                 this.contactsListForDb.push(contactDoc);
@@ -159,22 +155,11 @@ export class ContactService {
         contactReturnObj.lineType = cntct.lineType
         contactReturnObj.location = cntct.location
         contactReturnObj.spamCount = cntct.spamCount
-        contactReturnObj.name = cntct.name
+        contactReturnObj.name = cntct.firstName
         return contactReturnObj;
 
     }
-    private async prepareContactDocForInsertingIntoDb(cntct: ContactProcessingItem): Promise<ContactDocument> {
-        let contactDoc = new ContactDocument();
-        contactDoc._id = cntct.hashedPhoneNumber
-        contactDoc.carrier = cntct.carrier;
-        contactDoc.country = cntct.country
-        contactDoc.lineType = cntct.lineType
-        contactDoc.location = cntct.location
-        contactDoc.spamCount = cntct.spamCount
-        contactDoc.name = cntct.name;
 
-        return contactDoc;
-    }
     async getHashedPhonenNum(phoneNumForHashing: string):Promise<string> {
        let no= await hash('sha256').update(phoneNumForHashing).digest('base64')
        return no
@@ -229,8 +214,22 @@ export class ContactService {
     private async performBulkInsert(bulkOp: any) {
         for await(const c of this.contactsListForDb){
             bulkOp.insert(c)
+
         }
     }
+
+    // private async prepareContactDocForInsertingIntoDb(cntct: ContactProcessingItem): Promise<ContactDocument> {
+    //     let contactDoc = new ContactDocument();
+    //     contactDoc._id = cntct.hashedPhoneNumber
+    //     contactDoc.carrier = cntct.carrier;
+    //     contactDoc.country = cntct.country
+    //     contactDoc.lineType = cntct.lineType
+    //     contactDoc.location = cntct.location
+    //     contactDoc.spamCount = cntct.spamCount
+    //     contactDoc.name = cntct.name;
+    //
+    //     return contactDoc;
+    // }
 }
 
 

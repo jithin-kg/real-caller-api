@@ -1,6 +1,7 @@
 export class ContactDocument {
     _id:string = "";
-    name: string = "";
+    firstName: string = "";
+    lastName: String = "";
     carrier: string = "";
     location: string = "";
     lineType: string = "";

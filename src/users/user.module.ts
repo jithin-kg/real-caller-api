@@ -3,6 +3,7 @@ import { Usercontroller } from "./user.controller";
 import { Userservice } from "./user.service";
 
 import { DatabaseModule } from "src/db/Database.Module";
+import {NumberTransformService} from "../utils/numbertransform.service";
 
 @Module({
     /**
@@ -11,7 +12,7 @@ import { DatabaseModule } from "src/db/Database.Module";
     imports: [DatabaseModule],
     // imports: [MongooseModule.forFeature([{ name: User.name, schema: UserSchema }])],
     controllers: [Usercontroller],
-    providers: [Userservice]
+    providers: [Userservice, NumberTransformService]
 })
 export class UserModule {
 
