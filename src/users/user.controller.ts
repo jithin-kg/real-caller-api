@@ -43,12 +43,33 @@ export class Usercontroller {
         
        
     }
+
+    @Post('updateUserInfo')
+    @UseInterceptors(FileInterceptor('image', {
+        storage: diskStorage({
+            destination: './files',
+            filename: editFileName,
+          }),
+          fileFilter:imageFileFilter,
+          limits:{fileSize:10000}
+        }))
+    async update
+        (
+        @Req() reqest: any,
+        @UploadedFile() file: Express.Multer.File,
+        @Body() body:SignupBodyDto
+         ) {
+
+        const userId = await FirebaseMiddleware.getUserId(reqest)
+
+        const user = await this.userService.updateUserInfo(body, userId, file)
+        return {"result":user};
+    }
     // validateRequest(request: any) {
     //    if(request.body.firstName)
     // }
     @Get('test')
     async test(){
-        console.log("tessting");
         return {message:"hi"};
     }
 

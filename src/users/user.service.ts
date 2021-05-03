@@ -14,6 +14,7 @@ import {CarrierService} from "../carrierService/carrier.service";
 import {ContactObjectTransformHelper} from "../utils/ContactObjectTransformHelper";
 import {ContactProcessingItem} from "../contact/contactProcessingItem";
 import {CollectionNames} from "../db/collection.names";
+import {emit} from "cluster";
 
 @Injectable()
 export class Userservice {
@@ -34,14 +35,40 @@ export class Userservice {
                 private numberTransformService: NumberTransformService
                 ) { }
 
+    async updateUserInfo(userDTO: SignupBodyDto, userId: string, imgFile: Express.Multer.File) {
+        try {
+            let fileBuffer: Buffer = null
+            fileBuffer =  await this.getImageBuffer(imgFile)
+            let updationOp
+            if(fileBuffer == null){
+              updationOp =    {$set:{"firstName":userDTO.firstName, "lastName":userDTO.lastName }}
+            }else{
+                 updationOp =  {$set:{"firstName":userDTO.firstName, "lastName":userDTO.lastName, "image":fileBuffer }}
+            }
+            await this.db.collection(CollectionNames.USERS_COLLECTION).updateOne({uid:userId},updationOp)
+            const user = new UserInfoResponseDTO()
+            user.firstName = userDTO.firstName
+            user.lastName = userDTO.lastName
+            let fileEncodedString = ""
+            if(fileBuffer != null){
+                fileEncodedString=  fileBuffer.toString("base64")
+            }
+            user.image = fileEncodedString
+            return user
+        }catch (e){
+            console.error(`error while updating user info ${e}`)
+            const user = new UserInfoResponseDTO()
+            return user
+
+        }
+    }
+
     async signup(userDto: SignupBodyDto, uid:string, imgFile?: Express.Multer.File, ): Promise<UserInfoResponseDTO> {  
       try{
          let fileBuffer: Buffer = null
-          if(imgFile!=undefined){
             fileBuffer =  await this.getImageBuffer(imgFile)
-          }
           console.log(`user dto user id is ${uid}`);
-          const user = await this.db.collection('users').findOne({uid:uid})
+          const user = await this.db.collection(CollectionNames.USERS_COLLECTION).findOne({uid:uid})
           console.log("user is "+user);
           if(user== null ){
             await validateOrReject(userDto) //validation
@@ -135,18 +162,22 @@ export class Userservice {
   }
  async getImageBuffer(imgFile:  Express.Multer.File): Promise<Buffer> {
   return new Promise((resolve, reject)=>{
-   
-   fs.readFile(imgFile.path.toString(),async (err, data)=>{
-      if(err){
-          reject(err)
+      if(imgFile!=undefined){
+          fs.readFile(imgFile.path.toString(),async (err, data)=>{
+              if(err){
+                  reject(err)
+              }
+              try{
+                  await this.removeFile(imgFile.path.toString())
+              }catch(e){
+                  reject(e)
+              }
+              resolve(data)
+          });
+      }else{
+          resolve(null)
       }
-      try{
-        await this.removeFile(imgFile.path.toString())
-      }catch(e){
-          reject(e)
-      }
-      resolve(data)
-    });
+
 
   })
 }
@@ -177,6 +208,7 @@ private prepareUser(userDto:UserDto, uid:string):User{
   
   return newUser;
 }
+
 
 }
 
