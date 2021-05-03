@@ -36,10 +36,9 @@ export class Usercontroller {
         @Body() body:SignupBodyDto
          ) {
 
-        console.log(`size of file ${file.size}`)
         const userId = await FirebaseMiddleware.getUserId(reqest)
 
-        const user = await this.userService.signup(body, file, userId)
+        const user = await this.userService.signup(body, userId, file)
         return {"result":user};
         
        

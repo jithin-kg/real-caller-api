@@ -13,7 +13,7 @@ export class UserInfoResponseDTO {
     @IsString()
     lastName:string;
     
-    image? : string
+    image? : string =""
     // @IsString()
     // phoneNumber:string;    
 }

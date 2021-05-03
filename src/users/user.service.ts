@@ -20,7 +20,6 @@ export class Userservice {
     async getUserInfoByid(id: String) :Promise<UserInfoResponseDTO|null> {
       const result = await this.db.collection('users').findOne({uid:id})
       const user = new UserInfoResponseDTO()
-
       if(result!=null || result!=undefined){
         // user.email = result.email
         user.firstName = result.firstName
@@ -28,7 +27,6 @@ export class Userservice {
         user.image = result.image
         return user;
       }
-
       return user;
     }
     // constructor(@InjectModel("User") private readonly userModel: Model<User>) { }
@@ -36,15 +34,17 @@ export class Userservice {
                 private numberTransformService: NumberTransformService
                 ) { }
 
-    async signup(userDto: SignupBodyDto, imgFile: Express.Multer.File, uid:string): Promise<UserInfoResponseDTO> {  
+    async signup(userDto: SignupBodyDto, uid:string, imgFile?: Express.Multer.File, ): Promise<UserInfoResponseDTO> {  
       try{
-         const fileBuffer: Buffer =  await this.getImageBuffer(imgFile)
+         let fileBuffer: Buffer = null
+          if(imgFile!=undefined){
+            fileBuffer =  await this.getImageBuffer(imgFile)
+          }
           console.log(`user dto user id is ${uid}`);
           const user = await this.db.collection('users').findOne({uid:uid})
           console.log("user is "+user);
           if(user== null ){
             await validateOrReject(userDto) //validation
-          
               try{
                 //first signup the user
             const savedUser = await this.saveToUsersCollection(userDto, uid, fileBuffer )
@@ -61,9 +61,10 @@ export class Userservice {
               console.log("user exist")
               const user = new UserInfoResponseDTO()
               //  user.email = userDto.email
-               user.firstName = user.firstName
-               user.lastName = user.lastName
-               user.image = user.image
+              //  user.firstName = user.firstName
+              //  user.lastName = user.lastName
+            
+              //  user.image = user.image
               return user;
           }
 
@@ -86,6 +87,7 @@ export class Userservice {
      * @param uid
      * @param fileBuffer
      */
+
    saveToContactsCollection(userDto: SignupBodyDto, uid: string, fileBuffer: Buffer) : Promise<void>{
     return new Promise(async (resolve, reject) => {
         try {
@@ -111,7 +113,7 @@ export class Userservice {
     })
 
   }
-  async saveToUsersCollection(userDto:SignupBodyDto, uid:string, fileBuffer: Buffer)  :Promise<UserInfoResponseDTO>{
+  async saveToUsersCollection(userDto:SignupBodyDto, uid:string, fileBuffer?: Buffer)  :Promise<UserInfoResponseDTO>{
    return new Promise(async (resolve, reject)=>{
     try{
       let newUser = await this.prepareUser(userDto, uid);
@@ -121,8 +123,9 @@ export class Userservice {
      //  user.email = newUser.email
       user.firstName = newUser.firstName
       user.lastName = "sample"
-      user.image = fileBuffer.toString("base64")
-
+      if(fileBuffer!=undefined){
+        user.image = fileBuffer.toString("base64")
+      }
       resolve(user)
     }catch(e){
       console.error(`Error while saving user  ${e}`)

@@ -24,7 +24,8 @@ export class CarrierService{
      */
     static  getInfo(firstNDigitsToGetCarrierInfo:string, db:Db, countryCode: number, countryISO:string) : Promise<Indiaprefixlocationmaps>{
         return new Promise((async (resolve, reject) => {
-            let info: Indiaprefixlocationmaps
+
+            let info: Indiaprefixlocationmaps = new Indiaprefixlocationmaps()
             let countryCodeForInsertingInDB = ""
             /**
              * for awsome phone number to auto-detect the country we need + in the begining
@@ -39,8 +40,22 @@ export class CarrierService{
                         if (firstNDigitsToGetCarrierInfo[0] != "+") {
                             firstNDigitsToGetCarrierInfo = "+" + firstNDigitsToGetCarrierInfo
                         }
+                 const awsomePhoneNum = new awesomePhonenumber(firstNDigitsToGetCarrierInfo)
+                const country = awsomePhoneNum.getRegionCode()
+                if(countryCode==undefined || isNaN(countryCode)){
+                    const codeHelper = new awesomePhonenumber(firstNDigitsToGetCarrierInfo,country )
+                    countryCode =codeHelper.getCountryCode()
+                }
+                if(countryISO!= ""){
+                    info.country = countryISO
+                }else {
+                    info.country = country
+                }
 
-                const country = new awesomePhonenumber(firstNDigitsToGetCarrierInfo).getRegionCode()
+                const numWithoutSpecialchars = firstNDigitsToGetCarrierInfo.replace("+", "")
+               const isNumPrefixStartsWithcoutryCode = numWithoutSpecialchars.startsWith(countryCode.toString())
+                
+
                 if (country == countryISO) {
                     CarrierService.prefix = firstNDigitsToGetCarrierInfo.trim().replace("+", "").substr(0, 7);
                     if (firstNDigitsToGetCarrierInfo != null)
@@ -52,33 +67,63 @@ export class CarrierService{
                     //  info =  await carrierInfoModel.findOne({prefix:CarrierService.prefix})
                     //  info =  await db.collection('indiaprefixlocationmaps').findOne({prefix:`%${CarrierService.prefix}%`})
 
-                    info = await db.collection(Constants.COLLECTION_NUMBER_PREFIX_GEOINGO).findOne({_id: {$regex: new RegExp(firstNDigitsToGetCarrierInfo)}}) //phoneNumWithLocalRegionCode
+                    const infoFromDb = await db.collection(Constants.COLLECTION_NUMBER_PREFIX_GEOINGO).findOne({_id: {$regex: new RegExp(firstNDigitsToGetCarrierInfo)}}) //phoneNumWithLocalRegionCode
                     // info =  await db.collection(Constants.COLLECTION_NUMBER_PREFIX_GEOINGO).findOne({_id:"9163663"}) //phoneNumWithLocalRegionCode
-                    resolve(info)
+                        
+                    if(infoFromDb!=undefined){
+                        resolve(infoFromDb)
+                    }else{
+                        resolve(info)
+                    }
 
                 } else if (country != null && country != countryISO) {
                     const phoneUtil = googlePhoneLib.PhoneNumberUtil.getInstance();
                     firstNDigitsToGetCarrierInfo = firstNDigitsToGetCarrierInfo.replace("+", "").trim()
-                    const res = phoneUtil.isValidNumberForRegion(phoneUtil.parse(firstNDigitsToGetCarrierInfo, countryISO), countryISO);
+                   let res = false
+                    if(countryISO!=""){
+                     res = phoneUtil.isValidNumberForRegion(phoneUtil.parse(firstNDigitsToGetCarrierInfo, countryISO), countryISO);
+
+                   }else{
+                     res = phoneUtil.isValidNumberForRegion(phoneUtil.parse(firstNDigitsToGetCarrierInfo, country), country);
+                   }
                     if (res) {
                         CarrierService.prefix = firstNDigitsToGetCarrierInfo.trim().replace("+", "").substr(0, 7);
-                        let prefixForComparing = countryCode + firstNDigitsToGetCarrierInfo
+                        let prefixForComparing = ""
+                        if(!isNumPrefixStartsWithcoutryCode){
+                             prefixForComparing = countryCode + firstNDigitsToGetCarrierInfo
+
+                        }else{
+                            prefixForComparing = numWithoutSpecialchars
+                        }
                         prefixForComparing = prefixForComparing.replace("+", "").substr(0, 7).trim()
-                        info = await db.collection(Constants.COLLECTION_NUMBER_PREFIX_GEOINGO).findOne({_id: {$regex: new RegExp(prefixForComparing)}})
-                        resolve(info)
+                        const infoFromDb = await db.collection(Constants.COLLECTION_NUMBER_PREFIX_GEOINGO).findOne({_id: {$regex: new RegExp(prefixForComparing)}})
+                        if(infoFromDb!=undefined){
+                            resolve(infoFromDb)
+                        }else{
+                            resolve(info)
+                        }
+                        
                         countryCodeForInsertingInDB = countryISO;
                     } else {
                         firstNDigitsToGetCarrierInfo = firstNDigitsToGetCarrierInfo.replace("+", "").substr(0, 7).trim();
-                        info = await db.collection(Constants.COLLECTION_NUMBER_PREFIX_GEOINGO).findOne({_id: {$regex: new RegExp(firstNDigitsToGetCarrierInfo)}})
+                        const infoFromDb = await db.collection(Constants.COLLECTION_NUMBER_PREFIX_GEOINGO).findOne({_id: {$regex: new RegExp(firstNDigitsToGetCarrierInfo)}})
                         console.log(info)
-                        resolve(info)
+                        if(infoFromDb!=undefined){
+                            resolve(infoFromDb)
+                        }else{
+                            resolve(info)
+                        }
                     }
 
                 } else {
                     firstNDigitsToGetCarrierInfo = firstNDigitsToGetCarrierInfo.replace("+", "").substr(0, 7).trim();
-                    info = await db.collection(Constants.COLLECTION_NUMBER_PREFIX_GEOINGO).findOne({_id: {$regex: new RegExp(firstNDigitsToGetCarrierInfo)}})
+                    const infoFromDb = await db.collection(Constants.COLLECTION_NUMBER_PREFIX_GEOINGO).findOne({_id: {$regex: new RegExp(firstNDigitsToGetCarrierInfo)}})
                     console.log(info)
-                    resolve(info)
+                    if(infoFromDb!=undefined){
+                        resolve(infoFromDb)
+                    }else{
+                        resolve(info)
+                    }
                 }
                 //todo check other countries as well
                 //if nothing matches check in the users table and check if the user belong to which country

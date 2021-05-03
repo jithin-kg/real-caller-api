@@ -37,6 +37,7 @@ export class ContactObjectTransformHelper {
             contactWithCarrierInfo.carrier = carrierInfo.carrier.trim();
             contactWithCarrierInfo.lineType = carrierInfo.lineType.trim()
             contactWithCarrierInfo.location = carrierInfo.location.trim();
+            contactWithCarrierInfo.country = carrierInfo.country.trim()
         }
        
     }

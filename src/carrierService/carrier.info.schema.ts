@@ -1,14 +1,14 @@
 
 export class Indiaprefixlocationmaps{
 
-    prefix?:string;
+    prefix?:string = "";
  
-    location?:string;
+    location?:string = "";
 
-    carrier?:string;
+    carrier?:string = "";
 
-    lineType?:string;
+    lineType?:string = "";
 
-    country:string
+    country:string = ""
   
 }
