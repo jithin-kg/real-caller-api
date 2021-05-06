@@ -213,6 +213,7 @@ export class ContactService {
 
     private async performBulkInsert(bulkOp: any) {
         for await(const c of this.contactsListForDb){
+            console.log(`hashed num before inserting is ${c._id}`)
             bulkOp.insert(c)
 
         }

@@ -27,7 +27,7 @@ export class Usercontroller {
             filename: editFileName,
           }),
           fileFilter:imageFileFilter,
-          limits:{fileSize:10000}
+          limits:{fileSize:35000}
         }),)
     async signUp
         (
@@ -51,7 +51,7 @@ export class Usercontroller {
             filename: editFileName,
           }),
           fileFilter:imageFileFilter,
-          limits:{fileSize:10000}
+          limits:{fileSize:35000}
         }))
     async update
         (
