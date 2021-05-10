@@ -38,8 +38,6 @@ export class CallService {
         let rehashedItems:RehashedItemWithOldHash[] = await this.rehashArrayItems(arrayOfHahsedNums)
         //0M2ty/u2TJYSLCTd3Mz37Sb+eCEpWuTa7ixUPdye5oE= newhash
        let arrWithSearchResults:RehashedItemWithOldHash[] =  await this.searchInDBForRehashedItems(rehashedItems)
-
-
     //    console.log(`multiple number searchresult ${arrWithSearchResults}`)
         // return arrWithSearchResults
         // let result:ContactReturnDto[] = []
@@ -56,7 +54,7 @@ export class CallService {
                    const obj = new RehashedItemWithOldHash()
                    obj.phoneNumber = hashedNum.contactAddressString;
                    obj.newHash = rehasehdNum   
-                    obj.name = "sample"
+                    obj.firstName = "sample"
                     obj.spamCount = 0
                  console.log("--------------------hash ------------------------")
                    console.log(rehasehdNum)
@@ -98,7 +96,8 @@ export class CallService {
                         // ob.name = contactInfoFromDb.name
 
                         const obj = new RehashedItemWithOldHash()
-                        obj.name = contactInfoFromDb.name;
+                        obj.firstName = contactInfoFromDb.firstName;
+                        obj.lastName = contactInfoFromDb.lastName
                         obj.lineType = contactInfoFromDb.line_type;
                         obj.phoneNumber = rehasehdNum.phoneNumber;
                         obj.newHash = ""
@@ -110,7 +109,7 @@ export class CallService {
                    } else{
                        console.log("not found in db")
                        const obj = new RehashedItemWithOldHash()
-                        obj.name = "";
+                        obj.firstName = "";
                         obj.lineType = "";
                         obj.phoneNumber = rehasehdNum.phoneNumber;
                         obj.newHash = ""

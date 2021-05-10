@@ -3,7 +3,8 @@
 export class RehashedItemWithOldHash{
     phoneNumber:string;
     newHash:string;
-    name:string;
+    firstName:string;
+    lastName:string
     spamCount:Number;
     lineType:String;
     location:String;

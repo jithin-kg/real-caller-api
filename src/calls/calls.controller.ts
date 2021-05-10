@@ -11,7 +11,6 @@ export class CallsController {
      * @params list of phone numbers of senders
      * response list containing phone numbers and thier spam status
      */
-
     @Post('getDetailsForNumbers')
     async getSpammerDetailsFornumber(@Body() phoneNumbers: RequestDTO){
       console.log(`size multiplesearch ${phoneNumbers.hashedPhoneNum.length}`)

@@ -29,7 +29,7 @@ export class Hashelper{
                    const obj = new RehashedItemWithOldHash()
                    obj.phoneNumber = hashedNum.contactAddressString;
                    obj.newHash = rehasehdNum
-                    obj.name = "sample"
+                    obj.firstName = "sample"
                     obj.spamCount = 0
                  console.log("--------------------hash ------------------------")
                    console.log(rehasehdNum) 

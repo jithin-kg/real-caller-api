@@ -3,11 +3,10 @@ import { IsBoolean, IsNotEmpty, IsNumber, IsString } from "class-validator";
 export class ContactNewDoc  {
      
     public test(){
-
     }
     _id:string;
-    @IsNotEmpty()
-    name?: string;
+    firstName?: string;
+    lastName: string;
     @IsNotEmpty()
     @IsNumber()
     phoneNumber?: string;

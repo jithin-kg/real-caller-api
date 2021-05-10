@@ -17,10 +17,10 @@ export class SearchService {
     }
 
     async search(pno:string): Promise<GenericServiceResponseItem<number, SearchResponseItem>> {
-        // pno = pno.replace('+', "")
+        
         let hashedPhone = await hash('sha256').update(pno).digest('base64');
-        //thNKskB5fqfu3a7S8Zm7hos4b9dpHXzr7tyecK/dfKk= ->100101 contact bulkbefore inserting into db
-        console.log(`hashed phone number ${hashedPhone}`);
+        //R2PIZXbno2+o88Z8qfkT5SfNF77A5JOOzJipLFQ5jXo= -> 123
+        console.log(`hashed phone individual search : ${hashedPhone}`);
 
         let res = [];
 

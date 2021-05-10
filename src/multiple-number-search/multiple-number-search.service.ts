@@ -27,9 +27,7 @@ export class MultipleNumberSearchService {
         async getDetailsForNumbers(phoneNumbers: RequestDTO): Promise<RehashedItemWithOldHash[]> {
         const arrayOfHahsedNums:ContactAdderssWithHashedNumber[] = phoneNumbers.hashedPhoneNum
         let resultArray:ContactReturnDto[]
-        
         let rehashedItems:RehashedItemWithOldHash[] = await this.rehashArrayItems(arrayOfHahsedNums)
-
        let arrWithSearchResults:RehashedItemWithOldHash[] =  await this.searchInDBForRehashedItems(rehashedItems)
 
 
@@ -48,13 +46,12 @@ export class MultipleNumberSearchService {
                    const obj = new RehashedItemWithOldHash()
                    obj.phoneNumber = hashedNum.contactAddressString;
                    obj.newHash = rehasehdNum
-                    obj.name = "sample"
+                    obj.firstName = "sample"
                     obj.spamCount = 0
                  console.log("--------------------hash ------------------------")
                    console.log(rehasehdNum) 
                    console.log("--------------------end hash ------------------------")
                    if(rehasehdNum !=null){
-                      
                         resultArray.push(obj)
                    }
                 }catch(e){
@@ -77,6 +74,7 @@ export class MultipleNumberSearchService {
                     console.log("rehsehdNum is  ",rehasehdNum.newHash)
                     console.log(`searching in db rehasehdNum is ${rehasehdNum}`) 
                     // const contactInfoFromDb:ContactNewDoc = await this.db.collection("contactsOfUser").findOne({phoneNumber: })
+                    console.log(`new hash in multipleNumbersearach is :${rehasehdNum.newHash}`)
                     const contactInfoFromDb:ContactNewDoc = await this.db.collection("contactsOfUser").findOne({_id: rehasehdNum.newHash})
                  
                    if(contactInfoFromDb !=null){
@@ -92,7 +90,7 @@ export class MultipleNumberSearchService {
                         // ob.name = contactInfoFromDb.name
 
                         const obj = new RehashedItemWithOldHash()
-                        obj.name = contactInfoFromDb.name;
+                        obj.firstName = contactInfoFromDb.firstName;
                         obj.lineType = contactInfoFromDb.line_type;
                         obj.phoneNumber = rehasehdNum.phoneNumber;
                         obj.newHash = ""
@@ -104,7 +102,7 @@ export class MultipleNumberSearchService {
                    } else{
                        console.log("not found in db")
                        const obj = new RehashedItemWithOldHash()
-                        obj.name = "";
+                        obj.firstName = "";
                         obj.lineType = "";
                         obj.phoneNumber = rehasehdNum.phoneNumber;
                         obj.newHash = ""
