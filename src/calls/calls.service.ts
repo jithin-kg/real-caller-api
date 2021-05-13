@@ -10,6 +10,7 @@ import {ContactReturnDto} from "../multiple-number-search/contactReturn.dto";
 import {ContactAdderssWithHashedNumber} from "../multiple-number-search/contactAddressWithHashedNumDTO";
 import {NumberTransformService} from "../utils/numbertransform.service";
 import {ContactNewDoc} from "../multiple-number-search/cotactsNewDoc";
+import {Constants} from "./Constatns";
 
 
 
@@ -102,7 +103,7 @@ export class CallService {
                         obj.phoneNumber = rehasehdNum.phoneNumber;
                         obj.newHash = ""
                         obj.spamCount = contactInfoFromDb.spamCount
-                        
+                        obj.isInfoFoundInDb = Constants.INFO_FOUND_ID_DB
                         resultArray.push(obj)
                         // ob.carrier = rehasehdNum.carr
 
@@ -114,6 +115,7 @@ export class CallService {
                         obj.phoneNumber = rehasehdNum.phoneNumber;
                         obj.newHash = ""
                         obj.spamCount = 0
+                       obj.isInfoFoundInDb = Constants.INFO_NOT_FOUND_IND_DB
                        resultArray.push(obj)
                    }
                 }catch(e){

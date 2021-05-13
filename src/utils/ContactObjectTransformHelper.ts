@@ -6,10 +6,10 @@ export class ContactObjectTransformHelper {
     /**
      * function to get instance object of type ContactDocument, which is the type
      * of documnet to be inserted into db
-     *
+     * @param image user, thumbnail image if exists
      * @param cntct
      */
-    static   prepareContactDocForInsertingIntoDb(cntct: ContactProcessingItem): ContactDocument {
+    static   prepareContactDocForInsertingIntoDb(cntct: ContactProcessingItem, image:Buffer = null): ContactDocument {
         let contactDoc = new ContactDocument();
         contactDoc._id = cntct.hashedPhoneNumber
         contactDoc.carrier = cntct.carrier;
@@ -19,6 +19,9 @@ export class ContactObjectTransformHelper {
         contactDoc.spamCount = cntct.spamCount
         contactDoc.firstName = cntct.firstName;
         contactDoc.lastName = cntct.lastName;
+        if(image!=null){
+            contactDoc.image = image.toString("base64")
+        }
         return contactDoc;
     }
 

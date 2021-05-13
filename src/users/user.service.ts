@@ -126,8 +126,12 @@ export class Userservice {
             contactWithCarrierInfo.firstName = userDto.firstName
             contactWithCarrierInfo.lastName = userDto.lastName
             contactWithCarrierInfo.hashedPhoneNumber = rehasehdNum
+            if(fileBuffer!=undefined){
+                contactWithCarrierInfo.image = fileBuffer.toString("base64")
+            }
+
             ContactObjectTransformHelper.setCarrierInfo(contactWithCarrierInfo  ,infoWithCarrierService )
-            const docToInsert =  ContactObjectTransformHelper.prepareContactDocForInsertingIntoDb(contactWithCarrierInfo)
+            const docToInsert =  ContactObjectTransformHelper.prepareContactDocForInsertingIntoDb(contactWithCarrierInfo, fileBuffer)
             const res = await this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).replaceOne({_id:docToInsert._id},
                 docToInsert  , {upsert:true})
             console.log(res)
@@ -152,6 +156,8 @@ export class Userservice {
       user.lastName = "sample"
       if(fileBuffer!=undefined){
         user.image = fileBuffer.toString("base64")
+      }else{
+          user.image = ""
       }
       resolve(user)
     }catch(e){

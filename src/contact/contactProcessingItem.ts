@@ -12,4 +12,5 @@ export class ContactProcessingItem {
     spamCount:number 
     firstName:string = "";
     lastName: string = "";
+    image:string = ""
 }

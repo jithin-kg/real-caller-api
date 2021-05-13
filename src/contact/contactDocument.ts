@@ -7,4 +7,5 @@ export class ContactDocument {
     lineType: string = "";
     country:string = "";
     spamCount:number = 0
+    image:String = ""
 }

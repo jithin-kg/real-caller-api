@@ -6,6 +6,7 @@ import { CollectionNames } from "src/db/collection.names";
 import * as bcryptjs from 'bcryptjs';
 import {SearchResponseItem} from "./SearchResponseItem";
 import {GenericServiceResponseItem} from "../utils/Generic.ServiceResponseItem";
+import {Constants} from "../calls/Constatns";
 
 const hash = require('crypto').createHash;
 @Injectable()
@@ -28,11 +29,12 @@ export class SearchService {
             try{
                 //TODO SANITISE INPUT REMOEV + IN PHONE NUMBER OR REGULAR EXPRESSION CRASHES while searching
                 //and need to sanitise input
-                let r = await this.getContacts(hashedPhone);
-                if(r== null){
+                let result = await this.getContacts(hashedPhone);
+                if(result== null){
                     return new GenericServiceResponseItem<number, null>(HttpStatus.NO_CONTENT, null)
-                }else{
-                    return new GenericServiceResponseItem<number, SearchResponseItem>(HttpStatus.OK,r)
+                }else {
+                    result.isInfoFoundInDb = Constants.INFO_FOUND_ID_DB
+                    return new GenericServiceResponseItem<number, SearchResponseItem>(HttpStatus.OK, result)
                 }
             }catch(e){
                 console.log(e);
@@ -62,6 +64,7 @@ export class SearchService {
                   responseitem.lineType = res.lineType?? ""
                   responseitem.country = res.country?? ""
                   responseitem.spamCount = res.spamCount?? ""
+                  responseitem.thumbnailImg = res.image??""
               }
               resolve(responseitem)
           }catch(e){
