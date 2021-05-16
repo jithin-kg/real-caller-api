@@ -15,6 +15,7 @@ import {ContactObjectTransformHelper} from "../utils/ContactObjectTransformHelpe
 import {ContactProcessingItem} from "../contact/contactProcessingItem";
 import {CollectionNames} from "../db/collection.names";
 import {emit} from "cluster";
+import {FirebaseMiddleware} from "../auth/firebase.middleware";
 
 @Injectable()
 export class Userservice {
@@ -34,8 +35,16 @@ export class Userservice {
         user.firstName = result.firstName
         user.lastName = result.lastName
         user.image = result.image
-          let updationOp =    {$set:{"uid":id }}
-          await this.db.collection(CollectionNames.USERS_COLLECTION).updateOne({_id:rehashedNum}, updationOp)
+        let updationOp =    {$set:{"uid":id }}
+        let existingUId = result.uid
+       try {
+
+           await this.db.collection(CollectionNames.USERS_COLLECTION).updateOne({_id:rehashedNum}, updationOp)
+            await FirebaseMiddleware.removeUserById(existingUId)
+
+       }catch (e){
+           console.log(e)
+       }
         return user;
       }
       return user;

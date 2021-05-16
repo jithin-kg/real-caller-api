@@ -98,6 +98,13 @@ export class FirebaseMiddleware implements NestMiddleware {
             }
         })
     }
+    static async removeUserById(uid:string):Promise<void>{
+        try {
+            await firebaseAdmin.auth().deleteUser(uid)
+        }catch (e){
+
+        }
+    }
     static async removeUserPhoneNumberFromFirebase(uid:string):Promise<any>{
 
         return new Promise(async (resolve, reject)=> {
