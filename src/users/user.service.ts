@@ -18,14 +18,24 @@ import {emit} from "cluster";
 
 @Injectable()
 export class Userservice {
-    async getUserInfoByid(id: String) :Promise<UserInfoResponseDTO|null> {
-      const result = await this.db.collection('users').findOne({uid:id})
+    /**
+     * function to check if a user with the rehashed number exists in server
+     * if exists then update the firebase uid of that user
+     * @param id userid from firebase
+     * @param hashedNum
+     */
+    async getUserInfoByid(id: String, hashedNum: string) :Promise<UserInfoResponseDTO | null> {
+      const rehashedNum =   await this.numberTransformService.tranforNum(hashedNum)
+      const result = await this.db.collection(CollectionNames.USERS_COLLECTION).findOne({_id:rehashedNum})
+
       const user = new UserInfoResponseDTO()
       if(result!=null || result!=undefined){
         // user.email = result.email
         user.firstName = result.firstName
         user.lastName = result.lastName
         user.image = result.image
+          let updationOp =    {$set:{"uid":id }}
+          await this.db.collection(CollectionNames.USERS_COLLECTION).updateOne({_id:rehashedNum}, updationOp)
         return user;
       }
       return user;
@@ -67,16 +77,15 @@ export class Userservice {
       try{
          let fileBuffer: Buffer = null
             fileBuffer =  await this.getImageBuffer(imgFile)
-          console.log(`user dto user id is ${uid}`);
-          const user = await this.db.collection(CollectionNames.USERS_COLLECTION).findOne({uid:uid})
-          console.log("user is "+user);
+          const rehasehdNum = await this.numberTransformService.tranforNum(userDto.hashedNum)
+          const user = await this.db.collection(CollectionNames.USERS_COLLECTION).findOne({_id:rehasehdNum})
           if(user== null ){
             await validateOrReject(userDto) //validation
               try{
                 //first signup the user
-            const savedUser = await this.saveToUsersCollection(userDto, uid, fileBuffer )
+            const savedUser = await this.saveToUsersCollection(userDto, uid, rehasehdNum,  fileBuffer )
           //then update or insert the user info in contacts collection
-          await this.saveToContactsCollection(userDto, uid, fileBuffer)
+          await this.saveToContactsCollection(userDto, uid, fileBuffer, rehasehdNum)
                 return savedUser
               }catch(err){
                   console.log("error while saving", err);
@@ -115,11 +124,10 @@ export class Userservice {
      * @param fileBuffer
      */
 
-   saveToContactsCollection(userDto: SignupBodyDto, uid: string, fileBuffer: Buffer) : Promise<void>{
+   saveToContactsCollection(userDto: SignupBodyDto, uid: string, fileBuffer: Buffer, rehasehdNum:string) : Promise<void>{
     return new Promise(async (resolve, reject) => {
         try {
-            const rehasehdNum = await this.numberTransformService.tranforNum(userDto.hashedNum)
-            console.log(`rehashedNum is ${rehasehdNum}`)
+
 
             const infoWithCarrierService:Indiaprefixlocationmaps = await CarrierService.getInfo(userDto.phoneNumber, this.db, parseInt(userDto.countryCode), userDto.countryISO)
             let contactWithCarrierInfo = new ContactProcessingItem();
@@ -144,10 +152,10 @@ export class Userservice {
     })
 
   }
-  async saveToUsersCollection(userDto:SignupBodyDto, uid:string, fileBuffer?: Buffer)  :Promise<UserInfoResponseDTO>{
+  async saveToUsersCollection(userDto: SignupBodyDto, uid: string, rehasehdNum: string,fileBuffer?: Buffer)  :Promise<UserInfoResponseDTO>{
    return new Promise(async (resolve, reject)=>{
     try{
-      let newUser = await this.prepareUser(userDto, uid);
+      let newUser = await this.prepareUser(userDto, uid, rehasehdNum);
       newUser.image = fileBuffer //setting image buffer to insert 
       const res = await this.db.collection(CollectionNames.USERS_COLLECTION).insertOne(newUser);
       const user = new UserInfoResponseDTO()
@@ -202,8 +210,9 @@ async removeFile(path:string): Promise<any>{
     })
   })
 }
-private prepareUser(userDto:UserDto, uid:string):User{
+private prepareUser(userDto: SignupBodyDto, uid: string, rehasehdNum: string):User{
   let newUser = new UserDto();
+  newUser._id = rehasehdNum;
   // newUser.accountType = userDto.accountType;
   // newUser.email = userDto.email;
   newUser.firstName = userDto.firstName;

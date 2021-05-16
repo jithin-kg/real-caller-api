@@ -49,13 +49,70 @@ export class FirebaseMiddleware implements NestMiddleware {
               const token:string = req.header('Authorization').replace('Bearer', '').trim()
             const tokenVerify = await firebaseAdmin.auth().verifyIdToken(token)
             const userId = tokenVerify.uid;
+             console.log(`phone number in token ${ tokenVerify.phone_number}`)
             resolve(userId)
             }catch(e){
                 reject(e)
             }
            })
-        
-        
+    }
+
+    static createCustomToken(req:any, hashedNum:string){
+
+        return new Promise(async (resolve, reject)=>{
+            try{
+                const token:string = req.header('Authorization').replace('Bearer', '').trim()
+                const tokenVerify = await firebaseAdmin.auth().verifyIdToken(token)
+                const uid = tokenVerify.uid
+                firebaseAdmin.
+                auth()
+                    .createCustomToken(uid, {
+                        hashedNum:"hashedNum"
+                    }).then((customtoken)=>{
+                    console.log(`custom token is ${customtoken}`)
+                }).catch((e)=>{
+                    console.error(`error while creating custom token`)
+                })
+
+            }catch (e){
+
+            }
+        })
+    }
+    /**
+     * This function is only called when enter otp
+     * then with that token client request for the phone number
+     *
+     * @param uid
+     */
+    static getPhoneNumberFromToken(req:any):Promise<string> {
+        return new Promise(async (resolve, reject)=>{
+            try{
+                const token:string = req.header('Authorization').replace('Bearer', '').trim()
+                const tokenVerify = await firebaseAdmin.auth().verifyIdToken(token)
+                const phoneNumber = tokenVerify.phone_number;
+                console.log(`phone number in token ${ tokenVerify.phone_number}`)
+                resolve(phoneNumber)
+            }catch(e){
+                reject(e)
+            }
+        })
+    }
+    static async removeUserPhoneNumberFromFirebase(uid:string):Promise<any>{
+
+        return new Promise(async (resolve, reject)=> {
+           try {
+               // const uid = await this.getUserId(req)
+               await  firebaseAdmin.auth().updateUser(uid, {
+                   phoneNumber:null
+               })
+               resolve("done")
+           }catch (e){
+               console.log(`Error while removeUserPhoneNumberFromFirebase ${e}`)
+               reject(e)
+           }
+        })
+
     }
     async use(req: Request, res: Response, next: NextFunction) {
         try{
@@ -74,7 +131,7 @@ export class FirebaseMiddleware implements NestMiddleware {
         try{
             console.log(token)
             const tokenVerify = await firebaseAdmin.auth().verifyIdToken(token)
-        
+             //her I can get phone number from tokenVerify.phone_number   
             if (tokenVerify.admin == true) {
                 // console.log("Admin");
             } else {
@@ -85,6 +142,7 @@ export class FirebaseMiddleware implements NestMiddleware {
             // console.log(req.body.username);
             console.log(tokenVerify.uid)
             console.log(tokenVerify)
+            console.log(`no ${tokenVerify.phone_number}`)
         }catch(e){
             /**
              * can be thrown due to expired/ invalid token
@@ -96,5 +154,6 @@ export class FirebaseMiddleware implements NestMiddleware {
         
 
     }
+
 
 }

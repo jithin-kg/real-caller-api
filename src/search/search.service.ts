@@ -63,7 +63,7 @@ export class SearchService {
                   responseitem.location = res.location?? ""
                   responseitem.lineType = res.lineType?? ""
                   responseitem.country = res.country?? ""
-                  responseitem.spamCount = res.spamCount?? ""
+                  responseitem.spamCount = res.spamCount?? 0
                   responseitem.thumbnailImg = res.image??""
               }
               resolve(responseitem)

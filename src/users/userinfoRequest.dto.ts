@@ -2,5 +2,11 @@ import { IsString } from "class-validator";
 
 export class UserInfoRequest{
    @IsString()
-    uid: String;
+    uid: string;
+
+   @IsString()
+   hashedNum:string;
+
+   @IsString()
+   formattedPhoneNum:string
 }
