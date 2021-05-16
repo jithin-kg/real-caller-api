@@ -28,22 +28,22 @@ export class CallService {
      */
     // async getDetailsForNumbers(phoneNumbers: RequestDTO): Promise<ContactReturnDto[]> {
         /**
-         * 
-         * @param phoneNumbers for handling request to get informatoin for call log data
-         */
+        *
+        * @param phoneNumbers for handling request to get informatoin for call log data
+        */
         async getDetailsForNumbers(phoneNumbers: RequestDTO): Promise<RehashedItemWithOldHash[]> {
 
-        const arrayOfHahsedNums:ContactAdderssWithHashedNumber[] = phoneNumbers.hashedPhoneNum
-        let resultArray:ContactReturnDto[]
-        
-        let rehashedItems:RehashedItemWithOldHash[] = await this.rehashArrayItems(arrayOfHahsedNums)
-        //0M2ty/u2TJYSLCTd3Mz37Sb+eCEpWuTa7ixUPdye5oE= newhash
-       let arrWithSearchResults:RehashedItemWithOldHash[] =  await this.searchInDBForRehashedItems(rehashedItems)
-    //    console.log(`multiple number searchresult ${arrWithSearchResults}`)
-        // return arrWithSearchResults
-        // let result:ContactReturnDto[] = []
+            const arrayOfHahsedNums:ContactAdderssWithHashedNumber[] = phoneNumbers.hashedPhoneNum
+            let resultArray:ContactReturnDto[]
+
+            let rehashedItems:RehashedItemWithOldHash[] = await this.rehashArrayItems(arrayOfHahsedNums)
+            //0M2ty/u2TJYSLCTd3Mz37Sb+eCEpWuTa7ixUPdye5oE= newhash
+            let arrWithSearchResults:RehashedItemWithOldHash[] =  await this.searchInDBForRehashedItems(rehashedItems)
+            //    console.log(`multiple number searchresult ${arrWithSearchResults}`)
+            // return arrWithSearchResults
+            // let result:ContactReturnDto[] = []
         return arrWithSearchResults;
-    }
+        }
     private async rehashArrayItems(arrayOfHahsedNums: ContactAdderssWithHashedNumber[]): Promise<RehashedItemWithOldHash[]>{
         let resultArray: RehashedItemWithOldHash[];
         resultArray = [];
@@ -104,6 +104,7 @@ export class CallService {
                         obj.newHash = ""
                         obj.spamCount = contactInfoFromDb.spamCount
                         obj.isInfoFoundInDb = Constants.INFO_FOUND_ID_DB
+                        obj.imageThumbnail = contactInfoFromDb.image
                         resultArray.push(obj)
                         // ob.carrier = rehasehdNum.carr
 
@@ -116,6 +117,7 @@ export class CallService {
                         obj.newHash = ""
                         obj.spamCount = 0
                        obj.isInfoFoundInDb = Constants.INFO_NOT_FOUND_IND_DB
+                       obj.imageThumbnail = ""
                        resultArray.push(obj)
                    }
                 }catch(e){

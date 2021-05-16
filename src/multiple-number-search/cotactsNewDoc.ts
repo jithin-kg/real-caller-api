@@ -18,8 +18,8 @@ export class ContactNewDoc  {
     line_type?: string;
     @IsString()
     country?:string;
-
     spamCount:Number
+    image?:string
 }
 
 //todo make interface to class,because there is no interfaces in js

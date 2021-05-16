@@ -138,7 +138,7 @@ export class FirebaseMiddleware implements NestMiddleware {
         try{
             console.log(token)
             const tokenVerify = await firebaseAdmin.auth().verifyIdToken(token)
-             //her I can get phone number from tokenVerify.phone_number   
+             //her I can get phone number from tokenVerify.phone_number
             if (tokenVerify.admin == true) {
                 // console.log("Admin");
             } else {
