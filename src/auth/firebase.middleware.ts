@@ -5,6 +5,8 @@ import * as firebaseAdmin from 'firebase-admin';
 import * as firebaseServiceAccount from './hashcaller2-firebase-adminsdk-7uc9d-1b78a345bf.json';
 import { async } from "rxjs";
 import { DH_UNABLE_TO_CHECK_GENERATOR } from "constants";
+import {UserIdDTO} from "../utils/UserId.DTO";
+import {NumberTransformService} from "../utils/numbertransform.service";
 
 /**
  * Todo
@@ -15,6 +17,7 @@ import { DH_UNABLE_TO_CHECK_GENERATOR } from "constants";
  */
 @Injectable()
 export class FirebaseMiddleware implements NestMiddleware {
+    private static numberTransformService: NumberTransformService = new NumberTransformService();
     constructor() {
 
         const params = {
@@ -42,36 +45,35 @@ export class FirebaseMiddleware implements NestMiddleware {
      * @param req
      * @returns 
      */
-    static async getUserId(req:any): Promise<string> {
+    static async getUserId(req:any): Promise<UserIdDTO> {
     
            return new Promise(async (resolve, reject)=>{
             try{
               const token:string = req.header('Authorization').replace('Bearer', '').trim()
             const tokenVerify = await firebaseAdmin.auth().verifyIdToken(token)
-            const userId = tokenVerify.uid;
-             console.log(`phone number in token ${ tokenVerify.phone_number}`)
-            resolve(userId)
+            const user = new  UserIdDTO()
+            user.hUserId = tokenVerify.hUserId;
+            user.userId  = tokenVerify.uid;
+            resolve(user)
             }catch(e){
                 reject(e)
             }
            })
     }
 
-    static createCustomToken(req:any, hashedNum:string){
-
+    static createCustomToken(uid:string, hashedNum:string):Promise<string>{
         return new Promise(async (resolve, reject)=>{
             try{
-                const token:string = req.header('Authorization').replace('Bearer', '').trim()
-                const tokenVerify = await firebaseAdmin.auth().verifyIdToken(token)
-                const uid = tokenVerify.uid
-                firebaseAdmin.
-                auth()
+                const hUserId = await this.numberTransformService.tranforNum(uid + hashedNum)
+                firebaseAdmin.auth()
                     .createCustomToken(uid, {
-                        hashedNum:"hashedNum"
+                        hUserId:hUserId
                     }).then((customtoken)=>{
                     console.log(`custom token is ${customtoken}`)
+                    resolve(customtoken)
                 }).catch((e)=>{
                     console.error(`error while creating custom token`)
+                    reject(`error while creating custom token ${e}`)
                 })
 
             }catch (e){

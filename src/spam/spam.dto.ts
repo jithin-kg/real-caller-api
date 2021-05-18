@@ -5,14 +5,10 @@ export class SpamDTO{
     @IsString()
     phoneNumber:string;
     @IsString()
-    location:String;
+    country:String;
 
     @IsString()
     spammerType:string;
-
-    @IsString()
-    spammerCategory:string;
-
     @IsString()
     uid?:string
 }

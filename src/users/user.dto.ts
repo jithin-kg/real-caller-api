@@ -23,7 +23,8 @@ export class UserDto {
     
     @IsString()
     uid?:string;
-    
+
+    hUid:string;
     image?:Buffer
 
     

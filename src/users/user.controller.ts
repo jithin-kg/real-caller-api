@@ -21,6 +21,12 @@ export class Usercontroller {
         const phonenumber:string = await FirebaseMiddleware.getPhoneNumberFromToken(reqest)
         return {message:phonenumber}
     }
+
+    /**
+     * This route is used to create custom token for user, with hUserid
+     * @param reqest
+     * @param userInfo
+     */
     @Post("getUserInfoForUid")
     async getUserInfo(@Req() reqest: any, @Body()userInfo: UserInfoRequest ){
        let user;
@@ -28,15 +34,12 @@ export class Usercontroller {
         const phoneNumInToken:string = await FirebaseMiddleware.getPhoneNumberFromToken(reqest)
        const formatedNum = Formatter.getFormatedPhoneNumber(phoneNumInToken)
         const formatedNumInRequestBody = Formatter.getFormatedPhoneNumber(userInfo.formattedPhoneNum)
-
         if(formatedNum == formatedNumInRequestBody){
              user =  await this.userService.getUserInfoByid(id, userInfo.hashedNum)
             const removedUserPhoneNumber = await FirebaseMiddleware.removeUserPhoneNumberFromFirebase(id)
-
         }else{
             throw new HttpException("Bad request", 400)
         }
-
          console.log(`returning user ${user}`)
         return {result: user}
     }
@@ -81,7 +84,6 @@ export class Usercontroller {
          ) {
 
         const userId = await FirebaseMiddleware.getUserId(reqest)
-
         const user = await this.userService.updateUserInfo(body, userId, file)
         return {"result":user};
     }

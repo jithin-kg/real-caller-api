@@ -16,6 +16,7 @@ import {ContactProcessingItem} from "../contact/contactProcessingItem";
 import {CollectionNames} from "../db/collection.names";
 import {emit} from "cluster";
 import {FirebaseMiddleware} from "../auth/firebase.middleware";
+import {UserIdDTO} from "../utils/UserId.DTO";
 
 @Injectable()
 export class Userservice {
@@ -25,11 +26,13 @@ export class Userservice {
      * @param id userid from firebase
      * @param hashedNum
      */
-    async getUserInfoByid(id: String, hashedNum: string) :Promise<UserInfoResponseDTO | null> {
+    async getUserInfoByid(id: string, hashedNum: string) :Promise<UserInfoResponseDTO | null> {
       const rehashedNum =   await this.numberTransformService.tranforNum(hashedNum)
       const result = await this.db.collection(CollectionNames.USERS_COLLECTION).findOne({_id:rehashedNum})
 
       const user = new UserInfoResponseDTO()
+      const customToken:string = await FirebaseMiddleware.createCustomToken(id, rehashedNum)
+      user.customToken = customToken
       if(result!=null || result!=undefined){
         // user.email = result.email
         user.firstName = result.firstName
@@ -41,7 +44,8 @@ export class Userservice {
 
            await this.db.collection(CollectionNames.USERS_COLLECTION).updateOne({_id:rehashedNum}, updationOp)
             await FirebaseMiddleware.removeUserById(existingUId)
-
+        
+          
        }catch (e){
            console.log(e)
        }
@@ -54,7 +58,7 @@ export class Userservice {
                 private numberTransformService: NumberTransformService
                 ) { }
 
-    async updateUserInfo(userDTO: SignupBodyDto, userId: string, imgFile: Express.Multer.File) {
+    async updateUserInfo(userDTO: SignupBodyDto, userIdDTO: UserIdDTO, imgFile: Express.Multer.File) {
         try {
             let fileBuffer: Buffer = null
             fileBuffer =  await this.getImageBuffer(imgFile)
@@ -64,7 +68,9 @@ export class Userservice {
             }else{
                  updationOp =  {$set:{"firstName":userDTO.firstName, "lastName":userDTO.lastName, "image":fileBuffer }}
             }
-            await this.db.collection(CollectionNames.USERS_COLLECTION).updateOne({uid:userId},updationOp)
+
+            await this.db.collection(CollectionNames.USERS_COLLECTION).updateOne({hUserId:userIdDTO.hUserId},updationOp)
+
             const user = new UserInfoResponseDTO()
             user.firstName = userDTO.firstName
             user.lastName = userDTO.lastName
@@ -82,7 +88,7 @@ export class Userservice {
         }
     }
 
-    async signup(userDto: SignupBodyDto, uid:string, imgFile?: Express.Multer.File, ): Promise<UserInfoResponseDTO> {  
+    async signup(userDto: SignupBodyDto, uidDTO: UserIdDTO, imgFile?: Express.Multer.File,): Promise<UserInfoResponseDTO> {
       try{
          let fileBuffer: Buffer = null
             fileBuffer =  await this.getImageBuffer(imgFile)
@@ -92,9 +98,9 @@ export class Userservice {
             await validateOrReject(userDto) //validation
               try{
                 //first signup the user
-            const savedUser = await this.saveToUsersCollection(userDto, uid, rehasehdNum,  fileBuffer )
+            const savedUser = await this.saveToUsersCollection(userDto, uidDTO, rehasehdNum,  fileBuffer )
           //then update or insert the user info in contacts collection
-          await this.saveToContactsCollection(userDto, uid, fileBuffer, rehasehdNum)
+          await this.saveToContactsCollection(userDto, uidDTO, fileBuffer, rehasehdNum)
                 return savedUser
               }catch(err){
                   console.log("error while saving", err);
@@ -129,11 +135,11 @@ export class Userservice {
      * sings ups his name will be automatically updated to what ever name he entered in singup form
      * and when cotnact upload bulk operation there is no upsert.
      * @param userDto
-     * @param uid
+     * @param uidDTO
      * @param fileBuffer
      */
 
-   saveToContactsCollection(userDto: SignupBodyDto, uid: string, fileBuffer: Buffer, rehasehdNum:string) : Promise<void>{
+    saveToContactsCollection(userDto: SignupBodyDto, uidDTO: UserIdDTO, fileBuffer: Buffer, rehasehdNum: string) : Promise<void>{
     return new Promise(async (resolve, reject) => {
         try {
 
@@ -161,11 +167,11 @@ export class Userservice {
     })
 
   }
-  async saveToUsersCollection(userDto: SignupBodyDto, uid: string, rehasehdNum: string,fileBuffer?: Buffer)  :Promise<UserInfoResponseDTO>{
+  async saveToUsersCollection(userDto: SignupBodyDto, userIdDTO: UserIdDTO, rehasehdNum: string, fileBuffer?: Buffer)  :Promise<UserInfoResponseDTO>{
    return new Promise(async (resolve, reject)=>{
     try{
-      let newUser = await this.prepareUser(userDto, uid, rehasehdNum);
-      newUser.image = fileBuffer //setting image buffer to insert 
+      let newUser = await this.prepareUser(userDto, userIdDTO, rehasehdNum);
+      newUser.image = fileBuffer //setting image buffer to insert
       const res = await this.db.collection(CollectionNames.USERS_COLLECTION).insertOne(newUser);
       const user = new UserInfoResponseDTO()
      //  user.email = newUser.email
@@ -219,13 +225,14 @@ async removeFile(path:string): Promise<any>{
     })
   })
 }
-private prepareUser(userDto: SignupBodyDto, uid: string, rehasehdNum: string):User{
+private prepareUser(userDto: SignupBodyDto, uid: UserIdDTO, rehasehdNum: string):User{
   let newUser = new UserDto();
   newUser._id = rehasehdNum;
   // newUser.accountType = userDto.accountType;
   // newUser.email = userDto.email;
   newUser.firstName = userDto.firstName;
-  newUser.uid = uid;
+  newUser.uid = uid.userId;
+  newUser.hUid = uid.hUserId
   // newUser.gender = userDto.gender
   // newUser.phoneNumber = userDto.phoneNumber;
   newUser.lastName = userDto.lastName

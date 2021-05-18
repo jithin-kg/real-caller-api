@@ -1,19 +1,15 @@
 import { IsString } from "class-validator";
 
 export class UserInfoResponseDTO {
-    // @IsString()
-    // email: string;
-    
     @IsString()
-    firstName : string;
-
-    // @IsString()
-    // gender:string
+    firstName : string = "";
 
     @IsString()
-    lastName:string;
+    lastName:string = "";
     
     image? : string =""
+    @IsString()
+    customToken:string = ""
     // @IsString()
     // phoneNumber:string;    
 }
