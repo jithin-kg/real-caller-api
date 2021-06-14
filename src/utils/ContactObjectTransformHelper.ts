@@ -36,12 +36,19 @@ export class ContactObjectTransformHelper {
         contactWithCarrierInfo.location = carrierInfo.value.location.trim();
     }
     static  setCarrierInfo(contactWithCarrierInfo: ContactProcessingItem, carrierInfo: Indiaprefixlocationmaps) {
-        if(carrierInfo!=null){
-            contactWithCarrierInfo.carrier = carrierInfo.carrier.trim();
-            contactWithCarrierInfo.lineType = carrierInfo.lineType.trim()
-            contactWithCarrierInfo.location = carrierInfo.location.trim();
-            contactWithCarrierInfo.country = carrierInfo.country.trim()
+        try{
+            if(carrierInfo!=null){
+                contactWithCarrierInfo.carrier = carrierInfo.carrier ?? "";
+                contactWithCarrierInfo.lineType = carrierInfo.lineType ??"";
+                contactWithCarrierInfo.location = carrierInfo.location ?? "";
+                contactWithCarrierInfo.country = carrierInfo.country ?? "";
+            }
+           
+        }catch(e){
+
         }
+        
+        
        
     }
 }

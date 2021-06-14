@@ -192,7 +192,7 @@ export class Userservice {
       const user = new UserInfoResponseDTO()
      //  user.email = newUser.email
       user.firstName = newUser.firstName
-      user.lastName = "sample"
+      user.lastName = newUser.lastName
       if(fileBuffer!=undefined){
         user.image = fileBuffer.toString("base64")
       }else{

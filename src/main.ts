@@ -34,6 +34,7 @@ async function bootstrap() {
   });
 
 }
+https://javascript.plainenglish.io/how-to-run-your-nestjs-server-in-cluster-mode-properly-acbbd4949732
 //this is using cluster to - clusterize app
 ClusterService.clusterize(bootstrap)
 
