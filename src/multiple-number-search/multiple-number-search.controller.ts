@@ -19,7 +19,6 @@ export class MultipleNumberSearchController {
 
      let res : RehashedItemWithOldHash[] = await this.service.getDetailsForNumbers(phoneNumbers)
      console.log("-----------------returning multiplenubmer search---------------------")
-      
      /**
       * for testing 
       */

@@ -107,6 +107,16 @@ export class FirebaseMiddleware implements NestMiddleware {
 
         }
     }
+
+    static async desableUser(uid:string) {
+       try {
+           await  firebaseAdmin.auth().updateUser(uid, {
+               disabled: true
+           })
+       }catch (e){
+           console.log(`Error while desabling user`)
+       }
+    }
     static async removeUserPhoneNumberFromFirebase(uid:string):Promise<any>{
 
         return new Promise(async (resolve, reject)=> {

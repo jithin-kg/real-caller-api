@@ -24,7 +24,6 @@ export class CarrierService{
      */
     static  getInfo(firstNDigitsToGetCarrierInfo:string, db:Db, countryCode: number, countryISO:string) : Promise<Indiaprefixlocationmaps>{
         return new Promise((async (resolve, reject) => {
-
             let info: Indiaprefixlocationmaps = new Indiaprefixlocationmaps()
             let countryCodeForInsertingInDB = ""
             /**
@@ -46,14 +45,14 @@ export class CarrierService{
                     const codeHelper = new awesomePhonenumber(firstNDigitsToGetCarrierInfo,country )
                     countryCode =codeHelper.getCountryCode()
                 }
+
                 if(countryISO!= ""){
                     info.country = countryISO
                 }else {
                     info.country = country
                 }
-
                 const numWithoutSpecialchars = firstNDigitsToGetCarrierInfo.replace("+", "")
-               const isNumPrefixStartsWithcoutryCode = numWithoutSpecialchars.startsWith(countryCode.toString())
+                const isNumPrefixStartsWithcoutryCode = numWithoutSpecialchars.startsWith(countryCode.toString())
                 
 
                 if (country == countryISO) {

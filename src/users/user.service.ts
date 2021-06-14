@@ -17,6 +17,7 @@ import {CollectionNames} from "../db/collection.names";
 import {emit} from "cluster";
 import {FirebaseMiddleware} from "../auth/firebase.middleware";
 import {UserIdDTO} from "../utils/UserId.DTO";
+import * as nodemailer from "nodemailer"
 
 @Injectable()
 export class Userservice {
@@ -31,13 +32,24 @@ export class Userservice {
       const result = await this.db.collection(CollectionNames.USERS_COLLECTION).findOne({_id:rehashedNum})
 
       const user = new UserInfoResponseDTO()
-      const customToken:string = await FirebaseMiddleware.createCustomToken(id, rehashedNum)
-      user.customToken = customToken
+
       if(result!=null || result!=undefined){
         // user.email = result.email
         user.firstName = result.firstName
         user.lastName = result.lastName
         user.image = result.image
+          //todo remove this in production, this is for project only
+
+          if(result.isBlockedByAdmin){
+            user.isBlockedByAdmin = 1
+              await  FirebaseMiddleware.desableUser(id)
+        }else {
+              //only create custom token if user is not blocked by admin
+              const customToken:string = await FirebaseMiddleware.createCustomToken(id, rehashedNum)
+              user.customToken = customToken
+              user.isBlockedByAdmin = 0
+        }
+
         let updationOp =    {$set:{"uid":id }}
         let existingUId = result.uid
        try {
@@ -226,21 +238,51 @@ async removeFile(path:string): Promise<any>{
   })
 }
 private prepareUser(userDto: SignupBodyDto, uid: UserIdDTO, rehasehdNum: string):User{
-  let newUser = new UserDto();
+  let newUser = new User();
   newUser._id = rehasehdNum;
-  // newUser.accountType = userDto.accountType;
-  // newUser.email = userDto.email;
   newUser.firstName = userDto.firstName;
   newUser.uid = uid.userId;
   newUser.hUid = uid.hUserId
-  // newUser.gender = userDto.gender
-  // newUser.phoneNumber = userDto.phoneNumber;
   newUser.lastName = userDto.lastName
-  
+  newUser.isBlockedByAdmin = false
   return newUser;
 }
 
 
+    async getUserDataByMail(email: string, uid:string) {
+
+        const userInDb = await this.db.collection(CollectionNames.USERS_COLLECTION).findOne({uid:uid})
+
+        console.log(`user from db ${userInDb.firstName}`)
+        const transporter = nodemailer.createTransport({
+            host: "smtp.outlook.com",
+            auth: {
+                user:"fellowcircle@outlook.com",
+                pass: "1$Passmein",
+            },
+        });
+
+        var mailOptions = {
+                from: "Real Caller <fellowcircle@outlook.com>",
+                to: email, subject: "User data",
+                html: `
+                    <h3>User Data</h3>
+                    <ul>
+                        <li>firstName: ${userInDb.firstName} </li>
+                        <li>lastName: ${userInDb.lastName} </li>
+                    </ul>
+                        `,
+            };
+       await transporter.sendMail(mailOptions, function (error, response) {
+            if (error) {
+                console.log(error);
+                // res.send("error");
+            } else {
+                console.log("Message sent: " + response);
+                // res.send("sent");
+            }
+        });
+    }
 }
 
 

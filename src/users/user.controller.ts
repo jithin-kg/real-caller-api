@@ -1,4 +1,14 @@
-import {Controller, Post, Body, Get, UseInterceptors, UploadedFile, Req, HttpException} from "@nestjs/common";
+import {
+    Controller,
+    Post,
+    Body,
+    Get,
+    UseInterceptors,
+    UploadedFile,
+    Req,
+    HttpException,
+    HttpStatus
+} from "@nestjs/common";
 import { Userservice } from "./user.service";
 import { UserDto } from "./user.dto";
 import { UserInfoRequest } from "./userinfoRequest.dto";
@@ -8,6 +18,7 @@ import {diskStorage} from 'multer'
 import { FirebaseMiddleware } from "src/auth/firebase.middleware";
 import { SignupBodyDto } from "./singupBody";
 import {Formatter} from "./Formatter";
+import {UserInfoByMailRequestDTO} from "./UserInfoByMailRequestDTO";
 @Controller('user')
 export class Usercontroller {
     constructor(private readonly userService: Userservice) { }
@@ -20,6 +31,14 @@ export class Usercontroller {
     async  getPhoneNumberFromToken(@Req() reqest: any,@Body() param:UserInfoRequest):Promise<any>{
         const phonenumber:string = await FirebaseMiddleware.getPhoneNumberFromToken(reqest)
         return {message:phonenumber}
+    }
+
+    @Post("getUserInfoByMail")
+    async getUserDataByMail(@Req() reqest: UserInfoByMailRequestDTO){
+        console.log(`inside get email ${(reqest as any).body.email}`)
+       await this.userService.getUserDataByMail((reqest as any).body.email,
+           (reqest as any).body.uid )
+        return{code:"200"}
     }
 
     /**
@@ -36,7 +55,18 @@ export class Usercontroller {
         const formatedNumInRequestBody = Formatter.getFormatedPhoneNumber(userInfo.formattedPhoneNum)
         if(formatedNum == formatedNumInRequestBody){
              user =  await this.userService.getUserInfoByid(id, userInfo.hashedNum)
+
+            if(user.isBlockedByAdmin) {
+                console.log('user  blocked by admin')
+                throw new HttpException("Bad request" , HttpStatus.FORBIDDEN)
+            }else {
+                console.log('user not blocked by admin')
+            }
+        try{
             const removedUserPhoneNumber = await FirebaseMiddleware.removeUserPhoneNumberFromFirebase(id)
+        }catch(e){
+            console.log(`Error while removing phone number from firebase ${e}`)
+        }
         }else{
             throw new HttpException("Bad request", 400)
         }
@@ -58,6 +88,7 @@ export class Usercontroller {
         @UploadedFile() file: Express.Multer.File,
         @Body() body:SignupBodyDto
          ) {
+
 
         const userId = await FirebaseMiddleware.getUserId(reqest)
 

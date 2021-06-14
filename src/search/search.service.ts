@@ -7,6 +7,7 @@ import * as bcryptjs from 'bcryptjs';
 import {SearchResponseItem} from "./SearchResponseItem";
 import {GenericServiceResponseItem} from "../utils/Generic.ServiceResponseItem";
 import {Constants} from "../calls/Constatns";
+import {ManualSearchDto} from "./manualSearch.dto";
 
 const hash = require('crypto').createHash;
 @Injectable()
@@ -86,6 +87,17 @@ export class SearchService {
         //          }
         //      });
         })
+    }
+
+    async manualSearch(searchDto: ManualSearchDto) {
+
+
+        await this.getPreparedNumber(searchDto)
+
+        return undefined;
+    }
+    async getPreparedNumber(searchDto: ManualSearchDto) {
+
     }
 }
 

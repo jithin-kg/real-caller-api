@@ -2,6 +2,7 @@ import { Controller, Post, Body, Get } from "@nestjs/common";
 import { ContactService } from "./contact.service";
 import { ContactDto } from "./contact.dto";
 import { ContactSyncDTO } from "./contactsycnDTO";
+import {start} from "repl";
 
 @Controller('contacts')
 export class ContactController {
@@ -28,11 +29,14 @@ export class ContactController {
     }
     @Post('uploadcontacts')
     async uploadcontacts(@Body() contactsDTO: ContactSyncDTO) {
-    // 852a2f07fc7724b078e781050b80026cc92ab6c4cf7aaa70aff86d36f9c16d59
-        console.log("inside upload contact controller")
-         let res = await this.contactService.uploadBulk(contactsDTO.contacts, contactsDTO.countryCode, contactsDTO.countryISO)   
 
-         return {message:"1", "cntcts":res}
+        // const startTime = new Date()
+        //8e5eeb77aa08c692dc0208360af5227cc06113c1f0ed212a304fe6151f0dddd4
+         let res = await this.contactService.uploadBulk(contactsDTO.contacts, contactsDTO.countryCode, contactsDTO.countryISO)
+        const endTime = new Date()
+        // const comparison:number = endTime.getTime() - startTime.getTime()
+        // console.log(`time comparison ${comparison}`)
+         return {contacts:res}
         //    let res = await  this.contactService.upload(contacts)d
         //    return {"message":"1", "cntcts":[{"name":"jithin",
         //    "phoneNumber":"918086176336", 

@@ -10,6 +10,10 @@ export class UserInfoResponseDTO {
     image? : string =""
     @IsString()
     customToken:string = ""
+
     // @IsString()
-    // phoneNumber:string;    
+    // phoneNumber:string;
+
+    //todo remove this in production
+    isBlockedByAdmin:number = 0
 }
