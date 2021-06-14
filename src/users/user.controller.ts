@@ -48,6 +48,7 @@ export class Usercontroller {
      */
     @Post("getUserInfoForUid")
     async getUserInfo(@Req() reqest: any, @Body()userInfo: UserInfoRequest ){
+        console.log("inside getUserInfoForUid")
        let user;
         const id = userInfo.uid;
         const phoneNumInToken:string = await FirebaseMiddleware.getPhoneNumberFromToken(reqest)
