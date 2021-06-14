@@ -2,7 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import * as dotenv from 'dotenv';
-
+import {ClusterService} from "./ClusterService";
+import {ConfigService} from './config.service'
 import * as bodyParser from 'body-parser';
 //important mongodb security
 // https://docs.mongodb.com/manual/faq/fundamentals/#faq-developers-when-to-use-gridfs
@@ -33,6 +34,8 @@ async function bootstrap() {
   });
 
 }
+//this is using cluster to - clusterize app
+ClusterService.clusterize(bootstrap)
 
-
-bootstrap();
+//this is normal way, use this in developing environment
+// bootstrap();

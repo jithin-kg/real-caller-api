@@ -37,6 +37,7 @@
     "chalk": "^4.1.0",
     "class-transformer": "^0.3.1",
     "class-validator": "^0.12.2",
+    "cluster": "^0.7.7",
     "dotenv": "^8.2.0",
     "firebase-admin": "^9.2.0",
     "google-libphonenumber": "^3.2.16",
