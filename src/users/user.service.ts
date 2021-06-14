@@ -62,6 +62,10 @@ export class Userservice {
            console.log(e)
        }
         return user;
+      }else {
+          const customToken:string = await FirebaseMiddleware.createCustomToken(id, rehashedNum)
+          user.customToken = customToken
+
       }
       return user;
     }
