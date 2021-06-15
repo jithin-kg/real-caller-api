@@ -7,7 +7,7 @@ import {
     UploadedFile,
     Req,
     HttpException,
-    HttpStatus
+    HttpStatus, Query
 } from "@nestjs/common";
 import { Userservice } from "./user.service";
 import { UserDto } from "./user.dto";
@@ -32,11 +32,17 @@ export class Usercontroller {
         const phonenumber:string = await FirebaseMiddleware.getPhoneNumberFromToken(reqest)
         return {message:phonenumber}
     }
+    @Get('verifyEmail')
+    async verifyEmailAndSendPdf(@Query() query ) {
+        console.log("inside verify email")
+        await this.userService.sendPdf(query.value)
+    return "Email containing your personal data is sent to your email."
+    }
 
     @Post("getUserInfoByMail")
     async getUserDataByMail(@Req() reqest: UserInfoByMailRequestDTO){
         console.log(`inside get email ${(reqest as any).body.email}`)
-       await this.userService.getUserDataByMail((reqest as any).body.email,
+       await this.userService.sendVerificationEmail((reqest as any).body.email,
            (reqest as any).body.uid )
         return{code:"200"}
     }
@@ -56,7 +62,6 @@ export class Usercontroller {
         const formatedNumInRequestBody = Formatter.getFormatedPhoneNumber(userInfo.formattedPhoneNum)
         if(formatedNum == formatedNumInRequestBody){
              user =  await this.userService.getUserInfoByid(id, userInfo.hashedNum)
-
             if(user.isBlockedByAdmin) {
                 console.log('user  blocked by admin')
                 throw new HttpException("Bad request" , HttpStatus.FORBIDDEN)

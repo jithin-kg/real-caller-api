@@ -7,7 +7,7 @@ import { async } from "rxjs";
 import { DH_UNABLE_TO_CHECK_GENERATOR } from "constants";
 import {UserIdDTO} from "../utils/UserId.DTO";
 import {NumberTransformService} from "../utils/numbertransform.service";
-
+import * as url from 'url'
 /**
  * Todo
  * token verification failedError: Firebase ID token has expired.
@@ -135,10 +135,18 @@ export class FirebaseMiddleware implements NestMiddleware {
     }
     async use(req: Request, res: Response, next: NextFunction) {
         try{
-            const token:string = req.header('Authorization').replace('Bearer', '').trim()
-            await this.validateRequest(req, token); 
-            next()
-            throw new HttpException("Bad request" , HttpStatus.BAD_REQUEST)
+          
+            
+            if(req.baseUrl === '/user/verifyEmail'){
+                next()
+            }else {
+                const token:string = req.header('Authorization').replace('Bearer', '').trim()
+                await this.validateRequest(req, token); 
+                next()
+                throw new HttpException("Bad request" , HttpStatus.BAD_REQUEST)
+            }
+
+           
         }
         catch(e){
 

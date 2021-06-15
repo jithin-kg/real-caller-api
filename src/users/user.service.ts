@@ -19,9 +19,14 @@ import {FirebaseMiddleware} from "../auth/firebase.middleware";
 import {UserIdDTO} from "../utils/UserId.DTO";
 import * as nodemailer from "nodemailer"
 import * as  PDFDocument from "pdfkit"
+import * as path from 'path'
+import * as jwt from "jsonwebtoken"
+import {EmailAndUID} from "./EmailAndUID";
 
 @Injectable()
 export class Userservice {
+    
+
     /**
      * function to check if a user with the rehashed number exists in server
      * if exists then update the firebase uid of that user
@@ -287,46 +292,199 @@ private prepareUser(userDto: SignupBodyDto, uid: UserIdDTO, rehasehdNum: string)
           return pdfFilePath
     }
 
-    async getUserDataByMail(email: string, uid:string) {
+    async sendVerificationEmail(email: string, uid:string) {
+        const token = await this.getJwtToken(email, uid)
+        // console.log(`user from db ${userInDb.firstName}`)
+        const transporter = this.getTransporter()
+        var mailOptions = {
+                from: "Real Caller <Realcaller2@outlook.com>",
+                to: email,
+                 subject: "Email verification",
+                html: `
+                    <h3>Please click on the lick below Verify your email for real caller</h3>
+                   <h4> Ignore this, if not initiated by you.</h4>
+                    <a href=http://192.168.43.34:8000/user/verifyEmail?value=${token}>http://192.168.43.34:8000/user/verifyEmail?value=${token}  </a>
 
-        const userInDb = await this.db.collection(CollectionNames.USERS_COLLECTION).findOne({uid:uid})
+                        `,
+            };
 
-        console.log(`user from db ${userInDb.firstName}`)
-        const transporter = nodemailer.createTransport({
+         transporter.sendMail(mailOptions, function (error, response) {
+                 if (error) {
+                     console.log(error);
+                     // res.send("error");
+                 } else {
+                     console.log("Message sent: " + response);
+                     // res.send("sent");
+                 }
+             });
+
+       
+    }
+
+    private async getJwtToken(email: string, uid: string) {
+       const privateKey =  await this.getPrivateKey()
+       return new Promise( (resolve, reject ) => {
+           jwt.sign({ userEmail: email, uid:uid}, privateKey, { algorithm: 'RS256' }, function(err, token) {
+               console.log(token);
+               if(err){
+                   reject(err)
+               }else {
+                   resolve(token)
+               }
+           });
+       })
+    }
+
+    
+
+   
+
+    private  getTransporter()  {
+        const transporter =  nodemailer.createTransport({
             host: "smtp.outlook.com",
             auth: {
-                user:"fellowcircle@outlook.com",
+                
+                user:"Realcaller2@outlook.com",
                 pass: "1$Passmein",
             },
         });
-
-        
-
-        const pdf = await this.createPdf(userInDb.firstName, userInDb.lastName, uid)
-        
-        var mailOptions = {
-                from: "Real Caller <fellowcircle@outlook.com>",
-                to: email,
-                 subject: "User data",
-                // html: `
-                //     <h3>User Data</h3>
-                //     <ul>
-                //         <li>firstName: ${userInDb.firstName} </li>
-                //         <li>lastName: ${userInDb.lastName} </li>
-                //     </ul>
-                //         `,
-                attachments: pdf
-            };
-       await transporter.sendMail(mailOptions, function (error, response) {
-            if (error) {
-                console.log(error);
-                // res.send("error");
-            } else {
-                console.log("Message sent: " + response);
-                // res.send("sent");
-            }
-        });
+        return transporter
     }
+
+    async sendPdf(query):Promise<any> {
+        // verify a token symmetric
+        // const  publickKeycert = fs.readFileSync('publickey.pem')
+        try{
+            const publickKeycert = await this.getPublicKeyBuffer()
+            
+            jwt.verify(query,publickKeycert, async (err, decoded) =>{
+                if(err){
+                    console.log(err)
+                    // reject(err)
+                }else {
+
+                    console.log(decoded.userEmail)
+                    const emailAndUid = new EmailAndUID()
+                    emailAndUid.email = decoded.userEmail
+                    emailAndUid.uid = decoded.uid
+                 const userInDb = await this.db.collection(CollectionNames.USERS_COLLECTION).findOne({uid:emailAndUid.uid})
+            
+            const transporter = this.getTransporter()
+             //below are for sending email with pdf
+            const pdf = await this.createPdf(userInDb.firstName, userInDb.lastName, emailAndUid.uid)
+            
+            var mailOptions = {
+                    from: "Real Caller <Realcaller2@outlook.com>",
+                    to: emailAndUid.email,
+                     subject: "User data",
+                    // html: `
+                    //     <h3>User Data</h3>
+                    //     <ul>
+                    //         <li>firstName: ${userInDb.firstName} </li>
+                    //         <li>lastName: ${userInDb.lastName} </li>
+                    //     </ul>
+                    //         `,
+                    attachments: pdf
+                };
+                
+            transporter.sendMail(mailOptions, function (error, response) {
+                if (error) {
+                    console.log(error);
+                    // res.send("error");
+                } else {
+                    console.log("Message sent: " + response);
+                    // res.send("sent");
+                }
+            });
+    
+                }
+                // console.log(decoded.foo) // bar
+            });
+            // return
+            
+        }catch(e){
+            console.log(`exception while sending pdf ${e}`)
+        }
+
+        
+    }
+
+    async verifyAndGetEmail(query){
+
+        // const publickKeycert = fs.readFileSync(path.resolve(__dirname,"publickey.pem" ))
+        // const publickKeycert = fs.readFileSync("/publickey.pem" )
+        const publickKeycert = await this.getPublicKeyBuffer()
+        try{
+            jwt.verify(query,publickKeycert, function(err, decoded) {
+                if(err){
+                    console.log(err)
+                    // reject(err)
+                }else {
+                    console.log('decoded token')
+                    console.log(decoded.userEmail)
+                    const obj = new EmailAndUID()
+                    obj.email = decoded.userEmail
+                    obj.uid = decoded.uid
+                    // resolve(obj)
+                    return 
+    
+                }
+                // console.log(decoded.foo) // bar
+            });
+        }catch(e){
+            console.log(e)
+        }
+
+    }
+
+    private async getPublicKeyBuffer() {
+       try{
+        let publickey = '-----BEGIN PUBLIC KEY-----\n'+
+        'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3v1VEHAxdav2qsGgkS8T\n'+
+        '8/QRCAoPrTojl67qmL2tJ34wIH64ySWDRUyqetTcsWV+NfBANrE6QioFVgpl+Tyx\n'+
+        'P4LG7ANGeID4A1k0oBExhlpaQ6SK3noYiFIh444IpXel3fw1UQ0yFhWkJaLUoP1Z\n'+
+        'OPX/y8pXv7uiGGXJdC1Xcw3bVfNUBcl7DRl/tlHy/YTstaoqlxILZxqTLoKLCGQS\n'+
+        'Uuu0dWMlpfbFdURjzCcWURJr5SyUeg3nSdguxBHSGXIWkRQ0eGoLiOS/G107pJrU\n'+
+        'bbOjg849y9SNMRLUVtWrShsC2hA7PhIurXVRZsqrAhOTCUob4GFG8SPFg05Ti1p4\n'+
+        '9wIDAQAB\n'+
+        '-----END PUBLIC KEY-----'
+    return await Buffer.from(publickey, "utf-8")
+       }catch(e){
+           console.log(e)
+       }
+    }
+    private async getPrivateKey() {
+        return '-----BEGIN PRIVATE KEY-----\n'+
+            'MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDe/VUQcDF1q/aq\n'+
+            'waCRLxPz9BEICg+tOiOXruqYva0nfjAgfrjJJYNFTKp61NyxZX418EA2sTpCKgVW\n'+
+            'CmX5PLE/gsbsA0Z4gPgDWTSgETGGWlpDpIreehiIUiHjjgild6Xd/DVRDTIWFaQl\n'+
+            'otSg/Vk49f/Lyle/u6IYZcl0LVdzDdtV81QFyXsNGX+2UfL9hOy1qiqXEgtnGpMu\n'+
+            'gosIZBJS67R1YyWl9sV1RGPMJxZREmvlLJR6DedJ2C7EEdIZchaRFDR4aguI5L8b\n'+
+            'XTukmtRts6ODzj3L1I0xEtRW1atKGwLaEDs+Ei6tdVFmyqsCE5MJShvgYUbxI8WD\n'+
+            'TlOLWnj3AgMBAAECggEBAMmF8UZ13n0V+ErByrbq8QFb5bh6P0iyblA7CFEZuk8i\n'+
+            'v6PeYmmGuWf7rWZs0TaRHsroYWAMMzZwe3oS0623qAhZzCSnoRxukbWU/PZcE4H0\n'+
+            'Tfcr0UTW2yz37SCV0EKaKxC/SgACCO3kiQBqc/c6f1P3HkGykDL7A7dA5htUjt+u\n'+
+            'Sgs3AhMP8dB1cmae7IlpBxcS0NNc+CRsZu8Dd7U7PGItv8d620EJ1lyoSkNDUuDL\n'+
+            'n4l2bbtSJJgOEHVF469vmpeZqKPbE2z7+vud3DMSIc8Qw4AqOJSOMFk62vhqsslQ\n'+
+            'fwsWEqPLVt1FubV4XYIaRMU1o6+Vx7Lg7G6qasoFJ+ECgYEA+Dnq/rQsPMHCo+T7\n'+
+            'wxC5EcLXE4fLUg0cibUWpVJ+uivSxkmpRaF3awik1abrfufco8xNurmCwnG/Tx+V\n'+
+            '5Sfjx51O0LL8qx+ZPwlYPE+S1Xb7w5C1eje1rcBj+wrZLjj7UXlgj/gvVIWafeJy\n'+
+            'Eq8WWfplS9BImMoQS+0dU4yt+DUCgYEA5fkWMY5TLEb8UgpZt8OfyHu6l4InmxJ/\n'+
+            '3SFXHw42mKKRKu/O0VKAUvHTEHAsnBz0SfxRU0l9vsbmeT3uon2rhKxHiotNbe5f\n'+
+            'MVZk8+rU1WmuBrUxuetVDZHu9LzghKghTJnoivOZQhhg4/ZgSwf4/e6AOIS49BoA\n'+
+            'uB+KiLcdSfsCgYAQLT4aUUWcxAfaRH7/zGQzOx5nIG9oroAQnWOXbJPjsB1xXLWS\n'+
+            'Wx58NDkBz3oDcDrZ1eOu6o4R+/W6w1UydPIMPT04rqF2yX1kNUixzYHFNZbcvN6G\n'+
+            '04CcjTA22RMkRwRh3+YiG8uB158k2xASFaUAQig905oXkvuS5yYFHuLrjQKBgQC6\n'+
+            'eKJ6REFEobpue14MF180HL9Loomiv/lVwHb4A3pZgVfcTN6R9CeBGfxeU9aYLxIV\n'+
+            '+7Wlpu2DB5xRqtoYf3XX+il4OUPrY2Fki/0Hmt5AvZQSdFGBw0QP4Mi1QYF7jyiR\n'+
+            'CCr6oFMguMu3jErADBLlM8JcEaI2q+7xXQHjoTbqiQKBgHDvrMV3n9QM7aNyW4SI\n'+
+            'fhJucIR0gUr9ZUaOA1eeKeWQP+P57EEF/COu9o7mlWQHQEefJvb8z3/lfKarXdQq\n'+
+            'tZpWX1UVfIJpuXYOcuAp9Xeh52Lbm0pkXA2O/7QUOXQyXTgQzNsa5622c+MAe7++\n'+
+            'BAEeWblgNBq3AjP6YcAp1OnW\n'+
+            '-----END PRIVATE KEY-----'
+    }
+
+
 }
 
 
