@@ -18,6 +18,7 @@ import {emit} from "cluster";
 import {FirebaseMiddleware} from "../auth/firebase.middleware";
 import {UserIdDTO} from "../utils/UserId.DTO";
 import * as nodemailer from "nodemailer"
+import * as  PDFDocument from "pdfkit"
 
 @Injectable()
 export class Userservice {
@@ -252,6 +253,39 @@ private prepareUser(userDto: SignupBodyDto, uid: UserIdDTO, rehasehdNum: string)
   return newUser;
 }
 
+    async getPdf(firstName, lastName, uid: string) {
+       try{
+        //    await this.createPdf(firstName, lastName, uid)
+            // await fs.readFile(`${uid}output.pdf`, )
+           var file = fs.createReadStream(`${uid}output.pdf`);
+           var stat = fs.statSync(`${uid}output.pdf`);
+
+           // res.setHeader('Content-Length', stat.size);
+           // res.setHeader('Content-Type', 'application/pdf');
+           // res.setHeader('Content-Disposition', 'attachment; filename=quote.pdf');
+           // file.pipe(res);
+       }catch (e){
+           console.log(`Error white getting pdf ${e}`)
+       }
+
+    }
+
+    private async createPdf(firstName, lastName, uid: string) {
+        let pdfFilePath
+        try{
+                // Create a document
+            const doc = new PDFDocument();
+             pdfFilePath = doc.pipe(fs.createWriteStream(` ${uid}output.pdf`));
+            // Embed a font, set the font size, and render some text
+            doc
+                .fontSize(25)
+                .text(`firstName ${firstName}, lastName ${lastName}`, 100, 100);
+                doc.end()
+          }catch(e){
+              console.log(`Exception while creating pdf ${e}`)
+          }
+          return pdfFilePath
+    }
 
     async getUserDataByMail(email: string, uid:string) {
 
@@ -266,16 +300,22 @@ private prepareUser(userDto: SignupBodyDto, uid: UserIdDTO, rehasehdNum: string)
             },
         });
 
+        
+
+        const pdf = await this.createPdf(userInDb.firstName, userInDb.lastName, uid)
+        
         var mailOptions = {
                 from: "Real Caller <fellowcircle@outlook.com>",
-                to: email, subject: "User data",
-                html: `
-                    <h3>User Data</h3>
-                    <ul>
-                        <li>firstName: ${userInDb.firstName} </li>
-                        <li>lastName: ${userInDb.lastName} </li>
-                    </ul>
-                        `,
+                to: email,
+                 subject: "User data",
+                // html: `
+                //     <h3>User Data</h3>
+                //     <ul>
+                //         <li>firstName: ${userInDb.firstName} </li>
+                //         <li>lastName: ${userInDb.lastName} </li>
+                //     </ul>
+                //         `,
+                attachments: pdf
             };
        await transporter.sendMail(mailOptions, function (error, response) {
             if (error) {

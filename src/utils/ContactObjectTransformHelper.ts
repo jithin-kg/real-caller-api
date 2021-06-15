@@ -37,7 +37,7 @@ export class ContactObjectTransformHelper {
     }
     static  setCarrierInfo(contactWithCarrierInfo: ContactProcessingItem, carrierInfo: Indiaprefixlocationmaps) {
         try{
-            if(carrierInfo!=null){
+            if(carrierInfo!=null) {
                 contactWithCarrierInfo.carrier = carrierInfo.carrier ?? "";
                 contactWithCarrierInfo.lineType = carrierInfo.lineType ??"";
                 contactWithCarrierInfo.location = carrierInfo.location ?? "";
