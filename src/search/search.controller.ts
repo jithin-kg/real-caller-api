@@ -24,7 +24,8 @@ export class Searchcontroller {
     @Post('manualSearch')
     async searchManual(@Body() searchData: ManualSearchDto) {
         let d:GenericServiceResponseItem<number, any> = await this.service.manualSearch(searchData)
-        console.log('sarath edited')
+    
+    
         return {"status":d.statusCode, "cntcts":d.data};
     }
 }
