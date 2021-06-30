@@ -4,7 +4,7 @@ import { ContactDto } from "./contact.dto";
 import { ContactSyncDTO } from "./contactsycnDTO";
 import {start} from "repl";
 
-@Controller('contacts')
+@Controller('contacts_')
 export class ContactController {
     constructor(private readonly contactService: ContactService) { }
 

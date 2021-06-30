@@ -4,11 +4,15 @@ export class SpamDTO{
     // @Length(7, 12)
     @IsString()
     phoneNumber:string;
+    
     @IsString()
     country:String;
 
     @IsString()
     spammerType:string;
+    
     @IsString()
-    uid?:string
+    uid?:string;
+
+    hUid?:string
 }
