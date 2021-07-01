@@ -4,7 +4,7 @@
  */
 export class ContactProcessingItem {
     hashedPhoneNumber: string = ""
-    phoneNumber: string = "";
+    prevHash: string = "";
     carrier: string = "";
     location: string = "";
     lineType: string = "";

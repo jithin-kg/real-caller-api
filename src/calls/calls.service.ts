@@ -32,7 +32,6 @@ export class CallService {
         * @param phoneNumbers for handling request to get informatoin for call log data
         */
         async getDetailsForNumbers(phoneNumbers: RequestDTO): Promise<RehashedItemWithOldHash[]> {
-
             const arrayOfHahsedNums:ContactAdderssWithHashedNumber[] = phoneNumbers.hashedPhoneNum
             let resultArray:ContactReturnDto[]
 
@@ -53,9 +52,9 @@ export class CallService {
                 try{
                    let rehasehdNum = await  this.numberTranformService.tranforNum(hashedNum.contactAddressHashed)
                    const obj = new RehashedItemWithOldHash()
-                   obj.phoneNumber = hashedNum.contactAddressString;
+                   obj.phoneNumber = hashedNum.contactAddressHashed;
                    obj.newHash = rehasehdNum   
-                    obj.firstName = "sample"
+                    obj.firstName = ""
                     obj.spamCount = 0
                  console.log("--------------------hash ------------------------")
                    console.log(rehasehdNum)

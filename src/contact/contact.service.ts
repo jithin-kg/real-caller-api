@@ -111,10 +111,10 @@ export class ContactService {
 
                     contactWithCarrierInfo.hashedPhoneNumber = contact.hashedPhoneNumber
                     contactWithCarrierInfo.firstName = contact.name;
-                    contactWithCarrierInfo.phoneNumber = contact.phoneNumber;
+                    contactWithCarrierInfo.prevHash = contact.phoneNumber;
 
 
-                    console.log(`first n digit while inserting is ${contactWithCarrierInfo.phoneNumber}`)
+                    console.log(`first n digit while inserting is ${contactWithCarrierInfo.prevHash}`)
                     this.contactsListWithCarrierInfoProcessing.push(contactWithCarrierInfo);
                 }
 
@@ -149,7 +149,7 @@ export class ContactService {
     private async prepareContactReturnObj(cntct: ContactProcessingItem) : Promise<RehashedItemWithOldHash>{
 
         let contactReturnObj = new RehashedItemWithOldHash();
-        contactReturnObj.phoneNumber = cntct.phoneNumber
+        contactReturnObj.phoneNumber = cntct.prevHash
         contactReturnObj.carrier = cntct.carrier;
         contactReturnObj.country = cntct.country
         contactReturnObj.lineType = cntct.lineType

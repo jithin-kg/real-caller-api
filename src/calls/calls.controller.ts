@@ -22,7 +22,6 @@ export class CallsController {
      /**
       * for testing 
       */
-
        return {contacts:res}
        
     }

@@ -21,7 +21,7 @@ export class ContactManageService {
     private prepareContactReturnObj(cntct: ContactProcessingItem): ContactRehashedItemWithOldHash {
 
         let contactReturnObj = new ContactRehashedItemWithOldHash();
-        contactReturnObj.phoneNumber = cntct.phoneNumber
+        contactReturnObj.phoneNumber = cntct.prevHash
         contactReturnObj.carrier = cntct.carrier;
         contactReturnObj.country = cntct.country
         contactReturnObj.lineType = cntct.lineType
@@ -36,8 +36,7 @@ export class ContactManageService {
 
     }
     async getCarrierInfo(firstNDigitsToGetCarrierInfo: string, countryCode: number, countryISO: string): Promise<Indiaprefixlocationmaps> {
-        firstNDigitsToGetCarrierInfo = firstNDigitsToGetCarrierInfo.replace("(", "")
-        firstNDigitsToGetCarrierInfo = firstNDigitsToGetCarrierInfo.replace(")", "")
+
         let info: Indiaprefixlocationmaps = new Indiaprefixlocationmaps();
         return info;
     }
@@ -63,10 +62,10 @@ export class ContactManageService {
                     contactWithCarrierInfo.spamCount = 0;
                     contactWithCarrierInfo.hashedPhoneNumber = contact.hashedPhoneNumber
                     contactWithCarrierInfo.firstName = contact.name;
-                    contactWithCarrierInfo.phoneNumber = contact.phoneNumber;
+                    contactWithCarrierInfo.prevHash = contact.hashedPhoneNumber;
 
 
-                    console.log(`first n digit while inserting is ${contactWithCarrierInfo.phoneNumber}`)
+                    console.log(`first n digit while inserting is ${contactWithCarrierInfo.prevHash}`)
                     // this.contactsListWithCarrierInfoProcessing.push(contactWithCarrierInfo);
 
                     //--------------old rehashAllNumbers()--------------------------
@@ -80,7 +79,7 @@ export class ContactManageService {
                         contactWithCarrierInfo.isRegistered = true;
                         contactWithCarrierInfo.hUname = _userInfo.firstName;
                     } else {
-                        console.log(`${contactWithCarrierInfo.phoneNumber} !exist || !registered`)
+                        console.log(`${contactWithCarrierInfo.prevHash} !exist || !registered`)
                     }
                     //---------------------------------------------------------------------
                     let contactDoc = ContactObjectTransformHelper.prepareContactDocForInsertingIntoDb(contactWithCarrierInfo)
