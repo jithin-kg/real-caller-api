@@ -156,7 +156,7 @@ export class FirebaseMiddleware implements NestMiddleware {
     }
      async validateRequest(req: Request, token) {
         try{
-            console.log(token)
+            console.log("----token:",token)
             const tokenVerify = await firebaseAdmin.auth().verifyIdToken(token)
              //her I can get phone number from tokenVerify.phone_number
             if (tokenVerify.admin == true) {
@@ -167,9 +167,9 @@ export class FirebaseMiddleware implements NestMiddleware {
             req.body.uid = tokenVerify.uid; // setting user id in the request object
             
             // console.log(req.body.username);
-            console.log(tokenVerify.uid)
-            console.log(tokenVerify)
-            console.log(`no ${tokenVerify.phone_number}`)
+            // console.log(tokenVerify.uid)
+            // console.log(tokenVerify)
+            // console.log(`no ${tokenVerify.phone_number}`)
         }catch(e){
             /**
              * can be thrown due to expired/ invalid token
