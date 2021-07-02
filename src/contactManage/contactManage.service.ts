@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
 import * as chalk from "chalk";
-import CryptoJS from "crypto-js";
+import * as CryptoJS from 'crypto-js';
 import { Db } from 'mongodb';
 import { Indiaprefixlocationmaps } from 'src/carrierService/carrier.info.schema';
 import { CollectionNames } from 'src/db/collection.names';
@@ -158,10 +158,10 @@ export class ContactManageService {
                     console.log('B+U >> existing data + unique data', contacts.contacts);
                 } else { console.log("there is no data for this user") }
 
-                const encryptedString = await CryptoJS.AES.encrypt(JSON.stringify(contacts.contacts), SECRET_KEY).toString();
+                const encryptedString = CryptoJS.AES.encrypt(JSON.stringify(contacts.contacts), SECRET_KEY).toString();
                 const update = { $set: { "contacts": encryptedString } };
                 await this.db.collection(CollectionNames.MY_CONTACTS).updateOne(
-                    query, update).then(res => {
+                    query, update, { upsert: true }).then(res => {
                         console.log("upsert:success: ", res);
                         resolve(1)
                     }).catch(err => {
