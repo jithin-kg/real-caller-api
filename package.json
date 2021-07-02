@@ -27,6 +27,7 @@
     "@nestjs/mongoose": "^7.0.2",
     "@nestjs/platform-express": "^7.4.4",
     "@types/bcryptjs": "^2.4.2",
+    "@types/crypto-js": "^4.0.1",
     "@types/google-libphonenumber": "^7.4.19",
     "@types/mongodb": "^3.6.3",
     "@types/multer-gridfs-storage": "^4.0.1",
