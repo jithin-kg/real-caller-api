@@ -1,6 +1,5 @@
 import { Inject } from '@nestjs/common';
 import * as chalk from "chalk";
-import * as CryptoJS from 'crypto-js';
 import { Db } from 'mongodb';
 import { Indiaprefixlocationmaps } from 'src/carrierService/carrier.info.schema';
 import { CollectionNames } from 'src/db/collection.names';
@@ -11,8 +10,8 @@ import { ContactProcessingItem } from './contactProcessingItem';
 import { ContactRehashedItemWithOldHash } from './contactRehashedItemwithOldHash';
 import { ContactRequestDTO } from './contactRequestDTO';
 import { ReqBodyDTO } from './myContacts/reqBodyDTO';
+import { do_AES_decryption, do_AES_encryption, findDifference } from './myContacts/saveContactsHelper';
 const hash = require('crypto').createHash;
-const SECRET_KEY: string = "___thisissecretkey___";
 export class ContactManageService {
     constructor(@Inject('DATABASE_CONNECTION') private db: Db) { }
     contactsListWithCarrierInfoProcessing: ContactProcessingItem[];
@@ -130,44 +129,59 @@ export class ContactManageService {
             return this.contactsListForResponse;
         }
     }
-
+    async fetchSavedContactsOfUser(hUid: string): Promise<string> {
+        return new Promise(async resolve => {
+            try {
+                const query = { _id: hUid };
+                const existData =
+                    await this.db.collection(CollectionNames.MY_CONTACTS).findOne(query)
+                console.log("existData: ", existData);
+                resolve(existData?.contacts || "")
+            } catch (error) {
+                console.log("fetchSavedContactsOfUser_error : ", error);
+                resolve("")
+            }
+        })
+    }
+    async update_upsert_saveMycontacts(hUid: string, encryptedString: string) {
+        return new Promise(async resolve => {
+            const query = { _id: hUid };
+            const update = { $set: { "contacts": encryptedString } };
+            await this.db.collection(CollectionNames.MY_CONTACTS).updateOne(
+                query, update, { upsert: true }).then(res => {
+                    console.log("upsert:success: ");
+                    resolve(1)
+                }).catch(err => {
+                    console.log("upsert:failed: ", err);
+                    resolve(0)
+                })
+        })
+    }
     async saveMyContacts(contacts: ReqBodyDTO, _req) {
         return new Promise(async (resolve, reject) => {
             try {
                 console.log(chalk.green('going to save...'))
                 const _userData = await FirebaseMiddleware.getUserId(_req);
                 const hUid = _userData.hUserId || "";
-                const query = { _id: hUid };
                 //fetch contacts if exist
-                const existData = await this.db.collection(CollectionNames.MY_CONTACTS).findOne(query)
-                console.log("existData: ", existData);
-                //if exist then contacts-existData.contact --> then upsert
-                if (existData && existData.contacts && contacts.contacts) {
+                const contactExisted_encrypted_string = await this.fetchSavedContactsOfUser(hUid);
+                if (contactExisted_encrypted_string && contacts.contacts) {
                     const { contacts: newContacts = [] } = contacts;         // A
-                    //perform decryption
-                    const { contacts: contactExisted_encrypted_string } = existData;
-                    var bytes = CryptoJS.AES.decrypt(contactExisted_encrypted_string, SECRET_KEY);
-                    let decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8)) || []; // B
+                    //perform decryption to get stored contacts
+                    let decryptedData = await do_AES_decryption(contactExisted_encrypted_string) // B
                     console.log("decryptedData--existed : ", decryptedData)
-                    //perform A-B
-                    const results = newContacts.filter(({ hashedPhoneNumber: id1 }) => {
-                        !decryptedData.some(({ hashedPhoneNumber: id2 }) => id2 === id1)
-                    }); //Unique data U
-                    console.log('A-B >> unique data', results);
+                    //perform A-B >> to find new contacts
+                    const results = await findDifference(newContacts, decryptedData);
+                    console.log('A-B >> unique data', results); //U
+                    //perform B+U >> to append new contacts with existed contacts
                     contacts.contacts = decryptedData.concat(results);
                     console.log('B+U >> existing data + unique data', contacts.contacts);
                 } else { console.log("there is no data for this user") }
-
-                const encryptedString = CryptoJS.AES.encrypt(JSON.stringify(contacts.contacts), SECRET_KEY).toString();
-                const update = { $set: { "contacts": encryptedString } };
-                await this.db.collection(CollectionNames.MY_CONTACTS).updateOne(
-                    query, update, { upsert: true }).then(res => {
-                        console.log("upsert:success: ", res);
-                        resolve(1)
-                    }).catch(err => {
-                        console.log("upsert:failed: ", err);
-                        reject(0);
-                    })
+                //encrypt contacts array >> to save
+                const encryptedString = await do_AES_encryption(contacts.contacts)
+                //perform upsert
+                let isSuccess = await this.update_upsert_saveMycontacts(hUid, encryptedString);
+                resolve(await isSuccess)
             } catch (error) {
                 console.log("catch error:", error);
                 reject(0)

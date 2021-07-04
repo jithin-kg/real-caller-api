@@ -1,24 +1,16 @@
 import {
-    Controller,
-    Post,
-    Body,
-    Get,
-    UseInterceptors,
-    UploadedFile,
-    Req,
-    HttpException,
-    HttpStatus, Query
+    Body, Controller, Get, HttpException,
+    HttpStatus, Post, Query, Req, UploadedFile, UseInterceptors
 } from "@nestjs/common";
-import { Userservice } from "./user.service";
-import { UserDto } from "./user.dto";
-import { UserInfoRequest } from "./userinfoRequest.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
-import {editFileName, imageFileFilter } from './file/file-upload.utils'
-import {diskStorage} from 'multer'
+import { diskStorage } from 'multer';
 import { FirebaseMiddleware } from "src/auth/firebase.middleware";
+import { editFileName, imageFileFilter } from './file/file-upload.utils';
+import { Formatter } from "./Formatter";
 import { SignupBodyDto } from "./singupBody";
-import {Formatter} from "./Formatter";
-import {UserInfoByMailRequestDTO} from "./UserInfoByMailRequestDTO";
+import { Userservice } from "./user.service";
+import { UserInfoByMailRequestDTO } from "./UserInfoByMailRequestDTO";
+import { UserInfoRequest } from "./userinfoRequest.dto";
 @Controller('user')
 export class Usercontroller {
     constructor(private readonly userService: Userservice) { }
@@ -28,23 +20,23 @@ export class Usercontroller {
      * @param param
      */
     @Post("getInfo")
-    async  getPhoneNumberFromToken(@Req() reqest: any,@Body() param:UserInfoRequest):Promise<any>{
-        const phonenumber:string = await FirebaseMiddleware.getPhoneNumberFromToken(reqest)
-        return {message:phonenumber}
+    async getPhoneNumberFromToken(@Req() reqest: any, @Body() param: UserInfoRequest): Promise<any> {
+        const phonenumber: string = await FirebaseMiddleware.getPhoneNumberFromToken(reqest)
+        return { message: phonenumber }
     }
     @Get('verifyEmail')
-    async verifyEmailAndSendPdf(@Query() query ) {
+    async verifyEmailAndSendPdf(@Query() query) {
         console.log("inside verify email")
         await this.userService.sendPdf(query.value)
-    return "Email containing your personal data is sent to your email."
+        return "Email containing your personal data is sent to your email."
     }
 
     @Post("getUserInfoByMail")
-    async getUserDataByMail(@Req() reqest: UserInfoByMailRequestDTO){
+    async getUserDataByMail(@Req() reqest: UserInfoByMailRequestDTO) {
         console.log(`inside get email ${(reqest as any).body.email}`)
-       await this.userService.sendVerificationEmail((reqest as any).body.email,
-           (reqest as any).body.uid )
-        return{code:"200"}
+        await this.userService.sendVerificationEmail((reqest as any).body.email,
+            (reqest as any).body.uid)
+        return { code: "200" }
     }
 
     /**
@@ -53,55 +45,66 @@ export class Usercontroller {
      * @param userInfo
      */
     @Post("getUserInfoForUid")
-    async getUserInfo(@Req() reqest: any, @Body()userInfo: UserInfoRequest ){
+    async getUserInfo(@Req() reqest: any, @Body() userInfo: UserInfoRequest) {
+        console.time("getUserInfo");
         console.log("inside getUserInfoForUid")
-       let user;
+        let user;
         const id = userInfo.uid;
-        const phoneNumInToken:string = await FirebaseMiddleware.getPhoneNumberFromToken(reqest)
-       const formatedNum = Formatter.getFormatedPhoneNumber(phoneNumInToken)
-        const formatedNumInRequestBody = Formatter.getFormatedPhoneNumber(userInfo.formattedPhoneNum)
-        if(formatedNum == formatedNumInRequestBody){
-             user =  await this.userService.getUserInfoByid(id, userInfo.hashedNum)
-            if(user.isBlockedByAdmin) {
+        const phoneNumInToken: string = await FirebaseMiddleware.getPhoneNumberFromToken(reqest)
+        const formatedNum = Formatter.getFormatedPhoneNumber(phoneNumInToken)
+        const formatedNumInRequestBody = Formatter.getFormatedPhoneNumber(userInfo.formattedPhoneNum);
+        if (formatedNum == formatedNumInRequestBody) {
+            const _parallelProcessFunctions = {
+                f: (callback) => {
+                    this.userService.getUserInfoByid(id, userInfo.hashedNum).then(res => {
+                        callback(null, res);
+                    })
+                },
+                s: (callback) => {
+                    FirebaseMiddleware.removeUserPhoneNumberFromFirebase(id)
+                        .then(res => callback(null, res))
+                        .catch(err => callback(err, err))
+                }
+            };
+            console.log(`returning user-before parallel process`, user)
+            const results = await this.userService.doParallelProcess(_parallelProcessFunctions);
+            if (results && results['f']) user = results['f'];
+            if (user.isBlockedByAdmin) {
                 console.log('user  blocked by admin')
-                throw new HttpException("Bad request" , HttpStatus.FORBIDDEN)
-            }else {
+                throw new HttpException("Bad request", HttpStatus.FORBIDDEN)
+            } else {
                 console.log('user not blocked by admin')
             }
-        try{
-            const removedUserPhoneNumber = await FirebaseMiddleware.removeUserPhoneNumberFromFirebase(id)
-        }catch(e){
-            console.log(`Error while removing phone number from firebase ${e}`)
-        }
-        }else{
+            console.timeEnd("getUserInfo")
+            console.log(`returning user`, user)
+            return { result: user }
+        } else {
             throw new HttpException("Bad request", 400)
         }
-         console.log(`returning user ${user}`)
-        return {result: user}
     }
     @Post('signup')
     @UseInterceptors(FileInterceptor('image', {
         storage: diskStorage({
             destination: './files',
             filename: editFileName,
-          }),
-          fileFilter:imageFileFilter,
-          limits:{fileSize:35000}
-        }),)
+        }),
+        fileFilter: imageFileFilter,
+        limits: { fileSize: 35000 }
+    }))
     async signUp
         (
-        @Req() reqest: any,
-        @UploadedFile() file: Express.Multer.File,
-        @Body() body:SignupBodyDto
-         ) {
+            @Req() reqest: any,
+            @UploadedFile() file: Express.Multer.File,
+            @Body() body: SignupBodyDto
+        ) {
 
 
         const userId = await FirebaseMiddleware.getUserId(reqest)
 
         const user = await this.userService.signup(body, userId, file)
-        return {"result":user};
-        
-       
+        return { "result": user };
+
+
     }
 
     @Post('updateUserInfo')
@@ -109,27 +112,27 @@ export class Usercontroller {
         storage: diskStorage({
             destination: './files',
             filename: editFileName,
-          }),
-          fileFilter:imageFileFilter,
-          limits:{fileSize:35000}
-        }))
+        }),
+        fileFilter: imageFileFilter,
+        limits: { fileSize: 35000 }
+    }))
     async update
         (
-        @Req() reqest: any,
-        @UploadedFile() file: Express.Multer.File,
-        @Body() body:SignupBodyDto
-         ) {
+            @Req() reqest: any,
+            @UploadedFile() file: Express.Multer.File,
+            @Body() body: SignupBodyDto
+        ) {
 
         const userId = await FirebaseMiddleware.getUserId(reqest)
         const user = await this.userService.updateUserInfo(body, userId, file)
-        return {"result":user};
+        return { "result": user };
     }
     // validateRequest(request: any) {
     //    if(request.body.firstName)
     // }
     @Get('test')
-    async test(){
-        return {message:"hi"};
+    async test() {
+        return { message: "hi" };
     }
 
 }
