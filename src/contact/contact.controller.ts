@@ -6,8 +6,9 @@ import {start} from "repl";
 
 @Controller('contacts_sdf')
 export class ContactController {
+    private name:string = ""
     constructor(private readonly contactService: ContactService) { }
-
+    
     // @Get()
     // async migrateIndiPrei
     @Post("migrate")

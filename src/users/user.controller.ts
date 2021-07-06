@@ -13,6 +13,7 @@ import { UserInfoByMailRequestDTO } from "./UserInfoByMailRequestDTO";
 import { UserInfoRequest } from "./userinfoRequest.dto";
 @Controller('user')
 export class Usercontroller {
+
     constructor(private readonly userService: Userservice) { }
 
     /**
@@ -26,6 +27,7 @@ export class Usercontroller {
     }
     @Get('verifyEmail')
     async verifyEmailAndSendPdf(@Query() query) {
+        
         console.log("inside verify email")
         await this.userService.sendPdf(query.value)
         return "Email containing your personal data is sent to your email."

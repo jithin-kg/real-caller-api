@@ -8,6 +8,7 @@ import {SearchResponseItem} from "./SearchResponseItem";
 import {GenericServiceResponseItem} from "../utils/Generic.ServiceResponseItem";
 import {Constants} from "../calls/Constatns";
 import {ManualSearchDto} from "./manualSearch.dto";
+import { HttpMessage } from "src/utils/Http-message.enum";
 
 const hash = require('crypto').createHash;
 @Injectable()
@@ -18,7 +19,7 @@ export class SearchService {
          this.collection = this.db.collection( CollectionNames.CONTACTS_OF_COLLECTION);
     }
 
-    async search(pno:string): Promise<GenericServiceResponseItem<number, SearchResponseItem>> {
+    async search(pno:string): Promise<GenericServiceResponseItem< SearchResponseItem>> {
         
         let hashedPhone = await hash('sha256').update(pno).digest('base64');
         //R2PIZXbno2+o88Z8qfkT5SfNF77A5JOOzJipLFQ5jXo= -> 123
@@ -32,10 +33,10 @@ export class SearchService {
                 //and need to sanitise input
                 let result = await this.getContacts(hashedPhone);
                 if(result== null){
-                    return new GenericServiceResponseItem<number, null>(HttpStatus.NO_CONTENT, null)
+                    return new GenericServiceResponseItem< null>(HttpStatus.NO_CONTENT,HttpMessage.NO_RESULT, null)
                 }else {
                     result.isInfoFoundInDb = Constants.INFO_FOUND_ID_DB
-                    return new GenericServiceResponseItem<number, SearchResponseItem>(HttpStatus.OK, result)
+                    return new GenericServiceResponseItem< SearchResponseItem>(HttpStatus.OK, HttpMessage.OK,result)
                 }
             }catch(e){
                 console.log(e);
