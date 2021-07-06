@@ -1,20 +1,24 @@
-import { ArrayMaxSize, IsArray, IsString, MaxLength } from "class-validator";
+import { Type } from "class-transformer";
+import { ArrayMaxSize, IsArray, IsString, Length, MaxLength, ValidateNested } from "class-validator";
 import { ContactRequestDTO } from "./contactRequestDTO";
 
 export class ContactSyncDTO{
     @IsArray()
-    @ArrayMaxSize(10000)
+    @ArrayMaxSize(12)
+    @ValidateNested({each:true})
+    @Type(() => ContactRequestDTO)
      contacts: ContactRequestDTO[];
      
      @IsString()
-     @MaxLength(20)
+     @Length(0,5)
      countryCode: number;
 
      @IsString()
+     @Length(0,5)
      countryISO:string
 
      @IsString()
-     @MaxLength(30)
+     @Length(28, 28)
      uid:string;
 
 }

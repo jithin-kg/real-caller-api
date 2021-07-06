@@ -135,26 +135,24 @@ export class FirebaseMiddleware implements NestMiddleware {
     }
     async use(req: Request, res: Response, next: NextFunction) {
         try{
-          
-            
             if(req.baseUrl === '/user/verifyEmail'){
                 next()
             }else {
                 const token:string = req.header('Authorization').replace('Bearer', '').trim()
-                await this.validateRequest(req, token); 
-                next()
-                throw new HttpException("Bad request" , HttpStatus.BAD_REQUEST)
+                await this.validateRequest(req, token , next); 
+                // next()
+                // throw new HttpException("Bad request" , HttpStatus.BAD_REQUEST)
             }
 
            
         }
         catch(e){
-
+            throw new HttpException("Bad request" , HttpStatus.BAD_REQUEST)
         }
         //  console.log(req.header('Authorization')) ;  
        
     }
-     async validateRequest(req: Request, token) {
+     async validateRequest(req: Request, token, next:NextFunction) {
         try{
             console.log("----token:",token)
             const tokenVerify = await firebaseAdmin.auth().verifyIdToken(token)
@@ -165,7 +163,7 @@ export class FirebaseMiddleware implements NestMiddleware {
                 // console.log("Not admin");
             }
             req.body.uid = tokenVerify.uid; // setting user id in the request object
-            
+            next()
             // console.log(req.body.username);
             // console.log(tokenVerify.uid)
             // console.log(tokenVerify)

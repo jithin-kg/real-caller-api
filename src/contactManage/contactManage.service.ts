@@ -1,14 +1,17 @@
-import { Inject } from '@nestjs/common';
+import { HttpStatus, Inject } from '@nestjs/common';
 import * as chalk from "chalk";
 import { Db } from 'mongodb';
 import { Indiaprefixlocationmaps } from 'src/carrierService/carrier.info.schema';
 import { CollectionNames } from 'src/db/collection.names';
 import { ContactObjectTransformHelper } from 'src/utils/ContactObjectTransformHelper';
+import { GenericServiceResponseItem } from 'src/utils/Generic.ServiceResponseItem';
+import { HttpMessage } from 'src/utils/Http-message.enum';
 import { FirebaseMiddleware } from './../auth/firebase.middleware';
 import { ContactDocument } from './contactDocument';
 import { ContactProcessingItem } from './contactProcessingItem';
 import { ContactRehashedItemWithOldHash } from './contactRehashedItemwithOldHash';
 import { ContactRequestDTO } from './contactRequestDTO';
+import { ContactUploadHelper  as Helper} from './contactUploadHelper';
 import { ReqBodyDTO } from './myContacts/reqBodyDTO';
 import { do_AES_decryption, do_AES_encryption, findDifference } from './myContacts/saveContactsHelper';
 const hash = require('crypto').createHash;
@@ -21,37 +24,16 @@ export class ContactManageService {
         let no = await hash('sha256').update(phoneNumForHashing).digest('base64')
         return no
     }
-    private prepareContactReturnObj(cntct: ContactProcessingItem): ContactRehashedItemWithOldHash {
 
-        let contactReturnObj = new ContactRehashedItemWithOldHash();
-        contactReturnObj.phoneNumber = cntct.prevHash
-        contactReturnObj.carrier = cntct.carrier;
-        contactReturnObj.country = cntct.country
-        contactReturnObj.lineType = cntct.lineType
-        contactReturnObj.location = cntct.location
-        contactReturnObj.spamCount = cntct.spamCount
-        contactReturnObj.firstName = cntct.firstName
-        if (cntct.isRegistered) {
-            contactReturnObj.isRegistered = cntct.isRegistered
-            contactReturnObj.hUname = cntct.hUname
-        }
-        return contactReturnObj;
 
-    }
-    async getCarrierInfo(firstNDigitsToGetCarrierInfo: string, countryCode: number, countryISO: string): Promise<Indiaprefixlocationmaps> {
-
-        let info: Indiaprefixlocationmaps = new Indiaprefixlocationmaps();
-        return info;
-    }
     async doRehashAllNumbers(contacts: ContactRequestDTO[], countryCode: number, countryISO: string) {
 
         await Promise.allSettled(contacts.map(async contact => {
-
             try {
                 // dummy carrierInfo set
                 const [carrierInfo] = await Promise.allSettled(
                     [
-                        this.getCarrierInfo(contact.phoneNumber, countryCode, countryISO)
+                        Helper.getCarrierInfo( countryCode, countryISO)
                     ]
                 )
 
@@ -86,7 +68,8 @@ export class ContactManageService {
                     }
                     //---------------------------------------------------------------------
                     let contactDoc = ContactObjectTransformHelper.prepareContactDocForInsertingIntoDb(contactWithCarrierInfo)
-                    let contactReturnObj = this.prepareContactReturnObj(contactWithCarrierInfo)
+                    let contactReturnObj = Helper.prepareContactReturnObj(contactWithCarrierInfo)
+
 
                     this.contactsListForDb.push(contactDoc);
                     this.contactsListForResponse.push(contactReturnObj)
@@ -108,7 +91,7 @@ export class ContactManageService {
 
         }
     }
-    async uploadBulkContacts(contacts: ContactRequestDTO[], countryCode: number, countryISO: string): Promise<ContactRehashedItemWithOldHash[]> {
+    async uploadBulkContacts(contacts: ContactRequestDTO[], countryCode: number, countryISO: string): Promise<GenericServiceResponseItem<ContactRehashedItemWithOldHash[]>> {
         console.log(chalk.green('going to upload...'))
         const bulkOp = await this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).initializeUnorderedBulkOp()
         this.contactsListWithCarrierInfoProcessing = []
@@ -119,6 +102,7 @@ export class ContactManageService {
         console.log(chalk.green('going to perform performBulkInsert...'))
         console.log(chalk.green('contactReturnObj...', this.contactsListForResponse))
         await this.performBulkInsert(bulkOp)
+
         try {
             console.log(chalk.green('going to perform bulkOp.execute...'))
             await bulkOp.execute()
@@ -126,7 +110,7 @@ export class ContactManageService {
             console.log(chalk.red(`bulk insert contacts error ${e}`))
         } finally {
             console.log(chalk.green(`final data (finally) ${this.contactsListForResponse}`))
-            return this.contactsListForResponse;
+            return  new GenericServiceResponseItem(HttpStatus.OK, HttpMessage.OK,this.contactsListForResponse )  ;
         }
     }
     async fetchSavedContactsOfUser(hUid: string): Promise<string> {
