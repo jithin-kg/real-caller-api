@@ -4,3 +4,4 @@ export class CollectionNames {
     static USERS_COLLECTION: string = "users";
     static MY_CONTACTS: string = "myContacts";
 }
+

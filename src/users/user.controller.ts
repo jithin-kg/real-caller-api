@@ -9,7 +9,6 @@ import { editFileName, imageFileFilter } from './file/file-upload.utils';
 import { SignupBodyDto } from "./singupBody";
 import { Userservice } from "./user.service";
 import { UserInfoByMailRequestDTO } from "./UserInfoByMailRequestDTO";
-import { UserInfoForUidReseponse } from "./UserInfoForUidResponse.DTO";
 import { UserInfoRequest } from "./userinfoRequest.dto";
 import { UserInfoResponseDTO } from "./userResponse.dto";
 
@@ -56,7 +55,7 @@ export class Usercontroller {
      */
     @Post("getUserInfoForUid")
     async getUserInfo(@Req() req: any, @Body() userInfo: UserInfoRequest) : Promise<GenericServiceResponseItem<UserInfoResponseDTO>> {
-        let response = this.userService.getUserInformationById(req, userInfo)
+        let response = await this.userService.getUserInformationById(req, userInfo)
             // .catch(err => { throw err });
         // return { result: await response };
         return response

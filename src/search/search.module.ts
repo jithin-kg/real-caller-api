@@ -13,6 +13,7 @@ import { SearchService } from "./search.service";
     controllers: [Searchcontroller],
     providers: [SearchService]
 })
+
 export class SearchModule {
 
 }

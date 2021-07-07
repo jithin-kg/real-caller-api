@@ -2,7 +2,7 @@ import { Module } from "@nestjs/common";
 import { Db, MongoClient } from "mongodb";
 
 // https://gusiol.medium.com/nestjs-with-mongodb-native-driver-9d82e377d55
-
+//todo move to app module
 @Module({
     providers:[
         {

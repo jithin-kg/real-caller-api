@@ -17,7 +17,11 @@ import {Constants} from "./Constatns";
 @Injectable()
 export class CallService {
     private collection:Collection
-    constructor(@Inject('DATABASE_CONNECTION') private db:Db, private numberTranformService: NumberTransformService ) {
+    constructor(@Inject('DATABASE_CONNECTION') private db:Db,
+     private numberTranformService: NumberTransformService
+      ) {
+
+    
         this.collection = this.db.collection( CollectionNames.CONTACTS_COLLECTION);
    }
    /**

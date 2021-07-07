@@ -21,6 +21,7 @@ export class ContactManageService {
     contactsListWithCarrierInfoProcessing: ContactProcessingItem[];
     contactsListForResponse: ContactRehashedItemWithOldHash[];
     contactsListForDb: ContactDocument[]
+    
     async getHashedPhonenNum(phoneNumForHashing: string): Promise<string> {
         let no = await hash('sha256').update(phoneNumForHashing).digest('base64')
         return no

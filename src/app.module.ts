@@ -40,6 +40,7 @@ import { NumberTransformService } from './utils/numbertransform.service';
  * 
  */
 export class AppModule implements NestModule {
+
   configure(consumer: MiddlewareConsumer) {
     // in forRoutes we apply this middleware to all
     consumer
