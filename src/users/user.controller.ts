@@ -4,11 +4,14 @@ import {
 import { FileInterceptor } from "@nestjs/platform-express";
 import { diskStorage } from 'multer';
 import { FirebaseMiddleware } from "src/auth/firebase.middleware";
+import { GenericServiceResponseItem } from "src/utils/Generic.ServiceResponseItem";
 import { editFileName, imageFileFilter } from './file/file-upload.utils';
 import { SignupBodyDto } from "./singupBody";
 import { Userservice } from "./user.service";
 import { UserInfoByMailRequestDTO } from "./UserInfoByMailRequestDTO";
+import { UserInfoForUidReseponse } from "./UserInfoForUidResponse.DTO";
 import { UserInfoRequest } from "./userinfoRequest.dto";
+import { UserInfoResponseDTO } from "./userResponse.dto";
 
 @Controller('user')
 export class Usercontroller {
@@ -52,11 +55,13 @@ export class Usercontroller {
      * @param userInfo
      */
     @Post("getUserInfoForUid")
-    async getUserInfo(@Req() req: any, @Body() userInfo: UserInfoRequest) {
+    async getUserInfo(@Req() req: any, @Body() userInfo: UserInfoRequest) : Promise<GenericServiceResponseItem<UserInfoResponseDTO>> {
         let response = this.userService.getUserInformationById(req, userInfo)
-            .catch(err => { throw err });
-        return { result: await response };
+            // .catch(err => { throw err });
+        // return { result: await response };
+        return response
     }
+
     @Post('signup')
     @UseInterceptors(FileInterceptor('image', {
         storage: diskStorage({

@@ -15,5 +15,7 @@ export class UserInfoResponseDTO {
     // phoneNumber:string;
 
     //todo remove this in production
-    isBlockedByAdmin:number = 0
+    isBlockedByAdmin:number = 0;
+
+    isPhoneNumRemovedInFireBs:Boolean = false
 }

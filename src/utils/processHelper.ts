@@ -23,6 +23,9 @@ export class processHelper {
             })
         })
     }
+
+    static FULL_FILLED = "fulfilled"
+    static REJECTED = "rejected"
 }
 
 class processDto {

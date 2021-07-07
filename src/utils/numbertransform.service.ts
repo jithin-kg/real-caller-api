@@ -13,7 +13,7 @@ export class NumberTransformService {
      * @returns transformed number
      * @constant secret from -my secret
      */
-    async tranforNum(hashedPhoneNum:string): Promise<string>{
+    async tranforNum(hashedPhoneNum:string): Promise<string> {
         return new Promise((async (resolve, reject) => {
             try {
                 let no = await hash('sha256').update(hashedPhoneNum).digest('base64')

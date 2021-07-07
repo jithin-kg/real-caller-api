@@ -21,6 +21,8 @@ import { SignupBodyDto } from "./singupBody";
 import { User } from "./user.schema";
 import { UserInfoRequest } from './userinfoRequest.dto';
 import { UserInfoResponseDTO } from "./userResponse.dto";
+import { GenericServiceResponseItem } from 'src/utils/Generic.ServiceResponseItem';
+import { HttpMessage } from 'src/utils/Http-message.enum';
 
 
 @Injectable()
@@ -42,11 +44,14 @@ private numberTransformService: NumberTransformService
         console.time("getUserInfoByid")
         const rehashedNum = await this.numberTransformService.tranforNum(hashedNum)
         console.log('parallelProcess userInfo,customToken>>>start')
+
         const _parallelProcessFunctions = [
             this.db.collection(CollectionNames.USERS_COLLECTION).findOne({ _id: rehashedNum }),
             FirebaseMiddleware.createCustomToken(id, rehashedNum)
         ];
+
         const parallelRes = await processHelper.doParallelProcess(_parallelProcessFunctions);
+        
         console.log('parallelProcess userInfo,customToken>>>end')
         let result = Object.create(null); //to store userInfo
         if (parallelRes && parallelRes[0]) result = parallelRes[0].value;
@@ -93,11 +98,11 @@ private numberTransformService: NumberTransformService
         console.timeEnd("getUserInfoByid")
         return user;
     }
-    async getUserInformationById(req, userInfo: UserInfoRequest) {
+    async getUserInformationById(req, userInfo: UserInfoRequest) : Promise<GenericServiceResponseItem<UserInfoResponseDTO>> {
         return new Promise(async (resolve, reject) => {
             console.time("getUserInfo");
             console.log("inside getUserInfoForUid")
-            let user;
+            let user:UserInfoResponseDTO;
             const id = userInfo.uid;
             const phoneNumInToken: string = await FirebaseMiddleware.getPhoneNumberFromToken(req)
             const formatedNum = Formatter.getFormatedPhoneNumber(phoneNumInToken)
@@ -118,9 +123,17 @@ private numberTransformService: NumberTransformService
                 }
                 console.timeEnd("getUserInfo")
                 console.log(`returning user`, user)
-                resolve(user)
+                if(results.length>=2){
+                    if(results[1].status==processHelper.FULL_FILLED){
+                         user.isPhoneNumRemovedInFireBs = true   
+                    }
+                }
+                // let response = new GenericServiceResponseItem<UserInfoResponseDTO>(HttpStatus.OK, HttpMessage.OK, user)
+                
+                resolve(GenericServiceResponseItem.returnGoodResponse(user))
             } else {
-                reject(new HttpException("Bad request", 400))
+                // reject(new HttpException("Bad request", 400))
+                resolve(GenericServiceResponseItem.returnBadRequestResponse())
             }
         })
     }

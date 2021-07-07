@@ -100,6 +100,13 @@ export class FirebaseMiddleware implements NestMiddleware {
             }
         })
     }
+    /**
+     * 
+     * @param uid:string,  firebase uid passed in from mongodb
+     * when an existing user tries to login a new uid gets created in firebase, so we need to remove 
+     * the previous uid of the user that we have stored in database.
+     * deleteUser(uid) removes the user from firebase
+     */
     static async removeUserById(uid:string):Promise<void>{
         try {
             await firebaseAdmin.auth().deleteUser(uid)
@@ -119,7 +126,7 @@ export class FirebaseMiddleware implements NestMiddleware {
     }
     static async removeUserPhoneNumberFromFirebase(uid:string):Promise<any>{
 
-        return new Promise(async (resolve, reject)=> {
+        return new Promise(async (resolve)=> {
            try {
                // const uid = await this.getUserId(req)
                await  firebaseAdmin.auth().updateUser(uid, {
@@ -128,7 +135,7 @@ export class FirebaseMiddleware implements NestMiddleware {
                resolve("done")
            }catch (e){
                console.log(`Error while removeUserPhoneNumberFromFirebase ${e}`)
-               reject(e)
+            //    reject(e)
            }
         })
 
@@ -162,7 +169,9 @@ export class FirebaseMiddleware implements NestMiddleware {
             } else {
                 // console.log("Not admin");
             }
+            //todo when handling get request body does not work
             req.body.uid = tokenVerify.uid; // setting user id in the request object
+            
             next()
             // console.log(req.body.username);
             // console.log(tokenVerify.uid)
