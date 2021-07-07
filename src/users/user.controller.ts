@@ -1,7 +1,8 @@
 import {
-    Body, Controller, Get, Post, Query, Req, UploadedFile, UseInterceptors
+    Body, Controller, Get, Post, Query, Req, Res, UploadedFile, UseInterceptors
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
+import { Response } from "express";
 import { diskStorage } from 'multer';
 import { FirebaseMiddleware } from "src/auth/firebase.middleware";
 import { GenericServiceResponseItem } from "src/utils/Generic.ServiceResponseItem";
@@ -54,10 +55,13 @@ export class Usercontroller {
      * @param userInfo
      */
     @Post("getUserInfoForUid")
-    async getUserInfo(@Req() req: any, @Body() userInfo: UserInfoRequest) : Promise<GenericServiceResponseItem<UserInfoResponseDTO>> {
+    async getUserInfo(@Req() req: any, @Body() userInfo: UserInfoRequest, @Res({passthrough:true} )res:Response) : Promise<GenericServiceResponseItem<UserInfoResponseDTO>> {
+        console.time("getInfo")
         let response = await this.userService.getUserInformationById(req, userInfo)
-            // .catch(err => { throw err });
-        // return { result: await response };
+        // .catch(err => { throw err });
+        res.status(response.statusCode)
+        console.timeEnd("getInfo")
+    // return { result: await response };
         return response
     }
 

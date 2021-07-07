@@ -8,6 +8,8 @@ import { DH_UNABLE_TO_CHECK_GENERATOR } from "constants";
 import {UserIdDTO} from "../utils/UserId.DTO";
 import {NumberTransformService} from "../utils/numbertransform.service";
 import * as url from 'url'
+import { resolve } from "path";
+import { rejects } from "assert";
 /**
  * Todo
  * token verification failedError: Firebase ID token has expired.
@@ -71,13 +73,15 @@ export class FirebaseMiddleware implements NestMiddleware {
                     }).then((customtoken)=>{
                     console.log(`custom token is ${customtoken}`)
                     resolve(customtoken)
+                    return ;
                 }).catch((e)=>{
                     console.error(`error while creating custom token`)
                     reject(`error while creating custom token ${e}`)
+                    return ;
                 })
 
             }catch (e){
-
+                reject(`error while creating custom token ${e}`)
             }
         })
     }
@@ -88,15 +92,20 @@ export class FirebaseMiddleware implements NestMiddleware {
      * @param uid
      */
     static getPhoneNumberFromToken(req:any):Promise<string> {
-        return new Promise(async (resolve, reject)=>{
+        return new Promise(async (resolve)=>{
             try{
                 const token:string = req.header('Authorization').replace('Bearer', '').trim()
                 const tokenVerify = await firebaseAdmin.auth().verifyIdToken(token)
                 const phoneNumber = tokenVerify.phone_number;
                 console.log(`phone number in token ${ tokenVerify.phone_number}`)
-                resolve(phoneNumber)
+                if(phoneNumber){
+                    resolve(phoneNumber)
+                }else {
+                    resolve(null)
+                }
+                
             }catch(e){
-                reject(e)
+                resolve(null)
             }
         })
     }
@@ -108,21 +117,32 @@ export class FirebaseMiddleware implements NestMiddleware {
      * deleteUser(uid) removes the user from firebase
      */
     static async removeUserById(uid:string):Promise<void>{
-        try {
-            await firebaseAdmin.auth().deleteUser(uid)
-        }catch (e){
-
-        }
+        return new Promise(async (res, rej)=> {
+            try {
+                await firebaseAdmin.auth().deleteUser(uid)
+                res()
+                return ;
+            }catch (e){
+                //to
+                rej()
+                return;
+            }
+        })
     }
 
     static async desableUser(uid:string) {
-       try {
-           await  firebaseAdmin.auth().updateUser(uid, {
-               disabled: true
-           })
-       }catch (e){
-           console.log(`Error while desabling user`)
-       }
+        return new Promise(async (res, rej)=> {
+            try {
+                await  firebaseAdmin.auth().updateUser(uid, {
+                    disabled: true
+                })
+                Promise.resolve()
+            }catch (e){
+                Promise.reject()
+                console.log(`Error while desabling user`)
+            }
+        })
+       
     }
     static async removeUserPhoneNumberFromFirebase(uid:string):Promise<any>{
 
@@ -134,6 +154,8 @@ export class FirebaseMiddleware implements NestMiddleware {
                })
                resolve("done")
            }catch (e){
+               //todo 
+               resolve("")
                console.log(`Error while removeUserPhoneNumberFromFirebase ${e}`)
             //    reject(e)
            }

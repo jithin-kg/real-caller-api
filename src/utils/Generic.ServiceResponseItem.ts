@@ -23,6 +23,10 @@ export class GenericServiceResponseItem<T>{
         return new GenericServiceResponseItem<null>(HttpStatus.BAD_REQUEST,  HttpMessage.BAD_REQUEST)
     }
 
+    static returnServerErrRes():GenericServiceResponseItem<null> {
+        return new GenericServiceResponseItem<null>(HttpStatus.INTERNAL_SERVER_ERROR,  HttpMessage.INTERNAL_SERVER_ERROR)
+    }
+
     static returnGoodResponse<T>(data:T):GenericServiceResponseItem<T>{
         return new GenericServiceResponseItem(HttpStatus.OK, HttpMessage.OK, data)
     }
