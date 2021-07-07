@@ -1,5 +1,5 @@
-import { Inject, Injectable } from "@nestjs/common";
-import * as asyncNpm from "async";
+import { processHelper } from './../utils/processHelper';
+import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { validateOrReject } from "class-validator";
 import * as fs from 'fs';
 import * as jwt from "jsonwebtoken";
@@ -15,15 +15,20 @@ import { ContactObjectTransformHelper } from "../utils/ContactObjectTransformHel
 import { NumberTransformService } from "../utils/numbertransform.service";
 import { UserIdDTO } from "../utils/UserId.DTO";
 import { EmailAndUID } from "./EmailAndUID";
+import { Formatter } from './Formatter';
 import { SignupBodyDto } from "./singupBody";
 import { User } from "./user.schema";
+import { UserInfoRequest } from './userinfoRequest.dto';
 import { UserInfoResponseDTO } from "./userResponse.dto";
 
 
 @Injectable()
 export class Userservice {
 
-
+    // constructor(@InjectModel("User") private readonly userModel: Model<User>) { }
+    constructor(@Inject('DATABASE_CONNECTION') private db: Db,
+        private numberTransformService: NumberTransformService
+    ) { }
     /**
      * function to check if a user with the rehashed number exists in server
      * if exists then update the firebase uid of that user
@@ -33,29 +38,20 @@ export class Userservice {
     async getUserInfoByid(id: string, hashedNum: string): Promise<UserInfoResponseDTO | null> {
         console.time("getUserInfoByid")
         const rehashedNum = await this.numberTransformService.tranforNum(hashedNum)
-        // const result = await this.db.collection(CollectionNames.USERS_COLLECTION).findOne({ _id: rehashedNum })
         console.log('parallelProcess userInfo,customToken>>>start')
-        const _parallelProcessFunctions = {
-            userInfo: (callBack) => {
-                this.db.collection(CollectionNames.USERS_COLLECTION).findOne({ _id: rehashedNum })
-                    .then(res => callBack(null, res))
-                    .catch(err => callBack(err, err))
-            },
-            customToken: (callBack) => {
-                FirebaseMiddleware.createCustomToken(id, rehashedNum)
-                    .then(res => callBack(null, res))
-                    .catch(err => callBack(err, err))
-            }
-        };
-        const parallelRes = await this.doParallelProcess(_parallelProcessFunctions);
+        const _parallelProcessFunctions = [
+            this.db.collection(CollectionNames.USERS_COLLECTION).findOne({ _id: rehashedNum }),
+            FirebaseMiddleware.createCustomToken(id, rehashedNum)
+        ];
+        const parallelRes = await processHelper.doParallelProcess(_parallelProcessFunctions);
         console.log('parallelProcess userInfo,customToken>>>end')
         let result = Object.create(null); //to store userInfo
-        if (parallelRes && parallelRes['userInfo']) result = parallelRes['userInfo'];
+        if (parallelRes && parallelRes[0]) result = parallelRes[0].value;
         let CUSTOM_TOKEN: string = "";
-        if (parallelRes && parallelRes['customToken']) CUSTOM_TOKEN = parallelRes['customToken'];
+        if (parallelRes && parallelRes[1]) CUSTOM_TOKEN = parallelRes[1].value;
         const user = new UserInfoResponseDTO()
 
-        if (result != null || result != undefined) {
+        if (result) { //result != null || result != undefined
             // user.email = result.email
             user.firstName = result.firstName
             user.lastName = result.lastName
@@ -75,42 +71,57 @@ export class Userservice {
             let updationOp = { $set: { "uid": id } }
             let existingUId = result.uid
             try {
-                // await this.db.collection(CollectionNames.USERS_COLLECTION).updateOne({ _id: rehashedNum }, updationOp)
-                // await FirebaseMiddleware.removeUserById(existingUId)
                 console.log('parallelProcess updateUser,removeUserById>>>start')
-                const _parallelProcessFunctions = {
-                    updateUser: (callBack) => {
-                        this.db.collection(CollectionNames.USERS_COLLECTION).updateOne({ _id: rehashedNum }, updationOp)
-                            .then(res => callBack(null, res))
-                            .catch(err => callBack(err, err))
-                    },
-                    removeUserById: (callBack) => {
-                        FirebaseMiddleware.removeUserById(existingUId)
-                            .then(res => callBack(null, res))
-                            .catch(err => callBack(err, err))
-                    }
-                }
-                await this.doParallelProcess(_parallelProcessFunctions)
+                const _parallelProcessFunctions = [
+                    this.db.collection(CollectionNames.USERS_COLLECTION).updateOne({ _id: rehashedNum }, updationOp),
+                    FirebaseMiddleware.removeUserById(existingUId)
+                ]
+                await processHelper.doParallelProcess(_parallelProcessFunctions);
                 console.log('parallelProcess updateUser,removeUserById>>>end')
-
             } catch (e) {
                 console.log(e)
             }
             console.timeEnd("getUserInfoByid")
             return user;
         } else {
-            // const customToken: string = await FirebaseMiddleware.createCustomToken(id, rehashedNum)
             user.customToken = CUSTOM_TOKEN;
 
         }
         console.timeEnd("getUserInfoByid")
         return user;
     }
-    // constructor(@InjectModel("User") private readonly userModel: Model<User>) { }
-    constructor(@Inject('DATABASE_CONNECTION') private db: Db,
-        private numberTransformService: NumberTransformService
-    ) { }
 
+    async getUserInformationById(req, userInfo: UserInfoRequest) {
+        return new Promise(async (resolve, reject) => {
+            console.time("getUserInfo");
+            console.log("inside getUserInfoForUid")
+            let user;
+            const id = userInfo.uid;
+            const phoneNumInToken: string = await FirebaseMiddleware.getPhoneNumberFromToken(req)
+            const formatedNum = Formatter.getFormatedPhoneNumber(phoneNumInToken)
+            const formatedNumInRequestBody = Formatter.getFormatedPhoneNumber(userInfo.formattedPhoneNum);
+            if (formatedNum == formatedNumInRequestBody) {
+                console.log(`returning user-before parallel process`, user)
+                let processList = [
+                    this.getUserInfoByid(id, userInfo.hashedNum),
+                    FirebaseMiddleware.removeUserPhoneNumberFromFirebase(id)
+                ]
+                const results = await processHelper.doParallelProcess(processList);
+                if (results && results[0]) user = results[0].value;
+                if (user.isBlockedByAdmin) {
+                    console.log('user  blocked by admin')
+                    reject(new HttpException("Bad request", HttpStatus.FORBIDDEN))
+                } else {
+                    console.log('user not blocked by admin')
+                }
+                console.timeEnd("getUserInfo")
+                console.log(`returning user`, user)
+                resolve(user)
+            } else {
+                reject(new HttpException("Bad request", 400))
+            }
+        })
+    }
     async updateUserInfo(userDTO: SignupBodyDto, userIdDTO: UserIdDTO, imgFile: Express.Multer.File) {
         try {
             let fileBuffer: Buffer = null
@@ -467,16 +478,6 @@ export class Userservice {
             console.log(e)
         }
 
-    }
-    async doParallelProcess(functions_object) {
-        return new Promise(resolve => {
-            asyncNpm.parallel(functions_object, (err, res) => {
-                if (err) { console.log("async parallel error : ", err); resolve(false) }
-                else {
-                    resolve(res);
-                }
-            })
-        })
     }
     private async getPublicKeyBuffer() {
         try {
