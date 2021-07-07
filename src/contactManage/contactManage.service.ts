@@ -3,6 +3,7 @@ import * as chalk from "chalk";
 import { Db } from 'mongodb';
 import { Indiaprefixlocationmaps } from 'src/carrierService/carrier.info.schema';
 import { CollectionNames } from 'src/db/collection.names';
+import { DatabaseModule } from 'src/db/Database.Module';
 import { ContactObjectTransformHelper } from 'src/utils/ContactObjectTransformHelper';
 import { GenericServiceResponseItem } from 'src/utils/Generic.ServiceResponseItem';
 import { HttpMessage } from 'src/utils/Http-message.enum';
@@ -16,7 +17,7 @@ import { ReqBodyDTO } from './myContacts/reqBodyDTO';
 import { do_AES_decryption, do_AES_encryption, findDifference } from './myContacts/saveContactsHelper';
 const hash = require('crypto').createHash;
 export class ContactManageService {
-    constructor(@Inject('DATABASE_CONNECTION') private db: Db) { }
+    constructor(@Inject(DatabaseModule.DATABASE_CONNECTION) private db: Db) { }
     contactsListWithCarrierInfoProcessing: ContactProcessingItem[];
     contactsListForResponse: ContactRehashedItemWithOldHash[];
     contactsListForDb: ContactDocument[]

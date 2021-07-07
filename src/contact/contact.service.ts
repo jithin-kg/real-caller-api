@@ -16,6 +16,7 @@ import {ContactReturnDto} from "../multiple-number-search/contactReturn.dto";
 import {ContactObjectTransformHelper} from "../utils/ContactObjectTransformHelper";
 import {CollectionNames} from "../db/collection.names";
 import {RehashedItemWithOldHash} from "../multiple-number-search/RehashedItemwithOldHash";
+import { DatabaseModule } from "src/db/Database.Module";
 const hash = require('crypto').createHash;
 
 
@@ -28,7 +29,7 @@ var workerpool = require('workerpool');
 export class ContactService {
     // constructor(@InjectModel("Contact") private readonly contactModel: Model<Contact>,
     // @InjectModel("Indiaprefixlocationmaps") private readonly carrierInfoModel: Model<Indiaprefixlocationmaps>) { }
-    constructor(@Inject('DATABASE_CONNECTION') private db:Db) { }
+    constructor(@Inject(DatabaseModule.DATABASE_CONNECTION) private db:Db) { }
 
     contactsListWithCarrierInfoProcessing:ContactProcessingItem[];
      contactsListForResponse:RehashedItemWithOldHash[];

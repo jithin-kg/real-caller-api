@@ -8,5 +8,4 @@ export class ContactRequestDTO{
   @IsString()
   @Length(64, 64)
   hashedPhoneNumber:string
-  
 }

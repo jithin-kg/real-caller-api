@@ -11,15 +11,18 @@ import { SignupBodyDto } from "./singupBody";
 import { Userservice } from "./user.service";
 import { UserInfoByMailRequestDTO } from "./UserInfoByMailRequestDTO";
 import { UserInfoRequest } from "./userinfoRequest.dto";
+
 @Controller('user')
 export class Usercontroller {
+
 
     constructor(private readonly userService: Userservice) { }
 
     /**
      * function to return phone number from token
-     * @param param
+     * @param param 
      */
+
     @Post("getInfo")
     async getPhoneNumberFromToken(@Req() reqest: any, @Body() param: UserInfoRequest): Promise<any> {
         const phonenumber: string = await FirebaseMiddleware.getPhoneNumberFromToken(reqest)
@@ -27,17 +30,23 @@ export class Usercontroller {
     }
     @Get('verifyEmail')
     async verifyEmailAndSendPdf(@Query() query) {
-        
         console.log("inside verify email")
         await this.userService.sendPdf(query.value)
         return "Email containing your personal data is sent to your email."
     }
 
+    /**
+     * 
+     * @param reqest UserInfoByMailRequestDTO
+     * @returns 
+     */
     @Post("getUserInfoByMail")
     async getUserDataByMail(@Req() reqest: UserInfoByMailRequestDTO) {
-        console.log(`inside get email ${(reqest as any).body.email}`)
-        await this.userService.sendVerificationEmail((reqest as any).body.email,
+    
+        await this.userService.sendVerificationEmail(
+            (reqest as any).body.email,
             (reqest as any).body.uid)
+
         return { code: "200" }
     }
 
@@ -134,7 +143,7 @@ export class Usercontroller {
     // }
     @Get('test')
     async test() {
-        return { message: "hi" };
+
     }
 
 }

@@ -6,6 +6,7 @@ import * as jwt from "jsonwebtoken";
 import { Db } from "mongodb";
 import * as nodemailer from "nodemailer";
 import * as PDFDocument from "pdfkit";
+import { DatabaseModule } from "src/db/Database.Module";
 import { FirebaseMiddleware } from "../auth/firebase.middleware";
 import { Indiaprefixlocationmaps } from "../carrierService/carrier.info.schema";
 import { CarrierService } from "../carrierService/carrier.service";
@@ -23,7 +24,10 @@ import { UserInfoResponseDTO } from "./userResponse.dto";
 @Injectable()
 export class Userservice {
 
-
+// constructor(@InjectModel("User") private readonly userModel: Model<User>) { }
+constructor(@Inject(DatabaseModule.DATABASE_CONNECTION) private db: Db,
+private numberTransformService: NumberTransformService
+) { }
     /**
      * function to check if a user with the rehashed number exists in server
      * if exists then update the firebase uid of that user
@@ -106,10 +110,7 @@ export class Userservice {
         console.timeEnd("getUserInfoByid")
         return user;
     }
-    // constructor(@InjectModel("User") private readonly userModel: Model<User>) { }
-    constructor(@Inject('DATABASE_CONNECTION') private db: Db,
-        private numberTransformService: NumberTransformService
-    ) { }
+    
 
     async updateUserInfo(userDTO: SignupBodyDto, userIdDTO: UserIdDTO, imgFile: Express.Multer.File) {
         try {

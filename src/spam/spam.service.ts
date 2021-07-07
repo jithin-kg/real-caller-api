@@ -3,6 +3,7 @@ import { Collection, Db } from "mongodb";
 import { FirebaseMiddleware } from 'src/auth/firebase.middleware';
 import { ContactDocument } from "src/contact/contactDocument";
 import { CollectionNames } from "src/db/collection.names";
+import { DatabaseModule } from "src/db/Database.Module";
 import { SpamDTO } from "./spam.dto";
 const hash = require('crypto').createHash;
 
@@ -10,7 +11,7 @@ const hash = require('crypto').createHash;
 export class SpamService {
     private collection: Collection
     // constructor(@InjectModel("User") private readonly userModel: Model<User>) { }
-    constructor(@Inject('DATABASE_CONNECTION') private db: Db) {
+    constructor(@Inject(DatabaseModule.DATABASE_CONNECTION) private db: Db) {
         this.collection = this.db.collection(CollectionNames.CONTACTS_COLLECTION);
     }
     async reportTest(spamData: SpamDTO) {

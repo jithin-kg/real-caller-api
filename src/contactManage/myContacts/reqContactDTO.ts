@@ -1,10 +1,12 @@
-import { IsString, MaxLength } from 'class-validator';
+import { IsString, Length, MaxLength } from 'class-validator';
 export class ReqContactDTO {
-    @MaxLength(100)
+    
     @IsString()
+    @MaxLength(100)
     name: string;
 
-    @MaxLength(256)
+    
     @IsString()
+    @Length(64, 64)
     hashedPhoneNumber: string
 }
