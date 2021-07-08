@@ -38,13 +38,14 @@ export class UserDataManageService {
                     let result = await processHelper.doParallelProcess(_proccessList);
                     const fetchSavedContactsOfUser_POSITION = 0;
                     const getUserInformationByhUid_POSITION = 1;
-                    
+
                     let rejectedProcessList = result.filter(({ status }) => status === processHelper.REJECTED);
                     if (rejectedProcessList.length > 0) {
                         console.log("rejectedProcessList: ", rejectedProcessList)
-                        throw "rejectedProcessList:"
+                        resolve(GenericServiceResponseItem.returnBadRequestResponse())
+                        return;
                     } else {
-                        console.log("result", result);
+                        // console.log("result", result);
                         let savedContacts = result[fetchSavedContactsOfUser_POSITION]?.value;
                         let userInformation = result[getUserInformationByhUid_POSITION]?.value;
                         let dataForPrepare = { contacts: savedContacts, ...userInformation }
@@ -53,7 +54,9 @@ export class UserDataManageService {
                         return;
                     }
                 } else {
-                    throw "hUid not found from token"
+                    console.log("hUid not found")
+                    resolve(GenericServiceResponseItem.returnBadRequestResponse())
+                    return;
                 }
 
             } catch (error) {

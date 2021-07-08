@@ -46,7 +46,9 @@ export class UserDataManageHelper {
                 const result =
                     await db.collection(CollectionNames.USERS_COLLECTION).findOne(query)
                 console.log(`userinformation ${hUid}: `, result);
-                resolve(result)
+                if (result)
+                    resolve(result);
+                else reject("UserNot found")
             } catch (error) {
                 console.log("getUserInformationByhUid : ", error);
                 reject(error)
