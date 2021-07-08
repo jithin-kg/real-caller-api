@@ -29,10 +29,10 @@ import { HttpMessage } from 'src/utils/Http-message.enum';
 export class Userservice {
 
 
-// constructor(@InjectModel("User") private readonly userModel: Model<User>) { }
-constructor(@Inject(DatabaseModule.DATABASE_CONNECTION) private db: Db,
-private numberTransformService: NumberTransformService
-) { }
+    // constructor(@InjectModel("User") private readonly userModel: Model<User>) { }
+    constructor(@Inject(DatabaseModule.DATABASE_CONNECTION) private db: Db,
+        private numberTransformService: NumberTransformService
+    ) { }
 
     /**
      * function to check if a user with the rehashed number exists in server
@@ -40,34 +40,34 @@ private numberTransformService: NumberTransformService
      * @param id userid from firebase
      * @param hashedNum
      */
-     getUserInfoByid(id: string, hashedNum: string): Promise<UserInfoResponseDTO | null> {
-        return new Promise( async resolve => {
+    getUserInfoByid(id: string, hashedNum: string): Promise<UserInfoResponseDTO | null> {
+        return new Promise(async resolve => {
             //wihout try catch there might arise unhandled promise rejection exception
-            try{
+            try {
                 const rehashedNum = await this.numberTransformService.tranforNum(hashedNum)
                 console.log('parallelProcess userInfo,customToken>>>start')
-        
+
                 const _parallelProcessFunctions = [
                     this.db.collection(CollectionNames.USERS_COLLECTION).findOne({ _id: rehashedNum }),
                     FirebaseMiddleware.createCustomToken(id, rehashedNum)
                 ];
-        
+
                 const parallelRes = await processHelper.doParallelProcess(_parallelProcessFunctions);
-                
+
                 console.log('parallelProcess userInfo,customToken>>>end')
                 let result = Object.create(null); //to store userInfo
                 if (parallelRes && parallelRes[0]) result = parallelRes[0].value;
                 let CUSTOM_TOKEN: string = "";
                 if (parallelRes && parallelRes[1]) CUSTOM_TOKEN = parallelRes[1].value;
                 const user = new UserInfoResponseDTO()
-        
+
                 if (result) { //result != null || result != undefined
                     // user.email = result.email
                     user.firstName = result.firstName
                     user.lastName = result.lastName
                     user.image = result.image
                     //todo remove this in production, this is for project only
-        
+
                     if (result.isBlockedByAdmin) {
                         user.isBlockedByAdmin = 1
                         await FirebaseMiddleware.desableUser(id)
@@ -77,7 +77,7 @@ private numberTransformService: NumberTransformService
                         user.customToken = CUSTOM_TOKEN;
                         user.isBlockedByAdmin = 0
                     }
-        
+
                     let updationOp = { $set: { "uid": id } }
                     let existingUId = result.uid
                     try {
@@ -92,35 +92,35 @@ private numberTransformService: NumberTransformService
                         console.log(e)
                     }
                     // console.timeEnd("getUserInfoByid")
-                     resolve (user);
-                     return;
+                    resolve(user);
+                    return;
                 } else {
                     user.customToken = CUSTOM_TOKEN;
                 }
                 // console.timeEnd("getUserInfoByid")
-                resolve (user);
-                return ;
-            }catch(e){
+                resolve(user);
+                return;
+            } catch (e) {
                 resolve(null)
                 return;
             }
-            
+
         })
-        
+
     }
-    async getUserInformationById(req, userInfo: UserInfoRequest) : Promise<GenericServiceResponseItem<UserInfoResponseDTO>> {
-        return new Promise(async (resolve, reject) => {
+    async getUserInformationById(req, userInfo: UserInfoRequest): Promise<GenericServiceResponseItem<UserInfoResponseDTO>> {
+        return new Promise(async (resolve) => {
             // console.time("getUserInfo");
             try {
-                let user:UserInfoResponseDTO;
+                let user: UserInfoResponseDTO;
                 const id = userInfo.uid;
                 const phoneNumInToken: string = await FirebaseMiddleware.getPhoneNumberFromToken(req)
 
-                if(!phoneNumInToken){
-                     resolve (GenericServiceResponseItem.returnBadRequestResponse())    
+                if (!phoneNumInToken) {
+                    resolve(GenericServiceResponseItem.returnBadRequestResponse())
                     return; // this is important to end function execution after resolve or reject
                 }
-                
+
                 const formatedNum = Formatter.getFormatedPhoneNumber(phoneNumInToken)
                 const formatedNumInRequestBody = Formatter.getFormatedPhoneNumber(userInfo.formattedPhoneNum);
                 if (formatedNum == formatedNumInRequestBody) {
@@ -133,33 +133,34 @@ private numberTransformService: NumberTransformService
                     if (results && results[0]) user = results[0].value;
                     if (user.isBlockedByAdmin) {
                         console.log('user  blocked by admin')
-                        reject(new HttpException("Bad request", HttpStatus.FORBIDDEN))
-                        return 
+                        // reject(new HttpException("Bad request", HttpStatus.FORBIDDEN))
+                        resolve(GenericServiceResponseItem.returnBadRequestResponse())
+                        return
                     } else {
                         console.log('user not blocked by admin')
                     }
                     // console.timeEnd("getUserInfo")
                     // console.log(`returning user`, user)
-                    if(results.length>=2){
-                        if(results[1].status==processHelper.FULL_FILLED){
-                             user.isPhoneNumRemovedInFireBs = true   
+                    if (results.length >= 2) {
+                        if (results[1].status == processHelper.FULL_FILLED) {
+                            user.isPhoneNumRemovedInFireBs = true
                         }
                     }
                     // let response = new GenericServiceResponseItem<UserInfoResponseDTO>(HttpStatus.OK, HttpMessage.OK, user)
-                    
+
                     resolve(GenericServiceResponseItem.returnGoodResponse(user))
-                    return ;
+                    return;
                 } else {
                     // reject(new HttpException("Bad request", 400))
                     resolve(GenericServiceResponseItem.returnBadRequestResponse())
-                    return 
+                    return
                 }
-            }catch(e){
+            } catch (e) {
                 resolve(GenericServiceResponseItem.returnServerErrRes())
                 return;
             }
 
-            
+
         })
     }
     async updateUserInfo(userDTO: SignupBodyDto, userIdDTO: UserIdDTO, imgFile: Express.Multer.File) {

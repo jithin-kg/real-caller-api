@@ -15,6 +15,10 @@ export class processHelper {
      * 
      * at a time we get value or reason 
      * 
+     * to get error list 
+     * let rejectedProcessList = response.filter(({ status }) => status === processHelper.REJECTED);
+     * you will get rejected processlist (array of objects) which contains status and reason
+     * 
      */
     static async doParallelProcess(processList: any[]): Promise<processDto[]> {
         return new Promise(resolve => {
