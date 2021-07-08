@@ -9,13 +9,16 @@ import { GenericServiceResponseItem } from "src/utils/Generic.ServiceResponseIte
 import { editFileName, imageFileFilter } from './file/file-upload.utils';
 import { SignupBodyDto } from "./singupBody";
 import { Userservice } from "./user.service";
+import { UserDataManageService } from './userDataManage/userDataManage.service';
+import { UserDataManageResponseDTO } from './userDataManage/userDataResponseDTO';
 import { UserInfoByMailRequestDTO } from "./UserInfoByMailRequestDTO";
 import { UserInfoRequest } from "./userinfoRequest.dto";
 import { UserInfoResponseDTO } from "./userResponse.dto";
 
 @Controller('user')
 export class Usercontroller {
-    constructor(private readonly userService: Userservice) { }
+    constructor(private readonly userService: Userservice,
+        private userDataManageService: UserDataManageService) { }
 
     /**
      * function to return phone number from token
@@ -41,7 +44,7 @@ export class Usercontroller {
      */
     @Post("getUserInfoByMail")
     async getUserDataByMail(@Req() reqest: UserInfoByMailRequestDTO) {
-    
+
         await this.userService.sendVerificationEmail(
             (reqest as any).body.email,
             (reqest as any).body.uid)
@@ -55,13 +58,13 @@ export class Usercontroller {
      * @param userInfo
      */
     @Post("getUserInfoForUid")
-    async getUserInfo(@Req() req: any, @Body() userInfo: UserInfoRequest, @Res({passthrough:true} )res:Response) : Promise<GenericServiceResponseItem<UserInfoResponseDTO>> {
+    async getUserInfo(@Req() req: any, @Body() userInfo: UserInfoRequest, @Res({ passthrough: true }) res: Response): Promise<GenericServiceResponseItem<UserInfoResponseDTO>> {
         console.time("getInfo")
         let response = await this.userService.getUserInformationById(req, userInfo)
         // .catch(err => { throw err });
         res.status(response.statusCode)
         console.timeEnd("getInfo")
-    // return { result: await response };
+        // return { result: await response };
         return response
     }
 
@@ -118,4 +121,16 @@ export class Usercontroller {
 
     }
 
+
+    /**
+     * api for get saved informations of user when he request from app
+     */
+    @Post('getMyData')
+    async getDataOfUser(@Req() req: any, @Res({ passthrough: true }) res: Response): Promise<GenericServiceResponseItem<UserDataManageResponseDTO>> {
+        console.time("getMyData")
+        let response = await this.userDataManageService.getMyData(req);
+        res.status(response.statusCode)
+        console.timeEnd("getMyData")
+        return response;
+    }
 }
