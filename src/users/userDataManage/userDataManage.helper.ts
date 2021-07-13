@@ -39,7 +39,7 @@ export class UserDataManageHelper {
      * @returns 
      * object of user informations 
      */
-    static getUserInformationByhUid(hUid: string, db: Db) {
+    static getUserInformationByhUid(hUid: string, db: Db):Promise<any> {
         return new Promise(async (resolve, reject) => {
             try {
                 const query = { hUid: hUid };
@@ -48,7 +48,7 @@ export class UserDataManageHelper {
                 console.log(`userinformation ${hUid}: `, result);
                 if (result)
                     resolve(result);
-                else reject("UserNot found")
+                else resolve(null)
             } catch (error) {
                 console.log("getUserInformationByhUid : ", error);
                 reject(error)
@@ -90,6 +90,7 @@ class UserDataManageResponse {
     lastName: string = "";
     image?: string | null = "";
     contacts: ReqContactDTO[];
+    
     constructor({
         firstName, lastName,
         image, contacts,

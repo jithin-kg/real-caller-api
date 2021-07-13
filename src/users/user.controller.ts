@@ -1,10 +1,15 @@
 import {
-    Body, Controller, Get, Post, Query, Req, Res, UploadedFile, UseInterceptors
+    Body, Controller, Get, Headers, Post, Query, Req, Request, Res, UploadedFile, UseGuards, UseInterceptors
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
+import { time } from "console";
 import { Response } from "express";
 import { diskStorage } from 'multer';
 import { FirebaseMiddleware } from "src/auth/firebase.middleware";
+import { AuthGuard } from "src/auth/guard/auth.guard";
+import { HAuthGuard } from "src/auth/guard/hAuth.guard";
+import { FirebaseUid } from "src/uids.dto";
+
 import { GenericServiceResponseItem } from "src/utils/Generic.ServiceResponseItem";
 import { editFileName, imageFileFilter } from './file/file-upload.utils';
 import { SignupBodyDto } from "./singupBody";
@@ -14,6 +19,7 @@ import { UserDataManageResponseDTO } from './userDataManage/userDataResponseDTO'
 import { UserInfoByMailRequestDTO } from "./UserInfoByMailRequestDTO";
 import { UserInfoRequest } from "./userinfoRequest.dto";
 import { UserInfoResponseDTO } from "./userResponse.dto";
+
 
 @Controller('user')
 export class Usercontroller {
@@ -25,11 +31,13 @@ export class Usercontroller {
      * @param param 
      */
 
+    @UseGuards(AuthGuard)
     @Post("getInfo")
-    async getPhoneNumberFromToken(@Req() reqest: any, @Body() param: UserInfoRequest): Promise<any> {
-        const phonenumber: string = await FirebaseMiddleware.getPhoneNumberFromToken(reqest)
+    async getPhoneNumberFromToken(@Headers() header, @Body() param: UserInfoRequest): Promise<any> {
+        const phonenumber: string = await FirebaseMiddleware.getPhoneNumberFromToken(header)
         return { message: phonenumber }
     }
+    @UseGuards(AuthGuard)
     @Get('verifyEmail')
     async verifyEmailAndSendPdf(@Query() query) {
         console.log("inside verify email")
@@ -42,6 +50,8 @@ export class Usercontroller {
      * @param reqest UserInfoByMailRequestDTO
      * @returns 
      */
+
+    @UseGuards(AuthGuard)
     @Post("getUserInfoByMail")
     async getUserDataByMail(@Req() reqest: UserInfoByMailRequestDTO) {
 
@@ -57,10 +67,14 @@ export class Usercontroller {
      * @param reqest
      * @param userInfo
      */
+    @UseGuards(AuthGuard)
     @Post("getUserInfoForUid")
-    async getUserInfo(@Req() req: any, @Body() userInfo: UserInfoRequest, @Res({ passthrough: true }) res: Response): Promise<GenericServiceResponseItem<UserInfoResponseDTO>> {
+    async getUserInfo(@Headers() header: any, 
+        @Body() userInfo: UserInfoRequest, 
+        @Res({ passthrough: true }) res: Response
+        ): Promise<GenericServiceResponseItem<UserInfoResponseDTO>> {
         console.time("getInfo")
-        let response = await this.userService.getUserInformationById(req, userInfo)
+        let response = await this.userService.getUserInformationById(header, userInfo)
         // .catch(err => { throw err });
         res.status(response.statusCode)
         console.timeEnd("getInfo")
@@ -68,6 +82,7 @@ export class Usercontroller {
         return response
     }
 
+    @UseGuards(HAuthGuard)
     @Post('signup')
     @UseInterceptors(FileInterceptor('image', {
         storage: diskStorage({
@@ -81,18 +96,17 @@ export class Usercontroller {
         (
             @Req() reqest: any,
             @UploadedFile() file: Express.Multer.File,
-            @Body() body: SignupBodyDto
-        ) {
-
-
-        const userId = await FirebaseMiddleware.getUserId(reqest)
-
-        const user = await this.userService.signup(body, userId, file)
-        return { "result": user };
-
-
+            @Body() body: SignupBodyDto,
+            @Res({passthrough:true}) res:Response
+        ): Promise<GenericServiceResponseItem<UserInfoResponseDTO|null>> {
+        console.time("signup")
+        const tokenData = await FirebaseMiddleware.getTokenDataFromHeader(reqest)
+        const result = await this.userService.signup(body, tokenData, file)
+        res.status(res.statusCode)
+        console.timeEnd("signup")
+        return result
     }
-
+    @UseGuards(HAuthGuard)
     @Post('updateUserInfo')
     @UseInterceptors(FileInterceptor('image', {
         storage: diskStorage({
@@ -118,19 +132,34 @@ export class Usercontroller {
     // }
     @Get('test')
     async test() {
-
     }
-
 
     /**
      * api for get saved informations of user when he request from app
      */
+    @UseGuards(HAuthGuard)
     @Post('getMyData')
     async getDataOfUser(@Req() req: any, @Res({ passthrough: true }) res: Response): Promise<GenericServiceResponseItem<UserDataManageResponseDTO>> {
-        console.time("getMyData")
-        let response = await this.userDataManageService.getMyData(req);
-        res.status(response.statusCode)
-        console.timeEnd("getMyData")
-        return response;
+        // console.time("getMyData")
+        // let response = await this.userDataManageService.getMyData(req);
+        // res.status(response.statusCode)
+        // console.timeEnd("getMyData")
+        return null;
     }
+
+    // @UseGuards(HAuthGuard)
+    @Get('getMyData')
+    async getUserData(@Req() req: any, @Res({passthrough:true}) res:Response){
+        // let userDataInToken = await FirebaseMiddleware.getTokenDataFromHeader(req)
+
+        // let response = await this.userDataManageService.getMyData(userDataInToken);
+        // res.status(response.statusCode)
+        // console.time("getMyData")
+        // let response = await this.userDataManageService.getMyData(req);
+        // res.status(response.statusCode)
+        // console.timeEnd("getMyData")
+        // return response;
+        return {"message":"hi"}
+    }
+
 }

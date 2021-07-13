@@ -43,9 +43,9 @@ export class AppModule implements NestModule {
 
   configure(consumer: MiddlewareConsumer) {
     // in forRoutes we apply this middleware to all
-    consumer
-      .apply(FirebaseMiddleware)
-      .forRoutes({ path: "*", method: RequestMethod.ALL })
+    // consumer
+    //   .apply(FirebaseMiddleware)
+    //   .forRoutes({ path: "*", method: RequestMethod.ALL })
 
   }
 }

@@ -30,10 +30,10 @@ export class ContactObjectTransformHelper {
      * @param contactWithCarrierInfo
      * @param carrierInfo PromiseFulfilledResult
      */
-    static setCarrierInfoPromiseType(contactWithCarrierInfo: ContactProcessingItem, carrierInfo: PromiseFulfilledResult<Indiaprefixlocationmaps>) {
-        contactWithCarrierInfo.carrier = carrierInfo.value.carrier.trim();
-        contactWithCarrierInfo.lineType = carrierInfo.value.lineType.trim()
-        contactWithCarrierInfo.location = carrierInfo.value.location.trim();
+    static setCarrierInfoPromiseType(contactWithCarrierInfo: ContactProcessingItem, carrierInfo: Indiaprefixlocationmaps) {
+        contactWithCarrierInfo.carrier = carrierInfo.carrier
+        contactWithCarrierInfo.lineType = carrierInfo.lineType
+        contactWithCarrierInfo.location = carrierInfo.location
     }
     static  setCarrierInfo(contactWithCarrierInfo: ContactProcessingItem, carrierInfo: Indiaprefixlocationmaps) {
         try{

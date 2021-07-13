@@ -66,8 +66,8 @@ export class ContactService {
 
 
 
-    await  this.setCarrierInfoIncontacts(contacts, countryCode, countryISO)
-    await this.rehashAllNumbers()
+    // await  this.setCarrierInfoIncontacts(contacts, countryCode, countryISO)
+    // await this.rehashAllNumbers()
 
     /**
      * I can only bulk insert after completing promise.settle all, otherwise parellel
@@ -87,45 +87,44 @@ export class ContactService {
   }
 
     private async setCarrierInfoIncontacts(contacts: ContactRequestDTO[], countryCode: number, countryISO: string) {
-        let arr = await Promise.allSettled(contacts.map(async contact=>{
+        // let arr = await Promise.allSettled(contacts.map(async contact=>{
 
-            try{
+        //     try{
+        //         const [carrierInfo] = await Promise.allSettled(
+        //             [
+        //                 this.getCarrierInfo(contact.phoneNumber, countryCode, countryISO)
+        //             ]
+        //         )
 
-                const [carrierInfo] = await Promise.allSettled(
-                    [
-                        this.getCarrierInfo(contact.phoneNumber, countryCode, countryISO)
-                    ]
-                )
+        //         if(carrierInfo.status === "fulfilled" ){
+        //             let contactWithCarrierInfo = new ContactProcessingItem();
 
-                if(carrierInfo.status === "fulfilled" ){
-                    let contactWithCarrierInfo = new ContactProcessingItem();
+        //             if( carrierInfo.value != undefined){
+        //                 ContactObjectTransformHelper.setCarrierInfoPromiseType(contactWithCarrierInfo, carrierInfo)
+        //                 console.log(contactWithCarrierInfo.carrier)
+        //                 // contactWithCarrierInfo.carrier = carrierInfo.value.carrier.trim();
+        //                 // contactWithCarrierInfo.lineType = carrierInfo.value.lineType.trim()
+        //                 // contactWithCarrierInfo.location = carrierInfo.value.location.trim();
 
-                    if( carrierInfo.value != undefined){
-                        ContactObjectTransformHelper.setCarrierInfoPromiseType(contactWithCarrierInfo, carrierInfo)
-                        console.log(contactWithCarrierInfo.carrier)
-                        // contactWithCarrierInfo.carrier = carrierInfo.value.carrier.trim();
-                        // contactWithCarrierInfo.lineType = carrierInfo.value.lineType.trim()
-                        // contactWithCarrierInfo.location = carrierInfo.value.location.trim();
+        //             }
+        //             contactWithCarrierInfo.spamCount = 0;
 
-                    }
-                    contactWithCarrierInfo.spamCount = 0;
-
-                    contactWithCarrierInfo.hashedPhoneNumber = contact.hashedPhoneNumber
-                    contactWithCarrierInfo.firstName = contact.name;
-                    contactWithCarrierInfo.prevHash = contact.phoneNumber;
-
-
-                    console.log(`first n digit while inserting is ${contactWithCarrierInfo.prevHash}`)
-                    this.contactsListWithCarrierInfoProcessing.push(contactWithCarrierInfo);
-                }
+        //             contactWithCarrierInfo.hashedPhoneNumber = contact.hashedPhoneNumber
+        //             contactWithCarrierInfo.firstName = contact.name;
+        //             contactWithCarrierInfo.prevHash = contact.phoneNumber;
 
 
-            }catch(e){
-                console.log(chalk.red(`${e} for phone no `))
-            }
+        //             console.log(`first n digit while inserting is ${contactWithCarrierInfo.prevHash}`)
+        //             this.contactsListWithCarrierInfoProcessing.push(contactWithCarrierInfo);
+        //         }
 
 
-        }))
+        //     }catch(e){
+        //         console.log(chalk.red(`${e} for phone no `))
+        //     }
+
+
+        // }))
     }
 
     private async rehashAllNumbers() {

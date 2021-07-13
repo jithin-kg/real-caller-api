@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Db } from 'mongodb';
+import { HAccessTokenData } from 'src/auth/accessToken.dto';
 import { FirebaseMiddleware } from 'src/auth/firebase.middleware';
 import { DatabaseModule } from 'src/db/Database.Module';
 import { GenericServiceResponseItem } from 'src/utils/Generic.ServiceResponseItem';
@@ -25,16 +26,16 @@ export class UserDataManageService {
      * @returns
      * return response by use generic function (GenericServiceResponseItem<UserDataManageResponseDTO>)
      */
-    getMyData(req: any): Promise<GenericServiceResponseItem<UserDataManageResponseDTO>> {
+    getMyData(userDataInToken: HAccessTokenData): Promise<GenericServiceResponseItem<UserDataManageResponseDTO>> {
         return new Promise(async resolve => {
             try {
-                let extractedToken = await FirebaseMiddleware.getUserId(req)
-                let hUid = extractedToken.hUserId;
+                let hUid = userDataInToken.huid
                 if (hUid) {
                     let _proccessList = [
                         UserDataManageHelper.fetchSavedContactsOfUser(hUid, this.db),   //0th position
                         UserDataManageHelper.getUserInformationByhUid(hUid, this.db)    //1st position
                     ];
+                    
                     let result = await processHelper.doParallelProcess(_proccessList);
                     const fetchSavedContactsOfUser_POSITION = 0;
                     const getUserInformationByhUid_POSITION = 1;
@@ -45,6 +46,7 @@ export class UserDataManageService {
                         resolve(GenericServiceResponseItem.returnBadRequestResponse())
                         return;
                     } else {
+                        //todo chekc huid,creation in in authmiddleware
                         // console.log("result", result);
                         let savedContacts = result[fetchSavedContactsOfUser_POSITION]?.value;
                         let userInformation = result[getUserInformationByhUid_POSITION]?.value;
@@ -58,7 +60,6 @@ export class UserDataManageService {
                     resolve(GenericServiceResponseItem.returnBadRequestResponse())
                     return;
                 }
-
             } catch (error) {
                 console.log("getMyData()--catch : ", error)
                 resolve(GenericServiceResponseItem.returnServerErrRes())

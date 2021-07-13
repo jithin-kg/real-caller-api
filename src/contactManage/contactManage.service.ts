@@ -1,4 +1,5 @@
 import { HttpStatus, Inject } from '@nestjs/common';
+import { reject } from 'async';
 import * as chalk from "chalk";
 import { Db } from 'mongodb';
 import { Indiaprefixlocationmaps } from 'src/carrierService/carrier.info.schema';
@@ -7,6 +8,7 @@ import { DatabaseModule } from 'src/db/Database.Module';
 import { ContactObjectTransformHelper } from 'src/utils/ContactObjectTransformHelper';
 import { GenericServiceResponseItem } from 'src/utils/Generic.ServiceResponseItem';
 import { HttpMessage } from 'src/utils/Http-message.enum';
+import { processHelper } from 'src/utils/processHelper';
 import { FirebaseMiddleware } from './../auth/firebase.middleware';
 import { ContactDocument } from './contactDocument';
 import { ContactProcessingItem } from './contactProcessingItem';
@@ -15,12 +17,13 @@ import { ContactRequestDTO } from './contactRequestDTO';
 import { ContactUploadHelper  as Helper} from './contactUploadHelper';
 import { ReqBodyDTO } from './myContacts/reqBodyDTO';
 import { do_AES_decryption, do_AES_encryption, findDifference } from './myContacts/saveContactsHelper';
+import { RehashedReturnItem } from './rehashedReturnItem';
 const hash = require('crypto').createHash;
 export class ContactManageService {
     constructor(@Inject(DatabaseModule.DATABASE_CONNECTION) private db: Db) { }
-    contactsListWithCarrierInfoProcessing: ContactProcessingItem[];
-    contactsListForResponse: ContactRehashedItemWithOldHash[];
-    contactsListForDb: ContactDocument[]
+    // contactsListWithCarrierInfoProcessing: ContactProcessingItem[];
+    // contactsListForResponse: ContactRehashedItemWithOldHash[];
+    // contactsListForDb: ContactDocument[]
     
     async getHashedPhonenNum(phoneNumForHashing: string): Promise<string> {
         let no = await hash('sha256').update(phoneNumForHashing).digest('base64')
@@ -28,91 +31,105 @@ export class ContactManageService {
     }
 
 
-    async doRehashAllNumbers(contacts: ContactRequestDTO[], countryCode: number, countryISO: string) {
+    async doRehashAllNumbers(contacts: ContactRequestDTO[], countryCode: number, countryISO: string) : Promise<RehashedReturnItem> {
+        let contactsListForDb:ContactDocument[] = []
+        let contactsListForResponse:ContactRehashedItemWithOldHash[] = []
+        return new Promise((resolve, reject)=> {
+            Promise.resolve().then(async res=> {
+                for(let contact of contacts){
+                    try {
+                        const carrierInfo = await Helper.getCarrierInfo( countryCode, countryISO)
+                            let contactWithCarrierInfo = new ContactProcessingItem();
+                            if (carrierInfo != undefined) {
+                                ContactObjectTransformHelper.setCarrierInfoPromiseType(contactWithCarrierInfo, carrierInfo)
+                                console.log(contactWithCarrierInfo.carrier)
+                            }
+                            contactWithCarrierInfo.spamCount = 0;
+                            contactWithCarrierInfo.hashedPhoneNumber = contact.hashedPhoneNumber
+                            contactWithCarrierInfo.firstName = contact.name;
+                            contactWithCarrierInfo.prevHash = contact.hashedPhoneNumber;
+        
+                            console.log(`first n digit while inserting is ${contactWithCarrierInfo.prevHash}`)
+        
+                            //--------------old rehashAllNumbers()--------------------------
+                            let hashedNum = await this.getHashedPhonenNum(contactWithCarrierInfo.hashedPhoneNumber)
+                            contactWithCarrierInfo.hashedPhoneNumber = hashedNum
+                            //-------isUserExist ? put isRegistered and hUname field
+                            let _userInfo = await this.db.collection(CollectionNames.USERS_COLLECTION)
+                                .findOne({ _id: contactWithCarrierInfo.hashedPhoneNumber })
+                        
+                            if (_userInfo && _userInfo.firstName) {
+                                contactWithCarrierInfo.isRegistered = true;
+                                contactWithCarrierInfo.hUname = _userInfo.firstName;
+                            } else {
+                                console.log(`${contactWithCarrierInfo.prevHash} !exist || !registered`)
+                            }
+                            //---------------------------------------------------------------------
+                            let contactDoc = ContactObjectTransformHelper.prepareContactDocForInsertingIntoDb(contactWithCarrierInfo)
+                            let contactReturnObj = Helper.prepareContactReturnObj(contactWithCarrierInfo)
+                           
+                            contactsListForDb.push(contactDoc);
+                            contactsListForResponse.push(contactReturnObj)
 
-        await Promise.allSettled(contacts.map(async contact => {
-            try {
-                // dummy carrierInfo set
-                const [carrierInfo] = await Promise.allSettled(
-                    [
-                        Helper.getCarrierInfo( countryCode, countryISO)
-                    ]
-                )
-
-                if (carrierInfo.status === "fulfilled") {
-                    let contactWithCarrierInfo = new ContactProcessingItem();
-
-                    if (carrierInfo.value != undefined) {
-                        ContactObjectTransformHelper.setCarrierInfoPromiseType(contactWithCarrierInfo, carrierInfo)
-                        console.log(contactWithCarrierInfo.carrier)
+                            
+                            //------------------------------------------------------------------
+                        
+                    } catch (e) {
+                        console.log(chalk.red(`${e} for phone no `))
+                        resolve(null)
                     }
-                    contactWithCarrierInfo.spamCount = 0;
-                    contactWithCarrierInfo.hashedPhoneNumber = contact.hashedPhoneNumber
-                    contactWithCarrierInfo.firstName = contact.name;
-                    contactWithCarrierInfo.prevHash = contact.hashedPhoneNumber;
-
-
-                    console.log(`first n digit while inserting is ${contactWithCarrierInfo.prevHash}`)
-                    // this.contactsListWithCarrierInfoProcessing.push(contactWithCarrierInfo);
-
-                    //--------------old rehashAllNumbers()--------------------------
-                    let hashedNum = await this.getHashedPhonenNum(contactWithCarrierInfo.hashedPhoneNumber)
-                    contactWithCarrierInfo.hashedPhoneNumber = hashedNum
-                    //-------isUserExist ? put isRegistered and hUname field
-                    let _userInfo = await this.db.collection(CollectionNames.USERS_COLLECTION)
-                        .findOne({ _id: contactWithCarrierInfo.hashedPhoneNumber })
-                        .catch(err => console.log(`findOne error:{_id:${contactWithCarrierInfo.hashedPhoneNumber}}`, err));
-                    if (_userInfo && _userInfo.firstName) {
-                        contactWithCarrierInfo.isRegistered = true;
-                        contactWithCarrierInfo.hUname = _userInfo.firstName;
-                    } else {
-                        console.log(`${contactWithCarrierInfo.prevHash} !exist || !registered`)
-                    }
-                    //---------------------------------------------------------------------
-                    let contactDoc = ContactObjectTransformHelper.prepareContactDocForInsertingIntoDb(contactWithCarrierInfo)
-                    let contactReturnObj = Helper.prepareContactReturnObj(contactWithCarrierInfo)
-
-
-                    this.contactsListForDb.push(contactDoc);
-                    this.contactsListForResponse.push(contactReturnObj)
-                    //------------------------------------------------------------------
-                } else {
-                    throw { carrierInfo, message: "carrierInfo.status issue" }
                 }
-            } catch (e) {
-                console.log(chalk.red(`${e} for phone no `))
-            }
-
-
-        }))
+                resolve(new RehashedReturnItem(contactsListForDb, contactsListForResponse ))
+            })
+        })
     }
-    private async performBulkInsert(bulkOp: any) {
-        for await (const c of this.contactsListForDb) {
-            console.log(`hashed num before inserting is ${c._id}`)
-            bulkOp.insert(c)
-
-        }
+    private async performBulkInsert(bulkOp: any, contactsListForDb:ContactDocument[]): Promise<string>{
+        return new Promise((resolve, reject)=> {
+            Promise.resolve().then(async res=> {
+                try{
+                    for await (const c of contactsListForDb) {
+                        bulkOp.insert(c)
+                    }
+                    resolve("Bulk insert completed")
+                }catch(e){
+                    console.log(chalk.red(`Exception while bulk insert ${e}`))
+                    resolve(null)
+                }
+            })
+        })
     }
+    //called from controller
     async uploadBulkContacts(contacts: ContactRequestDTO[], countryCode: number, countryISO: string): Promise<GenericServiceResponseItem<ContactRehashedItemWithOldHash[]>> {
-        console.log(chalk.green('going to upload...'))
-        const bulkOp = await this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).initializeUnorderedBulkOp()
-        this.contactsListWithCarrierInfoProcessing = []
-        this.contactsListForResponse = []
-        this.contactsListForDb = []
-        console.log(chalk.green('going to perform doRehashAllNumbers...'))
-        await this.doRehashAllNumbers(contacts, countryCode, countryISO);
-        console.log(chalk.green('going to perform performBulkInsert...'))
-        console.log(chalk.green('contactReturnObj...', this.contactsListForResponse))
-        await this.performBulkInsert(bulkOp)
-
+        // const bulkOp = await this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).initializeUnorderedBulkOp()
+        // const reshasehdItems:RehashedReturnItem = await this.doRehashAllNumbers(contacts, countryCode, countryISO);
+        let bulkOp;
+        let reshasehdItems:RehashedReturnItem
+        const processList = [
+            this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).initializeUnorderedBulkOp(),
+            this.doRehashAllNumbers(contacts, countryCode, countryISO)
+        ]
+        const [bulkOpDefered,reshasehdItemsDefred ] = await processHelper.doParallelProcess(processList)
+        
+        if(reshasehdItemsDefred.status == processHelper.FULL_FILLED){
+            reshasehdItems = reshasehdItemsDefred.value
+        }else if(reshasehdItemsDefred.status == processHelper.REJECTED){
+            return GenericServiceResponseItem.returnServerErrRes()
+        }
+        if(bulkOpDefered.status == processHelper.FULL_FILLED){
+            bulkOp = bulkOpDefered.value
+        }
         try {
-            console.log(chalk.green('going to perform bulkOp.execute...'))
-            await bulkOp.execute()
+        await this.performBulkInsert(bulkOp, reshasehdItems.contactsListForDb)
+
+            try{
+                await bulkOp.execute()
+            }catch(e){
+                console.log(chalk.red (`Bulkd execution exception $e`))
+            }
         } catch (e) {
             console.log(chalk.red(`bulk insert contacts error ${e}`))
         } finally {
-            console.log(chalk.green(`final data (finally) ${this.contactsListForResponse}`))
-            return  new GenericServiceResponseItem(HttpStatus.OK, HttpMessage.OK,this.contactsListForResponse )  ;
+            return GenericServiceResponseItem.returnGoodResponse(reshasehdItems.contactsListForRespones)
         }
     }
     async fetchSavedContactsOfUser(hUid: string): Promise<string> {
@@ -125,6 +142,7 @@ export class ContactManageService {
                 resolve(existData?.contacts || "")
             } catch (error) {
                 console.log("fetchSavedContactsOfUser_error : ", error);
+                //do
                 resolve("")
             }
         })

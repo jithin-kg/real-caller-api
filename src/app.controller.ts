@@ -1,7 +1,9 @@
-import { Body, Controller, Get, Post, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { AppService } from './app.service';
+import { HAuthGuard } from './auth/guard/hAuth.guard';
 import { SearchDTO } from './multiple-number-search/search.dto';
 
+@UseGuards(HAuthGuard)
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) { }

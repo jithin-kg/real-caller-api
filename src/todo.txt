@@ -1,0 +1,9 @@
+1) ip address checking admin / user access :Advanced Security: Enforce IP address restrictions
+    https://firebase.google.com/docs/auth/admin/manage-sessions
+
+https://www.youtube.com/watch?v=iWEgpdVSZyg
+2) update contact information in privacy tab in firebase.com to comply GDPR
+3) Use firebase app distribution to test app without google play (Release and monitor > app distribution)
+4) perfomance monitorying in firebase. (Release and monitor > perfomance)
+5 ) Crashletics
+6) Use Firebase analytics

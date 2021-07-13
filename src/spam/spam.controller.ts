@@ -1,8 +1,10 @@
 import {
     Body, Controller,
     Post,
-    Req
+    Req,
+    UseGuards
 } from "@nestjs/common";
+import { HAuthGuard } from "src/auth/guard/hAuth.guard";
 import {
     Logger
 } from '../utils/logger';
@@ -17,7 +19,9 @@ import {
 } from "./uidOnlyRequest";
 
 
+
 @Controller('spam')
+@UseGuards(HAuthGuard)
 export class Spamcontroller {
     constructor(private readonly service: SpamService) { }
 

@@ -23,6 +23,7 @@ import { UserInfoRequest } from './userinfoRequest.dto';
 import { UserInfoResponseDTO } from "./userResponse.dto";
 import { GenericServiceResponseItem } from 'src/utils/Generic.ServiceResponseItem';
 import { HttpMessage } from 'src/utils/Http-message.enum';
+import { HAccessTokenData } from 'src/auth/accessToken.dto';
 
 
 @Injectable()
@@ -42,68 +43,71 @@ export class Userservice {
      */
     getUserInfoByid(id: string, hashedNum: string): Promise<UserInfoResponseDTO | null> {
         return new Promise(async resolve => {
-            //wihout try catch there might arise unhandled promise rejection exception
-            try {
-                const rehashedNum = await this.numberTransformService.tranforNum(hashedNum)
-                console.log('parallelProcess userInfo,customToken>>>start')
-
-                const _parallelProcessFunctions = [
-                    this.db.collection(CollectionNames.USERS_COLLECTION).findOne({ _id: rehashedNum }),
-                    FirebaseMiddleware.createCustomToken(id, rehashedNum)
-                ];
-
-                const parallelRes = await processHelper.doParallelProcess(_parallelProcessFunctions);
-
-                console.log('parallelProcess userInfo,customToken>>>end')
-                let result = Object.create(null); //to store userInfo
-                if (parallelRes && parallelRes[0]) result = parallelRes[0].value;
-                let CUSTOM_TOKEN: string = "";
-                if (parallelRes && parallelRes[1]) CUSTOM_TOKEN = parallelRes[1].value;
-                const user = new UserInfoResponseDTO()
-
-                if (result) { //result != null || result != undefined
-                    // user.email = result.email
-                    user.firstName = result.firstName
-                    user.lastName = result.lastName
-                    user.image = result.image
-                    //todo remove this in production, this is for project only
-
-                    if (result.isBlockedByAdmin) {
-                        user.isBlockedByAdmin = 1
-                        await FirebaseMiddleware.desableUser(id)
+            Promise.resolve().then(async res => {
+                try {
+                    const rehashedNum = await this.numberTransformService.tranforNum(hashedNum)
+                    console.log('parallelProcess userInfo,customToken>>>start')
+    
+                    const _parallelProcessFunctions = [
+                        this.db.collection(CollectionNames.USERS_COLLECTION).findOne({ _id: rehashedNum }),
+                        FirebaseMiddleware.createCustomToken(id, rehashedNum)
+                    ];
+    
+                    const parallelRes = await processHelper.doParallelProcess(_parallelProcessFunctions);
+    
+                    console.log('parallelProcess userInfo,customToken>>>end')
+                    let result = Object.create(null); //to store userInfo
+                    if (parallelRes && parallelRes[0]) result = parallelRes[0].value;
+                    let CUSTOM_TOKEN: string = "";
+                    if (parallelRes && parallelRes[1]) CUSTOM_TOKEN = parallelRes[1].value;
+                    const user = new UserInfoResponseDTO()
+    
+                    if (result) { //result != null || result != undefined
+                        // user.email = result.email
+                        user.firstName = result.firstName
+                        user.lastName = result.lastName
+                        user.image = result.image
+                        //todo remove this in production, this is for project only
+    
+                        if (result.isBlockedByAdmin) {
+                            user.isBlockedByAdmin = 1
+                            await FirebaseMiddleware.desableUser(id)
+                        } else {
+                            //only create custom token if user is not blocked by admin
+                            // const customToken: string = await FirebaseMiddleware.createCustomToken(id, rehashedNum)
+                            user.customToken = CUSTOM_TOKEN;
+                            user.isBlockedByAdmin = 0
+                        }
+    
+                        let updationOp = { $set: { "uid": id } }
+                        let existingUId = result.uid
+                        try {
+                            console.log('parallelProcess updateUser,removeUserById>>>start')
+                            const _parallelProcessFunctions = [
+                                this.db.collection(CollectionNames.USERS_COLLECTION).updateOne({ _id: rehashedNum }, updationOp),
+                                FirebaseMiddleware.removeUserById(existingUId)
+                            ]
+                            await processHelper.doParallelProcess(_parallelProcessFunctions);
+                            console.log('parallelProcess updateUser,removeUserById>>>end')
+                        } catch (e) {
+                            console.log(e)
+                        }
+                        // console.timeEnd("getUserInfoByid")
+                        resolve(user);
+                        return;
                     } else {
-                        //only create custom token if user is not blocked by admin
-                        // const customToken: string = await FirebaseMiddleware.createCustomToken(id, rehashedNum)
                         user.customToken = CUSTOM_TOKEN;
-                        user.isBlockedByAdmin = 0
-                    }
-
-                    let updationOp = { $set: { "uid": id } }
-                    let existingUId = result.uid
-                    try {
-                        console.log('parallelProcess updateUser,removeUserById>>>start')
-                        const _parallelProcessFunctions = [
-                            this.db.collection(CollectionNames.USERS_COLLECTION).updateOne({ _id: rehashedNum }, updationOp),
-                            FirebaseMiddleware.removeUserById(existingUId)
-                        ]
-                        await processHelper.doParallelProcess(_parallelProcessFunctions);
-                        console.log('parallelProcess updateUser,removeUserById>>>end')
-                    } catch (e) {
-                        console.log(e)
                     }
                     // console.timeEnd("getUserInfoByid")
                     resolve(user);
                     return;
-                } else {
-                    user.customToken = CUSTOM_TOKEN;
+                } catch (e) {
+                    resolve(null)
+                    return;
                 }
-                // console.timeEnd("getUserInfoByid")
-                resolve(user);
-                return;
-            } catch (e) {
-                resolve(null)
-                return;
-            }
+            })
+            //wihout try catch there might arise unhandled promise rejection exception
+            
 
         })
 
@@ -113,7 +117,7 @@ export class Userservice {
             // console.time("getUserInfo");
             try {
                 let user: UserInfoResponseDTO;
-                const id = userInfo.uid;
+                const id = userInfo.tokenData.uid;
                 const phoneNumInToken: string = await FirebaseMiddleware.getPhoneNumberFromToken(req)
 
                 if (!phoneNumInToken) {
@@ -129,23 +133,31 @@ export class Userservice {
                         this.getUserInfoByid(id, userInfo.hashedNum),
                         FirebaseMiddleware.removeUserPhoneNumberFromFirebase(id)
                     ]
-                    const results = await processHelper.doParallelProcess(processList);
-                    if (results && results[0]) user = results[0].value;
-                    if (user.isBlockedByAdmin) {
-                        console.log('user  blocked by admin')
-                        // reject(new HttpException("Bad request", HttpStatus.FORBIDDEN))
-                        resolve(GenericServiceResponseItem.returnBadRequestResponse())
-                        return
-                    } else {
-                        console.log('user not blocked by admin')
+                    // const [resultGetUsrBYId, resultRemoveUserNumFirebase]= await Promise.allSettled(processList)
+                    const [resultGetUsrBYId, resultRemoveUserNumFirebase] = await processHelper.doParallelProcess(processList);
+                 
+                    // if (results && results[0]) user = results[0].;
+                    if(resultGetUsrBYId.status == processHelper.FULL_FILLED){
+                        user = resultGetUsrBYId.value
+                        if (user.isBlockedByAdmin) {
+                            console.log('user  blocked by admin')
+                            // reject(new HttpException("Bad request", HttpStatus.FORBIDDEN))
+                            resolve(GenericServiceResponseItem.returnBadRequestResponse())
+                            return
+                        } else {
+                            console.log('user not blocked by admin')
+                        }
+                    }
+                    if(resultRemoveUserNumFirebase.status == processHelper.FULL_FILLED){
+                        user.isPhoneNumRemovedInFireBs = true
                     }
                     // console.timeEnd("getUserInfo")
                     // console.log(`returning user`, user)
-                    if (results.length >= 2) {
-                        if (results[1].status == processHelper.FULL_FILLED) {
-                            user.isPhoneNumRemovedInFireBs = true
-                        }
-                    }
+                    // if (results.length >= 2) {
+                    //     if (results[1].status == processHelper.FULL_FILLED) {
+                    //         user.isPhoneNumRemovedInFireBs = true
+                    //     }
+                    // }
                     // let response = new GenericServiceResponseItem<UserInfoResponseDTO>(HttpStatus.OK, HttpMessage.OK, user)
 
                     resolve(GenericServiceResponseItem.returnGoodResponse(user))
@@ -156,6 +168,7 @@ export class Userservice {
                     return
                 }
             } catch (e) {
+                console.log(`Exception while getUserInformationById ${e}`)
                 resolve(GenericServiceResponseItem.returnServerErrRes())
                 return;
             }
@@ -193,7 +206,7 @@ export class Userservice {
         }
     }
 
-    async signup(userDto: SignupBodyDto, uidDTO: UserIdDTO, imgFile?: Express.Multer.File,): Promise<UserInfoResponseDTO> {
+    async signup(userDto: SignupBodyDto, hAccesstokenData: HAccessTokenData, imgFile?: Express.Multer.File,): Promise<GenericServiceResponseItem<UserInfoResponseDTO|null>> {
         try {
             let fileBuffer: Buffer = null
             fileBuffer = await this.getImageBuffer(imgFile)
@@ -203,31 +216,32 @@ export class Userservice {
                 await validateOrReject(userDto) //validation
                 try {
                     //first signup the user
-                    const savedUser = await this.saveToUsersCollection(userDto, uidDTO, rehasehdNum, fileBuffer)
+                    // const savedUser = await this.saveToUsersCollection(userDto, uidDTO, rehasehdNum, fileBuffer)
                     //then update or insert the user info in contacts collection
-                    await this.saveToContactsCollection(userDto, uidDTO, fileBuffer, rehasehdNum)
-                    return savedUser
+                    // const promiseRes = await Promise.all([
+                    //     (async ()=> { await this.saveToUsersCollection(userDto, uidDTO, rehasehdNum, fileBuffer) })(),
+                    //     (async ()=> {await this.saveToContactsCollection(userDto, uidDTO, fileBuffer, rehasehdNum)})()
+                        
+                    // ])
+                    const promiseRes = await Promise.all([
+                          this.saveToUsersCollection(userDto, hAccesstokenData, rehasehdNum, fileBuffer) ,
+                         this.saveToContactsCollection(userDto, hAccesstokenData, fileBuffer, rehasehdNum)
+                        
+                    ])
+                    return GenericServiceResponseItem.returnGoodResponse(promiseRes[0], HttpStatus.CREATED)
                 } catch (err) {
                     console.log("error while saving", err);
                     const user = new UserInfoResponseDTO()
-                    //todo change this is return error
-                    return user
+                    return GenericServiceResponseItem.returnServerErrRes()
                 }
             } else {
-                console.log("user exist")
-                const user = new UserInfoResponseDTO()
-                //  user.email = userDto.email
-                //  user.firstName = user.firstName
-                //  user.lastName = user.lastName
-
-                //  user.image = user.image
-                return user;
+                 return GenericServiceResponseItem.returnBadRequestResponse(HttpMessage.USER_ALREADY_EXISTS);
             }
 
         } catch (err) {
             console.log("error on signup ", err);
             const user = new UserInfoResponseDTO()
-            return user
+            return GenericServiceResponseItem.returnServerErrRes()
         }
 
 
@@ -244,11 +258,9 @@ export class Userservice {
      * @param fileBuffer
      */
 
-    saveToContactsCollection(userDto: SignupBodyDto, uidDTO: UserIdDTO, fileBuffer: Buffer, rehasehdNum: string): Promise<void> {
+    saveToContactsCollection(userDto: SignupBodyDto, hAccesstokenData: HAccessTokenData, fileBuffer: Buffer, rehasehdNum: string): Promise<void> {
         return new Promise(async (resolve, reject) => {
             try {
-
-
                 const infoWithCarrierService: Indiaprefixlocationmaps = await CarrierService.getInfo(userDto.phoneNumber, this.db, parseInt(userDto.countryCode), userDto.countryISO)
                 let contactWithCarrierInfo = new ContactProcessingItem();
                 contactWithCarrierInfo.firstName = userDto.firstName
@@ -262,20 +274,20 @@ export class Userservice {
                 const docToInsert = ContactObjectTransformHelper.prepareContactDocForInsertingIntoDb(contactWithCarrierInfo, fileBuffer)
                 const res = await this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).replaceOne({ _id: docToInsert._id },
                     docToInsert, { upsert: true })
-                console.log(res)
-                console.log(`${docToInsert._id}`)
                 resolve()
+                return;
             } catch (e) {
-                reject(e)
                 console.error(`Error while saving user info ${e}`)
+                reject(e)
+                return;
             }
         })
 
     }
-    async saveToUsersCollection(userDto: SignupBodyDto, userIdDTO: UserIdDTO, rehasehdNum: string, fileBuffer?: Buffer): Promise<UserInfoResponseDTO> {
+    async saveToUsersCollection(userDto: SignupBodyDto, hAccesstokenData: HAccessTokenData, rehasehdNum: string, fileBuffer?: Buffer): Promise<UserInfoResponseDTO> {
         return new Promise(async (resolve, reject) => {
             try {
-                let newUser = await this.prepareUser(userDto, userIdDTO, rehasehdNum);
+                let newUser = await this.prepareUser(userDto, hAccesstokenData, rehasehdNum);
                 newUser.image = fileBuffer //setting image buffer to insert
                 const res = await this.db.collection(CollectionNames.USERS_COLLECTION).insertOne(newUser);
                 const user = new UserInfoResponseDTO()
@@ -330,12 +342,12 @@ export class Userservice {
             })
         })
     }
-    private prepareUser(userDto: SignupBodyDto, uid: UserIdDTO, rehasehdNum: string): User {
+    private prepareUser(userDto: SignupBodyDto, hAccesstokenData: HAccessTokenData, rehasehdNum: string): User {
         let newUser = new User();
         newUser._id = rehasehdNum;
         newUser.firstName = userDto.firstName;
-        newUser.uid = uid.userId;
-        newUser.hUid = uid.hUserId
+        newUser.uid = hAccesstokenData.uid;
+        newUser.hUid = hAccesstokenData.huid
         newUser.lastName = userDto.lastName
         newUser.isBlockedByAdmin = false
         return newUser;

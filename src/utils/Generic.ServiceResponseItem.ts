@@ -18,16 +18,24 @@ export class GenericServiceResponseItem<T>{
         this.data = data
         this.message = message
     }
-
-    static returnBadRequestResponse():GenericServiceResponseItem<null> {
-        return new GenericServiceResponseItem<null>(HttpStatus.BAD_REQUEST,  HttpMessage.BAD_REQUEST)
+    /**
+     * @param message message of bad request 
+     * @returns 
+     */
+    static returnBadRequestResponse(message:string =HttpMessage.BAD_REQUEST):GenericServiceResponseItem<null> {
+        return new GenericServiceResponseItem<null>(HttpStatus.BAD_REQUEST,  message)
     }
 
     static returnServerErrRes():GenericServiceResponseItem<null> {
         return new GenericServiceResponseItem<null>(HttpStatus.INTERNAL_SERVER_ERROR,  HttpMessage.INTERNAL_SERVER_ERROR)
     }
-
-    static returnGoodResponse<T>(data:T):GenericServiceResponseItem<T>{
-        return new GenericServiceResponseItem(HttpStatus.OK, HttpMessage.OK, data)
+    /**
+     * 
+     * @param data: data to returned to client
+     * @param sCode: status code to be returned to the client, default is 200
+     * @returns 
+     */
+    static returnGoodResponse<T>(data:T, sCode:number = HttpStatus.OK):GenericServiceResponseItem<T>{
+        return new GenericServiceResponseItem(sCode, HttpMessage.OK, data)
     }
 }

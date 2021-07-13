@@ -1,6 +1,10 @@
-import {IsNumber, isString, IsString} from "class-validator";
+import { Type } from "class-transformer";
+import {IsNumber, isString, IsString, ValidateNested} from "class-validator";
+import { BasicAccessTokenData, HAccessTokenData } from "src/auth/accessToken.dto";
 
 export class SignupBodyDto {
+
+
     @IsString()
     firstName: string
 
@@ -18,6 +22,7 @@ export class SignupBodyDto {
     @IsString()
     countryISO: string
 
+    
 
 
 

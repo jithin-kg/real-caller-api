@@ -24,27 +24,21 @@ export class SearchService {
 
 
 
-    async search(pno:string): Promise<GenericServiceResponseItem< SearchResponseItem>> {
+    async search(pno:string): Promise<GenericServiceResponseItem<SearchResponseItem>> {
         
         let hashedPhone = await hash('sha256').update(pno).digest('base64');
-        //R2PIZXbno2+o88Z8qfkT5SfNF77A5JOOzJipLFQ5jXo= -> 123
         console.log(`hashed phone individual search : ${hashedPhone}`);
         let res = [];
-        // try{
             try{
-
-                //TODO SANITISE INPUT REMOEV + IN PHONE NUMBER OR REGULAR EXPRESSION CRASHES while searching
-                //and need to sanitise input
                 let result = await this.getContacts(hashedPhone);
-                if(result== null){
-                    return new GenericServiceResponseItem< null>(HttpStatus.NO_CONTENT,HttpMessage.NO_RESULT, null)
+                if(result!=undefined){
+                    return GenericServiceResponseItem.returnGoodResponse(result)
                 }else {
-                    result.isInfoFoundInDb = Constants.INFO_FOUND_ID_DB
-                    return new GenericServiceResponseItem< SearchResponseItem>(HttpStatus.OK, HttpMessage.OK,result)
+                    return  GenericServiceResponseItem.returnGoodResponse(null, HttpStatus.NO_CONTENT)
                 }
             }catch(e){
                 console.log(e);
-                throw new HttpException('Server Error', HttpStatus.INTERNAL_SERVER_ERROR); 
+                return GenericServiceResponseItem.returnServerErrRes() 
             }
     
     }
@@ -60,7 +54,7 @@ export class SearchService {
             // this.collection.find({phoneNumber:new RegExp(pno)})
           try{
               const res =  await  this.collection.findOne({_id:pno})
-              let responseitem
+              let responseitem:SearchResponseItem
               if(res!=null){
                   responseitem = new SearchResponseItem()
                   responseitem.firstName = res.firstName ?? ""
@@ -71,6 +65,7 @@ export class SearchService {
                   responseitem.country = res.country?? ""
                   responseitem.spamCount = res.spamCount?? 0
                   responseitem.thumbnailImg = res.image??""
+                  responseitem.isInfoFoundInDb = Constants.INFO_FOUND_ID_DB
               }
               resolve(responseitem)
           }catch(e){

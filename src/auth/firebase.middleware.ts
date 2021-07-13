@@ -10,6 +10,7 @@ import {NumberTransformService} from "../utils/numbertransform.service";
 import * as url from 'url'
 import { resolve } from "path";
 import { rejects } from "assert";
+import { HAccessTokenData } from "./accessToken.dto";
 /**
  * Todo
  * token verification failedError: Firebase ID token has expired.
@@ -35,9 +36,9 @@ export class FirebaseMiddleware implements NestMiddleware {
             clientC509CertUrl: firebaseServiceAccount.client_x509_cert_url
         }
 
-        firebaseAdmin.initializeApp({
-            credential: firebaseAdmin.credential.cert(params)
-        })
+        // firebaseAdmin.initializeApp({
+        //     credential: firebaseAdmin.credential.cert(params)
+        // })
     }
 
 
@@ -63,16 +64,33 @@ export class FirebaseMiddleware implements NestMiddleware {
            })
     }
 
+    static async getTokenDataFromHeader(req:any): Promise<HAccessTokenData> {
+    
+        return new Promise(async (resolve, reject)=>{
+         try{
+           const token:string = req.header('Authorization').replace('Bearer', '').trim()
+         const tokenVerify = await firebaseAdmin.auth().verifyIdToken(token)
+         const user = new  HAccessTokenData()
+         user.huid = tokenVerify.hUserId;
+         user.uid  = tokenVerify.uid;
+         resolve(user)
+         }catch(e){
+             reject(e)
+         }
+        })
+ }
+
     static createCustomToken(uid:string, hashedNum:string):Promise<string>{
         return new Promise(async (resolve, reject)=>{
             try{
-                const hUserId = await this.numberTransformService.tranforNum(uid + hashedNum)
+                const hUserId = await this.numberTransformService.tranforNum(hashedNum)
                 firebaseAdmin.auth()
                     .createCustomToken(uid, {
                         hUserId:hUserId
                     }).then((customtoken)=>{
                     console.log(`custom token is ${customtoken}`)
                     resolve(customtoken)
+
                     return ;
                 }).catch((e)=>{
                     console.error(`error while creating custom token`)
@@ -91,10 +109,11 @@ export class FirebaseMiddleware implements NestMiddleware {
      *
      * @param uid
      */
-    static getPhoneNumberFromToken(req:any):Promise<string> {
+    static getPhoneNumberFromToken(header:any):Promise<string> {
         return new Promise(async (resolve)=>{
             try{
-                const token:string = req.header('Authorization').replace('Bearer', '').trim()
+                // const token:string = header.replace('Bearer', '').trim()
+                const token:string = header.authorization
                 const tokenVerify = await firebaseAdmin.auth().verifyIdToken(token)
                 const phoneNumber = tokenVerify.phone_number;
                 console.log(`phone number in token ${ tokenVerify.phone_number}`)
@@ -147,18 +166,21 @@ export class FirebaseMiddleware implements NestMiddleware {
     static async removeUserPhoneNumberFromFirebase(uid:string):Promise<any>{
 
         return new Promise(async (resolve)=> {
-           try {
-               // const uid = await this.getUserId(req)
-               await  firebaseAdmin.auth().updateUser(uid, {
-                   phoneNumber:null
-               })
-               resolve("done")
-           }catch (e){
-               //todo 
-               resolve("")
-               console.log(`Error while removeUserPhoneNumberFromFirebase ${e}`)
-            //    reject(e)
-           }
+            Promise.resolve().then(async res=> {
+                try {
+                    // const uid = await this.getUserId(req)
+                    await  firebaseAdmin.auth().updateUser(uid, {
+                        phoneNumber:null
+                    })
+                    resolve("done")
+                }catch (e){
+                    //todo 
+                    resolve("")
+                    console.log(`Error while removeUserPhoneNumberFromFirebase ${e}`)
+                 //    reject(e)
+                }
+            })
+           
         })
 
     }

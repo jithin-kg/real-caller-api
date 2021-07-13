@@ -1,4 +1,4 @@
-import {Controller, Post, Body, Get, HttpStatus, Res, Req} from "@nestjs/common";
+import {Controller, Post, Body, Get, HttpStatus, Res, Req, UseGuards} from "@nestjs/common";
 import { resolve } from "path";
 import { GenericServiceResponseItem } from "src/utils/Generic.ServiceResponseItem";
 import { SearchDTO } from "./search.dto";
@@ -8,10 +8,12 @@ import {SearchResponseItem} from "./SearchResponseItem";
 import {ManualSearchDto} from "./manualSearch.dto";
 import {Response} from "express";
 import { IsPhoneNumber, IsString, Length, MaxLength, MinLength } from "class-validator";
+import { HAuthGuard } from "src/auth/guard/hAuth.guard";
 
 
 
 @Controller('find')
+@UseGuards(HAuthGuard)
 export class Searchcontroller {
     
     constructor(private readonly service: SearchService) { }

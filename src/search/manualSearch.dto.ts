@@ -1,4 +1,6 @@
-import { IsString, Length } from "class-validator";
+import { Type } from "class-transformer";
+import { IsString, Length, ValidateNested } from "class-validator";
+import { HAccessTokenData } from "src/auth/accessToken.dto";
 
 export class ManualSearchDto{
     // @Length(7, 12)
@@ -12,5 +14,10 @@ export class ManualSearchDto{
 
     @IsString()
     countryCode:string
+
+    @ValidateNested()
+    @Type(() => HAccessTokenData)
+    tokenData:HAccessTokenData
+
 
 }

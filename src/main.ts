@@ -5,6 +5,7 @@ import * as dotenv from 'dotenv';
 import {ClusterService} from "./ClusterService";
 import {ConfigService} from './config.service'
 import * as bodyParser from 'body-parser';
+import { Firebaseconfig } from './auth/firebase.config';
 //important mongodb security
 // https://docs.mongodb.com/manual/faq/fundamentals/#faq-developers-when-to-use-gridfs
 dotenv.config();
@@ -16,7 +17,6 @@ async function bootstrap() {
 // app.useGlobalPipes(new ValidationPipe({disableErrorMessages:true}))
   app.useGlobalPipes(new ValidationPipe({whitelist: true,forbidNonWhitelisted:true, 
     transform:true,
-   
   }))
   /**
    * To avoid 
@@ -29,6 +29,8 @@ async function bootstrap() {
   app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 
   await app.listen(portNumber, ()=>{
+    //initialise firebase admin sdk
+    Firebaseconfig.initParams(Firebaseconfig.params)
     console.log(`app listening on port number ${portNumber}`)
   });
 
