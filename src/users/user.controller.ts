@@ -37,7 +37,7 @@ export class Usercontroller {
         const phonenumber: string = await FirebaseMiddleware.getPhoneNumberFromToken(header)
         return { message: phonenumber }
     }
-    @UseGuards(AuthGuard)
+    // @UseGuards(AuthGuard)
     @Get('verifyEmail')
     async verifyEmailAndSendPdf(@Query() query) {
         console.log("inside verify email")
@@ -51,13 +51,13 @@ export class Usercontroller {
      * @returns 
      */
 
-    @UseGuards(AuthGuard)
+    @UseGuards(HAuthGuard)
     @Post("getUserInfoByMail")
-    async getUserDataByMail(@Req() reqest: UserInfoByMailRequestDTO) {
+    async getUserDataByMail(@Body() reqest: UserInfoByMailRequestDTO) {
 
         await this.userService.sendVerificationEmail(
-            (reqest as any).body.email,
-            (reqest as any).body.uid)
+            reqest.email,
+            reqest.tokenData.uid)
 
         return { code: "200" }
     }
@@ -120,12 +120,14 @@ export class Usercontroller {
         (
             @Req() reqest: any,
             @UploadedFile() file: Express.Multer.File,
-            @Body() body: SignupBodyDto
+            @Body() body: SignupBodyDto,
+            @Res({passthrough:true}) res:Response
         ) {
 
         const userId = await FirebaseMiddleware.getUserId(reqest)
-        const user = await this.userService.updateUserInfo(body, userId, file)
-        return { "result": user };
+        const result = await this.userService.updateUserInfo(body, userId, file)
+        res.status(result.statusCode)
+        return result
     }
     // validateRequest(request: any) {
     //    if(request.body.firstName)

@@ -176,7 +176,7 @@ export class Userservice {
 
         })
     }
-    async updateUserInfo(userDTO: SignupBodyDto, userIdDTO: UserIdDTO, imgFile: Express.Multer.File) {
+    async updateUserInfo(userDTO: SignupBodyDto, userIdDTO: UserIdDTO, imgFile: Express.Multer.File):Promise<GenericServiceResponseItem<UserInfoResponseDTO>> {
         try {
             let fileBuffer: Buffer = null
             fileBuffer = await this.getImageBuffer(imgFile)
@@ -197,11 +197,11 @@ export class Userservice {
                 fileEncodedString = fileBuffer.toString("base64")
             }
             user.image = fileEncodedString
-            return user
+            return GenericServiceResponseItem.returnGoodResponse(user)
         } catch (e) {
             console.error(`error while updating user info ${e}`)
             const user = new UserInfoResponseDTO()
-            return user
+            return GenericServiceResponseItem.returnBadRequestResponse()
 
         }
     }
@@ -392,7 +392,7 @@ export class Userservice {
         // console.log(`user from db ${userInDb.firstName}`)
         const transporter = this.getTransporter()
         var mailOptions = {
-            from: "Real Caller <Realcaller2@outlook.com>",
+            from: "Real Caller <realcallersprt@outlook.com>",
             to: email,
             subject: "Email verification",
             html: `
@@ -438,9 +438,8 @@ export class Userservice {
         const transporter = nodemailer.createTransport({
             host: "smtp.outlook.com",
             auth: {
-
-                user: "Realcaller2@outlook.com",
-                pass: "1$Passmein",
+                user: "realCallerSprt@outlook.com",
+                pass: "Cena09876",
             },
         });
         return transporter
@@ -470,7 +469,7 @@ export class Userservice {
                     const pdf = await this.createPdf(userInDb.firstName, userInDb.lastName, emailAndUid.uid)
 
                     var mailOptions = {
-                        from: "Real Caller <Realcaller2@outlook.com>",
+                        from: "Real Caller <realCallerSprt@outlook.com>",
                         to: emailAndUid.email,
                         subject: "User data",
                         // html: `
