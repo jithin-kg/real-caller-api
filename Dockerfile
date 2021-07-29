@@ -1,20 +1,30 @@
-FROM node:14
-# Create app directory
+FROM node:14.17.3-alpine As development
 WORKDIR /usr/src/app
-# Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
-# where available (npm@5+)
+
 COPY package*.json ./
 
-RUN npm install
-# If you are  
+RUN npm install glob rimraf
 
-# Bundle app source
+RUN npm install --only=development
+
 COPY . .
 
-#Compile typescript to js
 RUN npm run build
 
-EXPOSE 8080
+FROM node:14.17.3-alpine as production
 
-CMD [ "node", "dist/main.js" ]
+ARG NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
+
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+
+RUN npm install --only=production
+
+COPY . .
+
+COPY --from=development /usr/src/app/dist ./dist
+
+EXPOSE 8080
+CMD ["node", "dist/main"]

@@ -9,9 +9,11 @@ import { Db, MongoClient } from "mongodb";
             provide: 'DATABASE_CONNECTION',
             useFactory: async (): Promise<Db> =>{
                 try{
+                    console.log(`Trying to connect to mongodb using uris ${DatabaseModule.uri} `)
                     const client = await  MongoClient.connect(DatabaseModule.uri,
                         {useUnifiedTopology:true})
-                        const db = client.db('phoneNumberPrefixLocationMap')
+                        console.log(`client is ${client}`)
+                        const db = client.db('my-database')
                         //for creating index
                         // await db.collection('users').createIndex({ email: 1 }, { unique: true, sparse: true });
                         return db
@@ -24,8 +26,23 @@ import { Db, MongoClient } from "mongodb";
     ],
     exports: [DatabaseModule.DATABASE_CONNECTION],
 })
-export class DatabaseModule{
-    static uri = "mongodb+srv://rlclerDBUser:IJVezz622jI7k83m@rlcaller-rest-cluster0-40d1h.mongodb.net/phoneNumberPrefixLocationMap?retryWrites=true&w=majority";
+export class DatabaseModule {
+    // static uri = "mongodb+srv://rlclerDBUser:IJVezz622jI7k83m@rlcaller-rest-cluster0-40d1h.mongodb.net/phoneNumberPrefixLocationMap?retryWrites=true&w=majority";
+    // static uri = process.env.MONGO_URL || 'mongodb://localhost:27017/dev';
+    static uri =  "mongodb://" + process.env.DATABASE_USER + ":" + process.env.DATABASE_PASSWORD + "@" + process.env.DATABASE_HOST + "/" + process.env.DATABASE_NAME;
+    
+    // this one worked //jithinkg/hcallerapi:1.0.15  with below uri
+    // static uri =  "mongodb://" + "root"+ ":" + "rf6f2k6KsJ"+ "@" + "10.128.122.3:27017" 
+    
+    //below one also worked for 
+    // helm install my-release \
+    // --set auth.rootPassword=secretpassword,auth.username=my-user,auth.password=my-password,auth.database=my-database \
+    // bitnami/mongodb
+
+
+    // static uri =  "mongodb://" + "my-user"+ ":" + "my-password"+ "@" + "10.128.165.8:27017" + "/"+ "my-database"
+   
+
     static DATABASE_CONNECTION = "DATABASE_CONNECTION"
 }
 

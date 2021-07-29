@@ -1,5 +1,5 @@
 import {
-    Body, Controller, Get, Headers, Post, Query, Req, Request, Res, UploadedFile, UseGuards, UseInterceptors
+    Body, Controller, Get, Headers, Param, Post, Query, Req, Request, Res, UploadedFile, UseGuards, UseInterceptors
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { time } from "console";
@@ -19,7 +19,8 @@ import { UserDataManageResponseDTO } from './userDataManage/userDataResponseDTO'
 import { UserInfoByMailRequestDTO } from "./UserInfoByMailRequestDTO";
 import { UserInfoRequest } from "./userinfoRequest.dto";
 import { UserInfoResponseDTO } from "./userResponse.dto";
-
+import {HAccessTokenData} from "../auth/accessToken.dto"
+import { GetHAuthGuard } from "src/auth/guard/gethAuth.guard";
 
 @Controller('user')
 export class Usercontroller {
@@ -149,19 +150,19 @@ export class Usercontroller {
         return null;
     }
 
-    // @UseGuards(HAuthGuard)
+    @UseGuards(GetHAuthGuard)
     @Get('getMyData')
-    async getUserData(@Req() req: any, @Res({passthrough:true}) res:Response){
+    async getUserData(@Param() tokenData: HAccessTokenData, @Res({passthrough:true}) res:Response){
         // let userDataInToken = await FirebaseMiddleware.getTokenDataFromHeader(req)
-
         // let response = await this.userDataManageService.getMyData(userDataInToken);
         // res.status(response.statusCode)
         // console.time("getMyData")
-        // let response = await this.userDataManageService.getMyData(req);
+        let response = await this.userDataManageService.getMyData(tokenData);
         // res.status(response.statusCode)
         // console.timeEnd("getMyData")
         // return response;
-        return {"message":"hi"}
+        return response;
+        // return {"message":"hi"}
     }
 
 }

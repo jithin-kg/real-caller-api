@@ -5,19 +5,16 @@ import { Observable } from 'rxjs';
 import { Firebaseconfig } from '../firebase.config';
 
 /**
- * 
- * Guard for authentication authorization token without
- * huid, use this auth guard for where user not signed in to hashcaller 
- * this is used for routes with user token without huid
+ * Guard for  authenticating authorization token
+ * having hUid
+ * HAuthguard is used for routes having user custom token with huid is added.
  */
-
 @Injectable()
-export class AuthGuard implements CanActivate {
+export class GetHAuthGuard implements CanActivate {
 
   async canActivate(
     context: ExecutionContext,
   ): Promise<boolean> {
-
     const request = context.switchToHttp().getRequest()
     // request.
     if (!request.headers.authorization) {
@@ -27,9 +24,13 @@ export class AuthGuard implements CanActivate {
     if (!accessToken) {
       return false;
     }
-    const isvalid = await Firebaseconfig.validate(accessToken, request)
-    
-    return isvalid;
+    const tokenData = await Firebaseconfig.validateHuser(accessToken, request)
+    if(tokenData){
+      // request.tokenData = tokenData
+      request.params = tokenData
+      return true
+    }
+    return false;
     // return true;
   }
   
