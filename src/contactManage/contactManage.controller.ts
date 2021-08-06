@@ -14,7 +14,6 @@ export class ContactManageController {
     constructor(private readonly ContactManageService: ContactManageService) { }
     
     @Post("uploadcontacts")
-    
     async uploadContacts(@Body() contactsDTO: ContactSyncDTO, @Res({passthrough:true}) res:Response):Promise<GenericServiceResponseItem<ContactRehashedItemWithOldHash[]>> {
         console.log('%c inside post req uploadcontacts', 'color:yellow')
         let result = await this.ContactManageService.uploadBulkContacts(contactsDTO.contacts, contactsDTO.countryCode, contactsDTO.countryISO)
@@ -23,16 +22,18 @@ export class ContactManageController {
         return result;
     }
     @Post("savecontacts")
-    async saveContactsToMyContacts(@Body() ReqBody: ReqBodyDTO, @Req() _req: any) {
+    async saveContactsToMyContacts(@Body() ReqBody: ReqBodyDTO, @Req() _req: any, @Res({passthrough:true}) res:Response) {
         let response = { message: 0 };
-        await this.ContactManageService.saveMyContacts(ReqBody, _req)
-            .then(res => {
-                response.message = 1;
-                return response
-            })
-            .catch(err => {
-                console.log(err);
-                return response
-            })
+        const result = await this.ContactManageService.saveMyContacts(ReqBody, _req)
+        res.status(result.statusCode) 
+         return {message:res.statusCode}
+        // .then(res => {
+            //     response.message = 1;
+            //     return response
+            // })
+            // .catch(err => {
+            //     console.log(err);
+            //     return response
+            // })
     }
 }

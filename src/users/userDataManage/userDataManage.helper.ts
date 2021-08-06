@@ -21,6 +21,7 @@ export class UserDataManageHelper {
                 // console.log(`savedContactsOfuser ${hUid}: `, result_enc);
                 if (result_enc && result_enc.contacts) {
                     let decryptedData = await do_AES_decryption(result_enc.contacts)
+                    console.log(`decrypted contacts list ${decryptedData}`)
                     resolve(decryptedData)
                 } else {
                     resolve([])

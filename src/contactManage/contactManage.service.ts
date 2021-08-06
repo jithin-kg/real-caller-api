@@ -161,8 +161,7 @@ export class ContactManageService {
                 })
         })
     }
-    async saveMyContacts(contacts: ReqBodyDTO, _req) {
-        return new Promise(async (resolve, reject) => {
+    async saveMyContacts(contacts: ReqBodyDTO, _req) : Promise<GenericServiceResponseItem<any>> {
             try {
                 console.log(chalk.green('going to save...'))
                 const _userData = await FirebaseMiddleware.getUserId(_req);
@@ -185,11 +184,11 @@ export class ContactManageService {
                 const encryptedString = await do_AES_encryption(contacts.contacts)
                 //perform upsert
                 let isSuccess = await this.update_upsert_saveMycontacts(hUid, encryptedString);
-                resolve(await isSuccess)
+                return  GenericServiceResponseItem.returnGoodResponse(isSuccess)
             } catch (error) {
                 console.log("catch error:", error);
-                reject(0)
+                return GenericServiceResponseItem.returnServerErrRes()
             }
-        });
+
     }
 }

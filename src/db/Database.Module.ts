@@ -13,11 +13,11 @@ import { Db, MongoClient } from "mongodb";
                     const client = await  MongoClient.connect(DatabaseModule.uri,
                         {useUnifiedTopology:true})
                         console.log(`client is ${client}`)
-                        const db = client.db('my-database')
+                        const db = client.db()
                         //for creating index
                         // await db.collection('users').createIndex({ email: 1 }, { unique: true, sparse: true });
                         return db
-                }catch(e){
+                }catch(e) {
                     console.log("Error while conneting via mongodb native driver")
                     throw e
                 }
@@ -41,7 +41,7 @@ export class DatabaseModule {
 
 
     // static uri =  "mongodb://" + "my-user"+ ":" + "my-password"+ "@" + "10.128.165.8:27017" + "/"+ "my-database"
-   
+//    kubectl, the official Kubernetes client. Use version 1.21.2 of kubectl to ensure you are within one minor version of your cluster's Kubernetes version.
 
     static DATABASE_CONNECTION = "DATABASE_CONNECTION"
 }

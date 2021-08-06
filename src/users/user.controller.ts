@@ -137,19 +137,6 @@ export class Usercontroller {
     async test() {
     }
 
-    /**
-     * api for get saved informations of user when he request from app
-     */
-    @UseGuards(HAuthGuard)
-    @Post('getMyData')
-    async getDataOfUser(@Req() req: any, @Res({ passthrough: true }) res: Response): Promise<GenericServiceResponseItem<UserDataManageResponseDTO>> {
-        // console.time("getMyData")
-        // let response = await this.userDataManageService.getMyData(req);
-        // res.status(response.statusCode)
-        // console.timeEnd("getMyData")
-        return null;
-    }
-
     @UseGuards(GetHAuthGuard)
     @Get('getMyData')
     async getUserData(@Param() tokenData: HAccessTokenData, @Res({passthrough:true}) res:Response){
@@ -161,7 +148,7 @@ export class Usercontroller {
         // res.status(response.statusCode)
         // console.timeEnd("getMyData")
         // return response;
-        return response;
+        return response.data;
         // return {"message":"hi"}
     }
 

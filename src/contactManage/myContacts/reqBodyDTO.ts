@@ -1,6 +1,6 @@
 import { each } from "async";
 import { Type } from "class-transformer";
-import { ArrayMaxSize, IsArray, IsString, Length, MaxLength, ValidateNested } from "class-validator";
+import { ArrayMaxSize, IsArray, IsString, Length, MaxLength, MinLength, ValidateNested } from "class-validator";
 import { HAccessTokenData } from "src/auth/accessToken.dto";
 import { ReqContactDTO } from './reqContactDTO';
 
@@ -11,9 +11,10 @@ export class ReqBodyDTO {
     @Type(()=>ReqContactDTO)   // validatin array of Objects
     contacts: ReqContactDTO[];
 
-    @IsString()
-    @Length(28, 28)
-    uid: string;
+    // @IsString()
+    // @MaxLength(40)
+    // @MinLength(20)
+    // uid: string;
 
     @ValidateNested()
     @Type(() => HAccessTokenData)
