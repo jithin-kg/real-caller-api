@@ -6,6 +6,7 @@ import {ClusterService} from "./ClusterService";
 import {ConfigService} from './config.service'
 import * as bodyParser from 'body-parser';
 import { Firebaseconfig } from './auth/firebase.config';
+import * as helmet from 'helmet';
 //important mongodb security
 // https://docs.mongodb.com/manual/faq/fundamentals/#faq-developers-when-to-use-gridfs
 dotenv.config();
@@ -15,6 +16,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const portNumber = 8080;
 // app.useGlobalPipes(new ValidationPipe({disableErrorMessages:true}))
+  app.use(helmet());
   app.useGlobalPipes(new ValidationPipe({whitelist: true,forbidNonWhitelisted:true, 
     transform:true,
   }))
