@@ -12,9 +12,10 @@ import * as helmet from 'helmet';
 dotenv.config();
 
 async function bootstrap() {
-  
+  //initialise firebase admin sdk
+  Firebaseconfig.initParams()
   const app = await NestFactory.create(AppModule);
-  const portNumber = 8080;
+  const portNumber = process.env.APP_PORT || 8080;
 // app.useGlobalPipes(new ValidationPipe({disableErrorMessages:true}))
   app.use(helmet());
   app.useGlobalPipes(new ValidationPipe({whitelist: true,forbidNonWhitelisted:true, 
@@ -31,8 +32,7 @@ async function bootstrap() {
   app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 
   await app.listen(portNumber, ()=>{
-    //initialise firebase admin sdk
-    Firebaseconfig.initParams(Firebaseconfig.params)
+    
     console.log(`app listening on port number ${portNumber}`)
   });
 

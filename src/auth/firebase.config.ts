@@ -1,7 +1,7 @@
 
 import * as firebaseAdmin from "firebase-admin"
 import { BasicAccessTokenData, HAccessTokenData } from "./accessToken.dto";
-import * as firebaseServiceAccount from './hashcaller2-firebase-adminsdk-7uc9d-1b78a345bf.json';
+
 
 export class Firebaseconfig { 
     static async validate(token:string, request: any):Promise<boolean>{
@@ -54,36 +54,37 @@ export class Firebaseconfig {
 
 
 
-    static initParams(params:FirebaseAdminParams){
+    static initParams(){
+
+        const params: FirebaseAdminParams = {
+            type: process.env.TYPE,
+            project_id: process.env.PROJECT_ID,
+            privateKeyId: process.env.PRIVATE_KEY_ID,
+            privateKey: process.env.PRIVATE_KEY,
+            clientEmail: process.env.CLIENT_EMAIL,
+            clientId: process.env.CLIENT_ID,
+            authUri: process.env.AUTH_URI,
+            tokenUri: process.env.TOKEN_URI,
+            authProviderX509CertUrl: process.env.AUTH_PROVIDER_X509_CERT_URL,
+            clientC509CertUrl: process.env.CLIENT_X509_CERT_URL
+          };
+
         firebaseAdmin.initializeApp({
             credential: firebaseAdmin.credential.cert(params)
         })
     }
-    static params:FirebaseAdminParams = {
-        type: firebaseServiceAccount.type,
-        projectId: firebaseServiceAccount.project_id,
-        privateKeyId: firebaseServiceAccount.private_key_id,
-        privateKey: firebaseServiceAccount.private_key,
-        clientEmail: firebaseServiceAccount.client_email,
-        clientId: firebaseServiceAccount.client_id,
-        authUri: firebaseServiceAccount.auth_uri,
-        tokenUri: firebaseServiceAccount.token_uri,
-        authProviderX509CertUrl: firebaseServiceAccount.auth_provider_x509_cert_url,
-        clientC509CertUrl: firebaseServiceAccount.client_x509_cert_url
-      }
-    
 
 }
 
 interface FirebaseAdminParams {
-    type:string;
-    projectId:string;
-    privateKeyId:string;
-    privateKey:string;
-    clientEmail:string;
-    clientId:string;
-    authUri:string;
-    tokenUri:string;
-    authProviderX509CertUrl:string;
-    clientC509CertUrl:string;
+    type: string;
+    project_id: string;
+    privateKeyId: string;
+    privateKey: string;
+    clientEmail: string;
+    clientId: string;
+    authUri: string;
+    tokenUri: string;
+    authProviderX509CertUrl: string;
+    clientC509CertUrl: string;
   }
