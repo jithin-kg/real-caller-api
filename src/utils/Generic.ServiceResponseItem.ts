@@ -1,5 +1,5 @@
 import { HttpStatus } from "@nestjs/common";
-import { HttpMessage } from "./Http-message.enum";
+import { CustomHtttpStatusCodes, HttpMessage } from "./Http-message.enum";
 
 export class GenericServiceResponseItem<T>{
 
@@ -22,12 +22,16 @@ export class GenericServiceResponseItem<T>{
      * @param message message of bad request 
      * @returns 
      */
-    static returnBadRequestResponse(message:string =HttpMessage.BAD_REQUEST):GenericServiceResponseItem<null> {
-        return new GenericServiceResponseItem<null>(HttpStatus.BAD_REQUEST,  message)
+    static returnBadRequestResponse(message:string =HttpMessage.BAD_REQUEST):GenericServiceResponseItem<str> {
+        return new GenericServiceResponseItem<string>(HttpStatus.BAD_REQUEST,  message, "")
     }
 
     static returnServerErrRes():GenericServiceResponseItem<null> {
         return new GenericServiceResponseItem<null>(HttpStatus.INTERNAL_SERVER_ERROR,  HttpMessage.INTERNAL_SERVER_ERROR)
+    }
+
+    static returnSomethingWentWrong():GenericServiceResponseItem<null> {
+        return new GenericServiceResponseItem<null>(CustomHtttpStatusCodes.SOMETHING_WENT_WRONG,  HttpMessage.SOMETHING_WENT_WRONG)
     }
     /**
      * 
@@ -38,4 +42,6 @@ export class GenericServiceResponseItem<T>{
     static returnGoodResponse<T>(data:T, sCode:number = HttpStatus.OK):GenericServiceResponseItem<T>{
         return new GenericServiceResponseItem(sCode, HttpMessage.OK, data)
     }
+
+
 }

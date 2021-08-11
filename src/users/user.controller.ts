@@ -21,6 +21,7 @@ import { UserInfoRequest } from "./userinfoRequest.dto";
 import { UserInfoResponseDTO } from "./userResponse.dto";
 import {HAccessTokenData} from "../auth/accessToken.dto"
 import { GetHAuthGuard } from "src/auth/guard/gethAuth.guard";
+import { DeactivateDTO } from "./deactivate.dto";
 
 @Controller('user')
 export class Usercontroller {
@@ -150,6 +151,18 @@ export class Usercontroller {
         // return response;
         return response.data;
         // return {"message":"hi"}
+    }
+    /**
+     * route to deactivate user account 
+     * 
+     */
+    @UseGuards(HAuthGuard)
+    @Post('deactivate')
+    async deactivate(@Body() body:DeactivateDTO, @Res({passthrough:true}) res:Response ){
+       
+       const result =  await this.userService.deactivate(body.tokenData)
+        res.status(result.statusCode)
+        return result
     }
 
 }

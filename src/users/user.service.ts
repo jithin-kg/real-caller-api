@@ -24,10 +24,12 @@ import { UserInfoResponseDTO } from "./userResponse.dto";
 import { GenericServiceResponseItem } from 'src/utils/Generic.ServiceResponseItem';
 import { HttpMessage } from 'src/utils/Http-message.enum';
 import { HAccessTokenData } from 'src/auth/accessToken.dto';
+import { DeactivateDTO } from './deactivate.dto';
 
 
 @Injectable()
 export class Userservice {
+    
 
 
     // constructor(@InjectModel("User") private readonly userModel: Model<User>) { }
@@ -503,6 +505,26 @@ export class Userservice {
 
 
     }
+    async deactivate(tokenData: HAccessTokenData): Promise<GenericServiceResponseItem<any>> {
+    //    const result = await 
+       try {
+        const processList = [
+            this.db.collection(CollectionNames.USERS_COLLECTION).deleteOne({huid: tokenData.huid}),
+            this.db.collection(CollectionNames.MY_CONTACTS).deleteOne({_id: tokenData.huid })
+
+        ]
+       const [resUserColl, resMyContacts]  = await processHelper.doParallelProcess(processList)
+        if(resUserColl.status == processHelper.FULL_FILLED){
+            return GenericServiceResponseItem.returnGoodResponse("")
+        }else {
+            return GenericServiceResponseItem.returnSomethingWentWrong()
+        }
+    }catch(e){
+           console.log('Exception while deactivating account ',e)
+           return GenericServiceResponseItem.returnServerErrRes()
+       }
+        
+    }
 
     async verifyAndGetEmail(query) {
 
@@ -547,6 +569,8 @@ export class Userservice {
             console.log(e)
         }
     }
+
+
     private async getPrivateKey() {
         return '-----BEGIN PRIVATE KEY-----\n' +
             'MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDe/VUQcDF1q/aq\n' +
