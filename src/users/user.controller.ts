@@ -159,7 +159,6 @@ export class Usercontroller {
     @UseGuards(HAuthGuard)
     @Post('deactivate')
     async deactivate(@Body() body:DeactivateDTO, @Res({passthrough:true}) res:Response ){
-       
        const result =  await this.userService.deactivate(body.tokenData)
         res.status(result.statusCode)
         return result

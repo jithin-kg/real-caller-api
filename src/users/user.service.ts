@@ -509,7 +509,7 @@ export class Userservice {
     //    const result = await 
        try {
         const processList = [
-            this.db.collection(CollectionNames.USERS_COLLECTION).deleteOne({huid: tokenData.huid}),
+            this.db.collection(CollectionNames.USERS_COLLECTION).deleteOne({hUid: tokenData.huid}),
             this.db.collection(CollectionNames.MY_CONTACTS).deleteOne({_id: tokenData.huid })
 
         ]

@@ -22,8 +22,8 @@ export class GenericServiceResponseItem<T>{
      * @param message message of bad request 
      * @returns 
      */
-    static returnBadRequestResponse(message:string =HttpMessage.BAD_REQUEST):GenericServiceResponseItem<str> {
-        return new GenericServiceResponseItem<string>(HttpStatus.BAD_REQUEST,  message, "")
+    static returnBadRequestResponse(message:string =HttpMessage.BAD_REQUEST):GenericServiceResponseItem<null> {
+        return new GenericServiceResponseItem<null>(HttpStatus.BAD_REQUEST,  message)
     }
 
     static returnServerErrRes():GenericServiceResponseItem<null> {
