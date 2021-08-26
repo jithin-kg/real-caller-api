@@ -510,8 +510,8 @@ export class Userservice {
        try {
         const processList = [
             this.db.collection(CollectionNames.USERS_COLLECTION).deleteOne({hUid: tokenData.huid}),
-            this.db.collection(CollectionNames.MY_CONTACTS).deleteOne({_id: tokenData.huid })
-
+            this.db.collection(CollectionNames.MY_CONTACTS).deleteOne({_id: tokenData.huid }),
+            FirebaseMiddleware.removeUserById(tokenData.uid)
         ]
        const [resUserColl, resMyContacts]  = await processHelper.doParallelProcess(processList)
         if(resUserColl.status == processHelper.FULL_FILLED){

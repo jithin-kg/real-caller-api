@@ -1,11 +1,11 @@
 import { Type } from "class-transformer";
-import { IsString, Length, MaxLength, MinLength, ValidateNested } from "class-validator";
+import { ArrayMaxSize, IsArray, IsString, Length, MaxLength, MinLength, ValidateNested } from "class-validator";
 import { HAccessTokenData } from "src/auth/accessToken.dto";
 
 export class SpamDTO{
     // @Length(7, 12)
-    @IsString()
-    phoneNumber:string;
+    @IsArray()
+    phoneNumbers:string[];
     
     @IsString()
     country:String;
@@ -13,11 +13,19 @@ export class SpamDTO{
     @IsString()
     spammerType:string;
     
-    @IsString()
+    @ValidateNested()
+    @Type(() => HAccessTokenData)
+    tokenData:HAccessTokenData
+}
+export class UserSpamReportRecord{
+    phoneNumber:string;
+    
+    country:String;
+
+    spammerType:string;
+    
     uid?:string;
 
     hUid?:string
-    @ValidateNested()
-    @Type(() => HAccessTokenData)
     tokenData:HAccessTokenData
 }
