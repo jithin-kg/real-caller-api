@@ -9,3 +9,4 @@ export class ContactDocument {
     spamCount:number = 0
     image:String = ""
 }
+

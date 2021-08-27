@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Inject, Injectable, Logger } from "@nestjs/common";
 import { Collection, Db } from "mongodb";
 import { FirebaseMiddleware } from 'src/auth/firebase.middleware';
 import { ContactDocument } from "src/contact/contactDocument";
@@ -37,7 +37,7 @@ export class SpamService {
                 const isAlreadyReported = await this.isUserAlreadyReported(spamData, pno)
                 if (!isAlreadyReported) {
                     //the user have not reported this phone number as spam
-                    let r = await this.incrementSpamCounterFortheNumber(pno).catch(e => {
+                    let r = await this.incrementSpamCountOfNumber(pno).catch(e => {
                         console.log(`error while updating spam record ${e}`)
                     });
                     if (r) {
@@ -92,22 +92,37 @@ export class SpamService {
         pno = await hash('sha256').update(pno).digest('base64')
         return pno;
     }
-    incrementSpamCounterFortheNumber(pno: string, count: number = 1) {
+    
+    incrementSpamCountOfNumber(pno: string, count: number = 1) {
         return new Promise((resolve, reject) => {
-            // ContactDto    
-            console.log(pno)
-            this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).updateOne({ _id: pno.trim() },
-                { $inc: { 'spamCount': count } }
-            ).then(data => {
-                resolve(data)
-            }).catch(e => {
+            try{
+                const updateResult = this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION)
+                .updateOne({ _id: pno },{ $inc: { 'spamCount': count } })
+                console.log("update write result ", updateResult);
+                resolve(updateResult)
+            }catch(e){
+                console.log('Exception incrementSpamCounterFortheNumber',e )
                 reject(e)
-            })
-            //                 //TODO when inserting insert data 
-
-
+            }  
         })
     }
+
+    decrementSpamCountOfNumber(pno: string, count: number = -1) {
+        return new Promise((resolve, reject) => {
+            try{
+                
+                const updateResult = this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION)
+                .updateOne({ _id: pno },{ $inc: { 'spamCount': count } } )
+                console.log("update write result ", updateResult);
+                resolve(updateResult)
+            }catch(e){
+                console.log('Exception incrementSpamCounterFortheNumber',e )
+                reject(e)
+            }  
+        })
+    }
+
+
     private async ublockTheReportedUser(spamData: SpamDTO, pno:string) {
         // spamData.
         return new Promise(async (resolve, reject) => {
@@ -115,16 +130,19 @@ export class SpamService {
             //     console.log('fetching userid from token failed', err)
             // });
             // let hUid = await _userInfFrom_token['hUserId'] || ""
-            let hUid = spamData.tokenData.huid;
+            try{
+                let hUid = spamData.tokenData.huid;
         
-            await this.db.
-                collection('userSpamReportRecord').deleteOne({ hUid, phoneNumber: pno }).then(res => {
-                    resolve(true);
-                })
-                .catch(e => {
-                    console.log(`error while removing spam report ${e} `)
-                    reject(false);
-                })
+                const delResult = await this.db.collection('userSpamReportRecord').deleteOne({hUid: hUid, phoneNumber: pno })
+                console.log("delete res ", delResult);
+                resolve(true)
+            }catch(e){
+                resolve(false)
+                console.log("Exception ublockTheReportedUser: ", e);
+            }
+            
+            
+              
         })
     }
 
@@ -164,8 +182,8 @@ export class SpamService {
 
                 const isAlreadyReported = await this.isUserAlreadyReported(_spamDTO, phoneAfterPrepared)
                 if (isAlreadyReported) {
-                    await this.incrementSpamCounterFortheNumber(phoneAfterPrepared, -1)
-                    let response = await this.ublockTheReportedUser(_spamDTO, pno)
+                    await this.decrementSpamCountOfNumber(phoneAfterPrepared)
+                    let response = await this.ublockTheReportedUser(_spamDTO, phoneAfterPrepared)
                     console.log(response);
                     return response;
                 } else {

@@ -37,7 +37,7 @@ export class Spamcontroller {
     }
 
     @Post('unblock')
-    async unblock(@Body() _spamData: SpamDTO, @Req() _request: any) {
+    async unblock(@Body() _spamData: SpamDTO) {
         let response = 1;
         await this.service.unblockService(_spamData).catch(() => {
             response = 0;
