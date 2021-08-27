@@ -1,10 +1,12 @@
 import { HttpException, HttpStatus, Inject, Injectable, Logger } from "@nestjs/common";
 import { Collection, Db } from "mongodb";
 import { FirebaseMiddleware } from 'src/auth/firebase.middleware';
-import { ContactDocument } from "src/contact/contactDocument";
+import { ContactDocument } from "src/contactManage/contactDocument";
 import { CollectionNames } from "src/db/collection.names";
 import { DatabaseModule } from "src/db/Database.Module";
 import { SpamDTO, UserSpamReportRecord } from "./spam.dto";
+import { SpammerTypeVAlues } from "./spam.type";
+import { UserSpamReportRecordHelper } from "./userspamreportrecord.helper";
 const hash = require('crypto').createHash;
 
 @Injectable()
@@ -35,13 +37,13 @@ export class SpamService {
             const isAvailable = await this.isNumberExistInDb(pno)
             if (isAvailable) {
                 const isAlreadyReported = await this.isUserAlreadyReported(spamData, pno)
-                if (!isAlreadyReported) {
+                if (isAlreadyReported == null) {
                     //the user have not reported this phone number as spam
-                    let r = await this.incrementSpamCountOfNumber(pno).catch(e => {
+                    let r = await this.incrementSpamCountOfNumber(pno, spamData.spammerType).catch(e => {
                         console.log(`error while updating spam record ${e}`)
                     });
                     if (r) {
-                        await this.associateTheReportedUserWithTheNumber(spamData, pno, req)
+                        await this.associateTheReportedUserWithTheNumber(spamData, pno)
                     }
                     console.log("updated spam recoed" + r);
                 }
@@ -52,7 +54,7 @@ export class SpamService {
                 doc._id = pno;
                 let result = await this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).insertOne(doc)
                 if (result) {
-                    this.associateTheReportedUserWithTheNumber(spamData, phoneNum, req)
+                    this.associateTheReportedUserWithTheNumber(spamData, phoneNum)
                 }
             }
             }
@@ -78,26 +80,29 @@ export class SpamService {
         return false
     }
 
-    async isUserAlreadyReported(spamData: SpamDTO, num: string): Promise<Boolean> {
+    async isUserAlreadyReported(spamData: SpamDTO, num: string): Promise<UserSpamReportRecord> {
         const query = { uid: spamData.tokenData.uid, phoneNum: num }
         const result = await this.db.collection("userSpamReportRecord")
             .findOne({ $and: [{ uid: spamData.tokenData.uid }, { phoneNumber: num }] })
-
+        
         if (result == null) {
-            return false
+            return null
         }
-        return true
+       
+        return  UserSpamReportRecordHelper.dbResToSpamRecordClass(result);
     }
     async preparePhonenNum(pno: string): Promise<string> {
         pno = await hash('sha256').update(pno).digest('base64')
         return pno;
     }
     
-    incrementSpamCountOfNumber(pno: string, count: number = 1) {
+    incrementSpamCountOfNumber(pno: string,spamerType:string,  count: number = 1 ) {
         return new Promise((resolve, reject) => {
             try{
+                let incOperation = this.getPerparedOperator(spamerType, count);
+
                 const updateResult = this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION)
-                .updateOne({ _id: pno },{ $inc: { 'spamCount': count } })
+                .updateOne({ _id: pno },{ $inc: incOperation})
                 console.log("update write result ", updateResult);
                 resolve(updateResult)
             }catch(e){
@@ -107,12 +112,14 @@ export class SpamService {
         })
     }
 
-    decrementSpamCountOfNumber(pno: string, count: number = -1) {
+  
+
+    decrementSpamCountOfNumber(pno: string,spamDTO:SpamDTO,userSpamReportRecord:UserSpamReportRecord, count: number = -1) {
         return new Promise((resolve, reject) => {
             try{
-                
+                let decOperation = this.getPerparedOperator(userSpamReportRecord.spammerType, count);
                 const updateResult = this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION)
-                .updateOne({ _id: pno },{ $inc: { 'spamCount': count } } )
+                .updateOne({ _id: pno },{ $inc: decOperation } )
                 console.log("update write result ", updateResult);
                 resolve(updateResult)
             }catch(e){
@@ -146,14 +153,16 @@ export class SpamService {
         })
     }
 
-    private async associateTheReportedUserWithTheNumber(spamData: SpamDTO, phoneNum: any, req: any) {
+    private async associateTheReportedUserWithTheNumber(spamData: SpamDTO, phoneNum: any) {
         let doc: UserSpamReportRecord = Object(null)
         doc.uid = spamData.tokenData.uid;
         doc.phoneNumber = phoneNum
-        let _userInfFrom_token = await FirebaseMiddleware.getUserId(req).catch(err => {
-            console.log('fetching userid from token failed', err)
-        });
-        doc.hUid = await _userInfFrom_token['hUserId'] || ""
+        // let _userInfFrom_token = await FirebaseMiddleware.getUserId(req).catch(err => {
+        //     console.log('fetching userid from token failed', err)
+        // });
+        // doc.hUid = await _userInfFrom_token['hUserId'] || ""
+        doc.hUid = spamData.tokenData.huid;
+        doc.spammerType = spamData.spammerType;
         const iResponse = await this.db.
             collection('userSpamReportRecord').insertOne(doc)
             .catch(e => {
@@ -180,15 +189,14 @@ export class SpamService {
                 console.log({ phoneAfterPrepared });
                 // _spamDTO.phoneNumber = phoneAfterPrepared;
 
-                const isAlreadyReported = await this.isUserAlreadyReported(_spamDTO, phoneAfterPrepared)
-                if (isAlreadyReported) {
-                    await this.decrementSpamCountOfNumber(phoneAfterPrepared)
+                const userSpamReportRecord = await this.isUserAlreadyReported(_spamDTO, phoneAfterPrepared)
+                if (userSpamReportRecord !=null) {
+                    await this.decrementSpamCountOfNumber(phoneAfterPrepared, _spamDTO, userSpamReportRecord)
                     let response = await this.ublockTheReportedUser(_spamDTO, phoneAfterPrepared)
                     console.log(response);
                     return response;
                 } else {
                     throw {
-                        isAlreadyReported,
                         message: "phonenumber not exist in DB or not blocked yet"
                     }
                 }
@@ -198,6 +206,46 @@ export class SpamService {
             console.log(e);
             throw new HttpException('Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+    /**
+     * function to return mongodb $inc operator
+     * @param spamerType 
+     * @param count either 1 or -1 , if(1) increment else if(-1) decrement
+     */
+    getPerparedOperator(spamerType:string, count:number): any {
+        let incOperation;
+        if(spamerType == SpammerTypeVAlues.SPAMMER_TYPE_BUSINESS){
+            incOperation = {
+              'spamCount': count,
+              'spamerType.business': count
+           }
+       }else if(spamerType == SpammerTypeVAlues.SPAMMER_TYPE_PEERSON){
+            incOperation = {
+               'spamCount': count,
+               'spamerType.person': count
+            }
+       }  else if(spamerType == SpammerTypeVAlues.SPAMMER_TYPE_PEERSON){
+            incOperation = {
+               'spamCount': count,
+               'spamerType.person': count
+            }
+       }else if(spamerType == SpammerTypeVAlues.SPAMMER_TYPE_SALES){
+            incOperation = {
+               'spamCount': count,
+               'spamerType.sales': count
+            }
+       }else if(spamerType == SpammerTypeVAlues.SPAMMER_TYPE_SCAM){
+            incOperation = {
+               'spamCount': count,
+               'spamerType.scam': count
+            }
+       }else {
+            incOperation = {
+               'spamCount': count,
+               'spamerType.notSpecific': count
+            }
+       }
+       return incOperation
     }
 }
 

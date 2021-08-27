@@ -8,9 +8,9 @@ export class SpamerType {
 }
 
 export enum SpammerTypeVAlues {
-    SPAMMER_TYPE_BUSINESS = 1,
-    SPAMMER_TYPE_PEERSON= 2,
-    SPAMMER_TYPE_SALES = 3,
-    SPAMMER_TYPE_SCAM = 4,
-    SPAMMER_TYPE_NOT_SPECIFIC = 5
+    SPAMMER_TYPE_BUSINESS = "1",
+    SPAMMER_TYPE_PEERSON= "2",
+    SPAMMER_TYPE_SALES = "3",
+    SPAMMER_TYPE_SCAM = "4",
+    SPAMMER_TYPE_NOT_SPECIFIC = "5"
 }

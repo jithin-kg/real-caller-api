@@ -1,3 +1,5 @@
+import { SpamerType } from "src/spam/spam.type";
+
 export class ContactDocument {
     _id:string = "";
     firstName: string = "";
@@ -8,5 +10,6 @@ export class ContactDocument {
     country:string = "";
     spamCount:number = 0
     image:String = ""
+    spamerType: SpamerType
 }
 

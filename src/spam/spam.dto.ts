@@ -29,3 +29,5 @@ export class UserSpamReportRecord{
     hUid?:string
     tokenData:HAccessTokenData
 }
+
+

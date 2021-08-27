@@ -1,4 +1,4 @@
-import { ContactDocument } from "src/contact/contactDocument";
+import { ContactDocument } from "./contactDocument";
 import { ContactRehashedItemWithOldHash } from "./contactRehashedItemwithOldHash";
 
 export class RehashedReturnItem { 

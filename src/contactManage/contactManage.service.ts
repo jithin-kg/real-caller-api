@@ -5,6 +5,7 @@ import { Db } from 'mongodb';
 import { Indiaprefixlocationmaps } from 'src/carrierService/carrier.info.schema';
 import { CollectionNames } from 'src/db/collection.names';
 import { DatabaseModule } from 'src/db/Database.Module';
+import { SpamerType } from 'src/spam/spam.type';
 import { ContactObjectTransformHelper } from 'src/utils/ContactObjectTransformHelper';
 import { GenericServiceResponseItem } from 'src/utils/Generic.ServiceResponseItem';
 import { HttpMessage } from 'src/utils/Http-message.enum';
@@ -66,6 +67,7 @@ export class ContactManageService {
                             }
                             //---------------------------------------------------------------------
                             let contactDoc = ContactObjectTransformHelper.prepareContactDocForInsertingIntoDb(contactWithCarrierInfo)
+                            contactDoc.spamerType = new SpamerType()
                             let contactReturnObj = Helper.prepareContactReturnObj(contactWithCarrierInfo)
                            
                             contactsListForDb.push(contactDoc);

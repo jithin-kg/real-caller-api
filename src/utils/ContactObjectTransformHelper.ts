@@ -1,6 +1,7 @@
 import {ContactProcessingItem} from "../contact/contactProcessingItem";
-import {ContactDocument} from "../contact/contactDocument";
+
 import {Indiaprefixlocationmaps} from "../carrierService/carrier.info.schema";
+import { ContactDocument } from "src/contactManage/contactDocument";
 
 export class ContactObjectTransformHelper {
     /**
@@ -24,6 +25,7 @@ export class ContactObjectTransformHelper {
         }
         return contactDoc;
     }
+    
 
     /**
      *

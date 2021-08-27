@@ -11,12 +11,12 @@ import * as chalk from "chalk";
 import { MongoInsertDTO } from "./mongoinsertdto";
 import { ContactRequestDTO } from "./contactRequestDTO";
 import {ContactProcessingItem} from "./contactProcessingItem"
-import {ContactDocument} from "./contactDocument";
 import {ContactReturnDto} from "../multiple-number-search/contactReturn.dto";
 import {ContactObjectTransformHelper} from "../utils/ContactObjectTransformHelper";
 import {CollectionNames} from "../db/collection.names";
 import {RehashedItemWithOldHash} from "../multiple-number-search/RehashedItemwithOldHash";
 import { DatabaseModule } from "src/db/Database.Module";
+import { ContactDocument } from "src/contactManage/contactDocument";
 const hash = require('crypto').createHash;
 
 
