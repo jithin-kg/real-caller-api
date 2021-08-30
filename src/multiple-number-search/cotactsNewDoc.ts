@@ -20,6 +20,7 @@ export class ContactNewDoc  {
     country?:string;
     spamCount:Number
     image?:string
+    huid?:string
 }
 
 //todo make interface to class,because there is no interfaces in js

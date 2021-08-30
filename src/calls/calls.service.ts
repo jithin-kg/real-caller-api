@@ -103,6 +103,7 @@ export class CallService {
                             obj.spamCount = contactInfoFromDb.spamCount
                             obj.isInfoFoundInDb = Constants.INFO_FOUND_ID_DB
                             obj.imageThumbnail = contactInfoFromDb.image
+                            obj.hUid = contactInfoFromDb?.huid
                             resultArray.push(obj)
                             // ob.carrier = rehasehdNum.carr
     

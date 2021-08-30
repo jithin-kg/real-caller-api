@@ -49,7 +49,6 @@ export class ContactManageService {
                             contactWithCarrierInfo.hashedPhoneNumber = contact.hashedPhoneNumber
                             contactWithCarrierInfo.firstName = contact.name;
                             contactWithCarrierInfo.prevHash = contact.hashedPhoneNumber;
-        
                             console.log(`first n digit while inserting is ${contactWithCarrierInfo.prevHash}`)
         
                             //--------------old rehashAllNumbers()--------------------------
@@ -72,7 +71,7 @@ export class ContactManageService {
                            
                             contactsListForDb.push(contactDoc);
                             contactsListForResponse.push(contactReturnObj)
-
+                           
                             
                             //------------------------------------------------------------------
                         
@@ -120,6 +119,8 @@ export class ContactManageService {
         if(bulkOpDefered.status == processHelper.FULL_FILLED){
             bulkOp = bulkOpDefered.value
         }
+
+
         try {
         await this.performBulkInsert(bulkOp, reshasehdItems.contactsListForDb)
 

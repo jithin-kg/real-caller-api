@@ -4,6 +4,7 @@ import { FirebaseMiddleware } from 'src/auth/firebase.middleware';
 import { ContactDocument } from "src/contactManage/contactDocument";
 import { CollectionNames } from "src/db/collection.names";
 import { DatabaseModule } from "src/db/Database.Module";
+import { NumberTransformService } from "src/utils/numbertransform.service";
 import { SpamDTO, UserSpamReportRecord } from "./spam.dto";
 import { SpammerTypeVAlues } from "./spam.type";
 import { UserSpamReportRecordHelper } from "./userspamreportrecord.helper";
@@ -13,7 +14,10 @@ const hash = require('crypto').createHash;
 export class SpamService {
     private collection: Collection
     // constructor(@InjectModel("User") private readonly userModel: Model<User>) { }
-    constructor(@Inject(DatabaseModule.DATABASE_CONNECTION) private db: Db) {
+    constructor(
+        @Inject(DatabaseModule.DATABASE_CONNECTION) private db: Db,
+        private readonly numberTransformService: NumberTransformService
+        ) {
         this.collection = this.db.collection(CollectionNames.CONTACTS_COLLECTION);
     }
    
@@ -28,10 +32,10 @@ export class SpamService {
 
         // try{
         try {
-            for(let pno in spamData.phoneNumbers){
+            for(let pno of spamData.phoneNumbers){
                 //TODO SANITISE INPUT REMOEV + IN PHONE NUMBER OR REGULAR EXPRESSION CRASHES while searching
             //and need to sanitise input
-            const phoneNum = await (await this.preparePhonenNum(pno)).trim();
+            const phoneNum = await this.numberTransformService.tranforNum(pno);
             //check if already the user reported this perticular phone number for spam
             pno = phoneNum
             const isAvailable = await this.isNumberExistInDb(pno)
@@ -91,16 +95,12 @@ export class SpamService {
        
         return  UserSpamReportRecordHelper.dbResToSpamRecordClass(result);
     }
-    async preparePhonenNum(pno: string): Promise<string> {
-        pno = await hash('sha256').update(pno).digest('base64')
-        return pno;
-    }
-    
+
     incrementSpamCountOfNumber(pno: string,spamerType:string,  count: number = 1 ) {
         return new Promise((resolve, reject) => {
             try{
                 let incOperation = this.getPerparedOperator(spamerType, count);
-
+                console.log("spam phone number is ", pno)
                 const updateResult = this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION)
                 .updateOne({ _id: pno },{ $inc: incOperation})
                 console.log("update write result ", updateResult);
@@ -184,8 +184,8 @@ export class SpamService {
 
     async unblockService(_spamDTO: SpamDTO) {
         try {
-            for(let pno in _spamDTO.phoneNumbers){
-                const phoneAfterPrepared = await (await this.preparePhonenNum(pno)).trim();
+            for(let pno of _spamDTO.phoneNumbers){
+                const phoneAfterPrepared = await (await this.numberTransformService.tranforNum (pno)).trim();
                 console.log({ phoneAfterPrepared });
                 // _spamDTO.phoneNumber = phoneAfterPrepared;
 

@@ -103,6 +103,10 @@ export class Usercontroller {
         ): Promise<GenericServiceResponseItem<UserInfoResponseDTO|null>> {
         console.time("signup")
         const tokenData = await FirebaseMiddleware.getTokenDataFromHeader(reqest)
+        console.log('user phone num', body.hashedNum)
+        // fe8c2783e0a8ce63df3a5585b3d463554559a0da9724127907b22a6599bdfed2
+        
+        console.log('user phone num', body.phoneNumber)
         const result = await this.userService.signup(body, tokenData, file)
         res.status(res.statusCode)
         console.timeEnd("signup")

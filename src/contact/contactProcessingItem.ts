@@ -9,7 +9,7 @@ export class ContactProcessingItem {
     location: string = "";
     lineType: string = "";
     country:string = "";
-    spamCount:number 
+    spamCount:number = 0;
     firstName:string = "";
     lastName: string = "";
     image:string = ""

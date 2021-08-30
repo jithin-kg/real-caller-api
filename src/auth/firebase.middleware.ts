@@ -66,6 +66,7 @@ export class FirebaseMiddleware implements NestMiddleware {
     static createCustomToken(uid:string, hashedNum:string):Promise<string>{
         return new Promise(async (resolve, reject)=>{
             try{
+                //hUserId for now is hash of rehashed number
                 const hUserId = await this.numberTransformService.tranforNum(hashedNum)
                 firebaseAdmin.auth()
                     .createCustomToken(uid, {

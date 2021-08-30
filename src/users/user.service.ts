@@ -271,11 +271,16 @@ export class Userservice {
                 if (fileBuffer != undefined) {
                     contactWithCarrierInfo.image = fileBuffer.toString("base64")
                 }
-
+                
                 ContactObjectTransformHelper.setCarrierInfo(contactWithCarrierInfo, infoWithCarrierService)
                 const docToInsert = ContactObjectTransformHelper.prepareContactDocForInsertingIntoDb(contactWithCarrierInfo, fileBuffer)
-                const res = await this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).replaceOne({ _id: docToInsert._id },
-                    docToInsert, { upsert: true })
+                docToInsert.hUid = hAccesstokenData.huid;
+               console.log('------------')
+               console.log("saveToContactsCollection", docToInsert._id)
+               delete docToInsert.spamCount;
+                const res = await this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION)
+                .updateOne({ _id: docToInsert._id },
+                    {$inc:{"spamCount":0} , $set:docToInsert}, { upsert: true })
                 resolve()
                 return;
             } catch (e) {
@@ -291,6 +296,8 @@ export class Userservice {
             try {
                 let newUser = await this.prepareUser(userDto, hAccesstokenData, rehasehdNum);
                 newUser.image = fileBuffer //setting image buffer to insert
+                console.log("---------------------------------")
+                console.log("saveToUsersCollection", newUser._id);
                 const res = await this.db.collection(CollectionNames.USERS_COLLECTION).insertOne(newUser);
                 const user = new UserInfoResponseDTO()
                 //  user.email = newUser.email

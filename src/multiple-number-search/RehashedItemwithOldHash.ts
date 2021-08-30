@@ -12,5 +12,6 @@ export class RehashedItemWithOldHash{
     imageThumbnail:String;
     carrier:string;
     country:string;
+    hUid: string = ""
 
 }

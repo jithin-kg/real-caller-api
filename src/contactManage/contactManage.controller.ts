@@ -11,12 +11,12 @@ import { HAuthGuard } from 'src/auth/guard/hAuth.guard';
 @Controller('contacts')
 @UseGuards(HAuthGuard)
 export class ContactManageController {
-    constructor(private readonly ContactManageService: ContactManageService) { }
+    constructor(private readonly contactManageService: ContactManageService) { }
     
     @Post("uploadcontacts")
     async uploadContacts(@Body() contactsDTO: ContactSyncDTO, @Res({passthrough:true}) res:Response):Promise<GenericServiceResponseItem<ContactRehashedItemWithOldHash[]>> {
         console.log('%c inside post req uploadcontacts', 'color:yellow')
-        let result = await this.ContactManageService.uploadBulkContacts(contactsDTO.contacts, contactsDTO.countryCode, contactsDTO.countryISO)
+        let result = await this.contactManageService.uploadBulkContacts(contactsDTO.contacts, contactsDTO.countryCode, contactsDTO.countryISO)
         res.status(result.statusCode)
         // return { contacts: res }
         return result;
@@ -24,7 +24,7 @@ export class ContactManageController {
     @Post("savecontacts")
     async saveContactsToMyContacts(@Body() ReqBody: ReqBodyDTO, @Req() _req: any, @Res({passthrough:true}) res:Response) {
         let response = { message: 0 };
-        const result = await this.ContactManageService.saveMyContacts(ReqBody, _req)
+        const result = await this.contactManageService.saveMyContacts(ReqBody, _req)
         res.status(result.statusCode) 
          return {message:res.statusCode}
         // .then(res => {
