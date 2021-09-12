@@ -29,5 +29,37 @@ export class CollectionNames {
    static DELETE_MY_DATA_REQUESTS = "deleteMyDataRequests"
 
    static SUGGEESTED_NAMES_DOC = "suggestedNamesForNumber"
+
+   /**
+    * this document is helpfull to avoid "double spening problem", ie 
+    * a user upvoting a number more than once
+    * document of, a user upvoted a name is correct for a  displayed number
+    * _id: hUid,
+    * [phoneNumber]:1
+    *   refer UserAndUpvotedNumsDoc
+    */
+   static USER_AND_UPVOTED_NUMS = "userAndUpvotedNumbers"
+   static USER_AND_DOWNVOTED_NUMS = "userAndDownvotedNumbers"
+
+   /**
+    * Document containing a phone number and set of names
+    * _id : phonenumber hash
+    * names: [] // set of names containing names
+    * refer UpvotedNumsCronDoc 
+    */
+   static UPVOTED_NUMBER_FOR_CRON = "userUpvotedNumberCron"
+
+   
+
+   /**
+    * Document containing a phone number and set of names
+    * _id : phonenumber hash
+    * names: [] // set of names containing names
+    * refer DownvotedNumsCronDoc 
+    */
+    static DOWNVOTED_NUMBER_FOR_CRON = "userDownvotedNumberCron"
+
+   
+
 }
 
