@@ -1,6 +1,6 @@
 import { Indiaprefixlocationmaps } from "src/carrierService/carrier.info.schema";
-import { ContactProcessingItem } from "./contactProcessingItem";
-import { ContactRehashedItemWithOldHash } from "./contactRehashedItemwithOldHash";
+import { ContactProcessingItem } from "./dto/contactProcessingItem";
+import { ContactRehashedItemWithOldHash } from "./dto/contactRehashedItemwithOldHash";
 
 
 /**
@@ -18,10 +18,11 @@ export class ContactUploadHelper {
         contactReturnObj.lineType = cntct.lineType
         contactReturnObj.location = cntct.location
         contactReturnObj.spamCount = cntct.spamCount
-        contactReturnObj.firstName = cntct.firstName
+        contactReturnObj.nameInPhoneBook = cntct.nameInPhoneBook
         if (cntct.isRegistered) {
             contactReturnObj.isRegistered = cntct.isRegistered
-            contactReturnObj.hUname = cntct.hUname
+            contactReturnObj.firstName = cntct.firstName
+            contactReturnObj.lastName = cntct.lastName
         }
         return contactReturnObj;
 

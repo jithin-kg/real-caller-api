@@ -10,9 +10,11 @@ export class ContactProcessingItem {
     lineType: string = "";
     country: string = "";
     spamCount: number
-    firstName: string = "";
-    lastName: string = "";
+    // firstName: string = "";
+    // lastName: string = "";
+    nameInPhoneBook:string = "";
     image: string = "";
     isRegistered: boolean = false;
-    hUname?: string = ""
+    firstName?: string = "";
+    lastName?: string = "";
 }

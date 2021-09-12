@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { FirebaseMiddleware } from './auth/firebase.middleware';
 import { CallsModule } from "./calls/calls.module";
+import { CommunityModule } from './community/community.module';
 import { ContactModule } from './contact/contact.module';
 import { ContactManageModule } from './contactManage/contactManage.module';
 import { DatabaseModule } from './db/Database.Module';
@@ -26,6 +27,7 @@ import { NumberTransformService } from './utils/numbertransform.service';
     MultiplenumbersearchModule,
     CallsModule,
     DatabaseModule,
+    CommunityModule,
     MulterModule.register({ dest: './files', })
     // MongooseModule.forRoot("mongodb+srv://rlclerDBUser:IJVezz622jI7k83m@rlcaller-rest-cluster0-40d1h.mongodb.net/phoneNumberPrefixLocationMap?retryWrites=true&w=majority")
   ],

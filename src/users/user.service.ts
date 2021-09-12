@@ -3,28 +3,31 @@ import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { validateOrReject } from "class-validator";
 import * as fs from 'fs';
 import * as jwt from "jsonwebtoken";
-import { Db } from "mongodb";
+import { Db, UnorderedBulkOperation } from "mongodb";
 import * as nodemailer from "nodemailer";
 import * as PDFDocument from "pdfkit";
 import { DatabaseModule } from "src/db/Database.Module";
 import { FirebaseMiddleware } from "../auth/firebase.middleware";
 import { Indiaprefixlocationmaps } from "../carrierService/carrier.info.schema";
 import { CarrierService } from "../carrierService/carrier.service";
-import { ContactProcessingItem } from "../contact/contactProcessingItem";
 import { CollectionNames } from "../db/collection.names";
 import { ContactObjectTransformHelper } from "../utils/ContactObjectTransformHelper";
 import { NumberTransformService } from "../utils/numbertransform.service";
 import { UserIdDTO } from "../utils/UserId.DTO";
-import { EmailAndUID } from "./EmailAndUID";
+import { EmailAndUID } from "./dto/EmailAndUID";
 import { Formatter } from './Formatter';
 import { SignupBodyDto } from "./singupBody";
-import { User } from "./user.schema";
-import { UserInfoRequest } from './userinfoRequest.dto';
-import { UserInfoResponseDTO } from "./userResponse.dto";
+import { UserDoc } from "./dto/user.doc";
+import { UserInfoRequest } from './dto/userinfoRequest.dto';
+import { UserInfoResponseDTO } from "./dto/userResponse.dto";
 import { GenericServiceResponseItem } from 'src/utils/Generic.ServiceResponseItem';
 import { HttpMessage } from 'src/utils/Http-message.enum';
 import { HAccessTokenData } from 'src/auth/accessToken.dto';
-import { DeactivateDTO } from './deactivate.dto';
+import { DeactivateDTO } from './dto/deactivate.dto';
+import { ContactDocument, UserUploadedContacts } from 'src/contactManage/dto/contactDocument';
+import { PhoneNumNamAndUploaderDoc } from 'src/contactManage/dto/phoneNumNameUploaderAssocDoc';
+import { DeleteMyDataDoc } from './dto/deletemydata.doc';
+import { ContactProcessingItem } from 'src/contactManage/dto/contactProcessingItem';
 
 
 @Injectable()
@@ -351,8 +354,8 @@ export class Userservice {
             })
         })
     }
-    private prepareUser(userDto: SignupBodyDto, hAccesstokenData: HAccessTokenData, rehasehdNum: string): User {
-        let newUser = new User();
+    private prepareUser(userDto: SignupBodyDto, hAccesstokenData: HAccessTokenData, rehasehdNum: string): UserDoc {
+        let newUser = new UserDoc();
         newUser._id = rehasehdNum;
         newUser.firstName = userDto.firstName;
         newUser.uid = hAccesstokenData.uid;
@@ -513,11 +516,16 @@ export class Userservice {
 
     }
     async deactivate(tokenData: HAccessTokenData): Promise<GenericServiceResponseItem<any>> {
-    //    const result = await 
        try {
+        const userDoc = await this.db.collection(CollectionNames.USERS_COLLECTION).findOne({hUid:tokenData.huid}) as UserDoc
+        const deleteMyDataDoc = new DeleteMyDataDoc()
+        deleteMyDataDoc._id = userDoc._id;
+        deleteMyDataDoc.hUid = userDoc.hUid;
+        // await this.removeOrUpdateContact(tokenData)
         const processList = [
             this.db.collection(CollectionNames.USERS_COLLECTION).deleteOne({hUid: tokenData.huid}),
             this.db.collection(CollectionNames.MY_CONTACTS).deleteOne({_id: tokenData.huid }),
+            this.db.collection(CollectionNames.DELETE_MY_DATA_REQUESTS).insertOne(deleteMyDataDoc),
             FirebaseMiddleware.removeUserById(tokenData.uid)
         ]
        const [resUserColl, resMyContacts]  = await processHelper.doParallelProcess(processList)
@@ -531,6 +539,72 @@ export class Userservice {
            return GenericServiceResponseItem.returnServerErrRes()
        }
         
+    }
+    async removeOrUpdateContact(tokenData: HAccessTokenData) {
+      try{
+        let doc = await this.db.collection(CollectionNames.REHASHED_NUMS_OF_USER).findOne({_id: tokenData.huid})  as UserUploadedContacts
+        const bulkOpContactsOfuser: UnorderedBulkOperation = this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).initializeUnorderedBulkOp()
+        const bulkOpPhoneNumUploaderAssoc: UnorderedBulkOperation = this.db.collection(CollectionNames.PHONE_NUM_AND_NAME_ASSOCIATION).initializeUnorderedBulkOp()
+        
+       return new Promise((resolve, reject)=> {
+           Promise.resolve().then(async res=> {
+               for(let rehashedNum of doc.rehasehdNums){
+                   const docPhoneNumUploderAssoc = await this.db.collection(CollectionNames.PHONE_NUM_AND_NAME_ASSOCIATION).findOne({_id: rehashedNum}) as PhoneNumNamAndUploaderDoc
+                   if(docPhoneNumUploderAssoc[tokenData.huid] !=undefined){
+                     console.log(docPhoneNumUploderAssoc[tokenData.huid])
+                     //check if name in contact collection is same as this
+                     const contactDoc = await this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).findOne({_id: rehashedNum})  as ContactDocument
+                     if(contactDoc.hUid == null ||  contactDoc.hUid == undefined || contactDoc.hUid == ''){
+                         //not regitstered user
+                         if(contactDoc.firstName == docPhoneNumUploderAssoc[tokenData.huid]){
+                            let updateOperation ;
+                            let isUpdatable = false;
+                             //names are same, update with another name 
+                             //delete key from returned  phonenumUploaderAssoc
+                             delete docPhoneNumUploderAssoc[tokenData.huid];
+                             let arrOfValues = Object.values(docPhoneNumUploderAssoc) 
+                             if(arrOfValues != null && arrOfValues.length >1 ){
+                                 //get the new name, 0 is _id value, so take value at position > 0   
+                                 let newName = arrOfValues[1];
+                                 console.log(newName)
+                                 isUpdatable = true
+                                 updateOperation = {
+                                     "firstName": newName
+                                 }
+                             }else if( arrOfValues != null && arrOfValues.length == 1){
+                                 //this was the only uploader uploaded this number
+                                 updateOperation = {
+                                     "firstName": ''
+                                 }
+                                 isUpdatable = true;
+                             }
+                             if(isUpdatable) {
+                                 bulkOpContactsOfuser.find({_id: rehashedNum}).updateOne({$set: updateOperation})
+                             }     
+                         }
+                     }
+                   }  
+                   const hUid = tokenData.huid
+                   bulkOpPhoneNumUploaderAssoc.find({_id: rehashedNum}).updateOne({$unset: hUid})
+                 }
+
+              const processes = [
+                 bulkOpContactsOfuser.execute(),
+                 bulkOpPhoneNumUploaderAssoc.execute(),
+                 this.db.collection(CollectionNames.MY_CONTACTS).deleteOne({hUid:tokenData.huid}),
+                 this.db.collection(CollectionNames.USERS_COLLECTION).deleteOne({hUid:tokenData.huid}),
+                 this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).updateOne({hUid:tokenData.huid}, {$set: {hUid:""}})
+                ]
+             let [updateContactsUser,
+                 updatePhoneNumUploader
+                ] = await processHelper.doParallelProcess(processes)
+               console.log(updateContactsUser)
+               console.log(updatePhoneNumUploader)
+           })
+       })
+      }catch(e){
+          console.log(e)
+      }
     }
 
     async verifyAndGetEmail(query) {

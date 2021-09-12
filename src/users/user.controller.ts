@@ -16,12 +16,12 @@ import { SignupBodyDto } from "./singupBody";
 import { Userservice } from "./user.service";
 import { UserDataManageService } from './userDataManage/userDataManage.service';
 import { UserDataManageResponseDTO } from './userDataManage/userDataResponseDTO';
-import { UserInfoByMailRequestDTO } from "./UserInfoByMailRequestDTO";
-import { UserInfoRequest } from "./userinfoRequest.dto";
-import { UserInfoResponseDTO } from "./userResponse.dto";
+import { UserInfoByMailRequestDTO } from "./dto/UserInfoByMailRequestDTO";
+import { UserInfoRequest } from "./dto/userinfoRequest.dto";
+import { UserInfoResponseDTO } from "./dto/userResponse.dto";
 import {HAccessTokenData} from "../auth/accessToken.dto"
 import { GetHAuthGuard } from "src/auth/guard/gethAuth.guard";
-import { DeactivateDTO } from "./deactivate.dto";
+import { DeactivateDTO } from "./dto/deactivate.dto";
 
 @Controller('user')
 export class Usercontroller {
@@ -164,8 +164,11 @@ export class Usercontroller {
     @Post('deactivate')
     async deactivate(@Body() body:DeactivateDTO, @Res({passthrough:true}) res:Response ){
        const result =  await this.userService.deactivate(body.tokenData)
+    //    const result =  await this.userService.removeOrUpdateContact(body.tokenData)
         res.status(result.statusCode)
         return result
     }
+
+    
 
 }

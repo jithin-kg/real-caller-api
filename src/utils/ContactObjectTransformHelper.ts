@@ -1,7 +1,8 @@
-import {ContactProcessingItem} from "../contact/contactProcessingItem";
+
 
 import {Indiaprefixlocationmaps} from "../carrierService/carrier.info.schema";
-import { ContactDocument } from "src/contactManage/contactDocument";
+import { ContactDocument } from "src/contactManage/dto/contactDocument";
+import { ContactProcessingItem } from "src/contactManage/dto/contactProcessingItem";
 
 export class ContactObjectTransformHelper {
     /**
@@ -20,6 +21,7 @@ export class ContactObjectTransformHelper {
         contactDoc.spamCount = cntct.spamCount
         contactDoc.firstName = cntct.firstName;
         contactDoc.lastName = cntct.lastName;
+        contactDoc.nameInPhoneBook = cntct.nameInPhoneBook;
         if(image!=null){
             contactDoc.image = image.toString("base64")
         }

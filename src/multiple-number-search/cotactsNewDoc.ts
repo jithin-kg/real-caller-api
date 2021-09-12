@@ -7,16 +7,11 @@ export class ContactNewDoc  {
     _id:string;
     firstName?: string;
     lastName: string;
-    @IsNotEmpty()
-    @IsNumber()
+    nameInPhoneBook:string;
     phoneNumber?: string;
-    @IsString()
     carrier?: string;
-    @IsString()
     location?: string;
-    @IsString()
     line_type?: string;
-    @IsString()
     country?:string;
     spamCount:Number
     image?:string

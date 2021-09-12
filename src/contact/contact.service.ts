@@ -10,13 +10,14 @@ import * as chalk from "chalk";
 
 import { MongoInsertDTO } from "./mongoinsertdto";
 import { ContactRequestDTO } from "./contactRequestDTO";
-import {ContactProcessingItem} from "./contactProcessingItem"
+
 import {ContactReturnDto} from "../multiple-number-search/contactReturn.dto";
 import {ContactObjectTransformHelper} from "../utils/ContactObjectTransformHelper";
 import {CollectionNames} from "../db/collection.names";
 import {RehashedItemWithOldHash} from "../multiple-number-search/RehashedItemwithOldHash";
 import { DatabaseModule } from "src/db/Database.Module";
-import { ContactDocument } from "src/contactManage/contactDocument";
+import { ContactDocument } from "src/contactManage/dto/contactDocument";
+import { ContactProcessingItem } from "src/contactManage/dto/contactProcessingItem";
 const hash = require('crypto').createHash;
 
 

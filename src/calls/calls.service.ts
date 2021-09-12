@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { rejects } from 'assert';
-import { Collection, Cursor, Db } from 'mongodb';
+import {   Db } from 'mongodb';
 import { resolve } from 'path';
 import { ContactDto, SpammerStatus } from 'src/contact/contact.dto';
 import {CollectionNames} from "../db/collection.names";
@@ -12,18 +11,18 @@ import {NumberTransformService} from "../utils/numbertransform.service";
 import {ContactNewDoc} from "../multiple-number-search/cotactsNewDoc";
 import {Constants} from "./Constatns";
 import { GenericServiceResponseItem } from 'src/utils/Generic.ServiceResponseItem';
+import { ContactDocument } from 'src/contactManage/dto/contactDocument';
+import { Collection } from 'mongoose';
 
 
 
 @Injectable()
 export class CallService {
-    private collection:Collection
     constructor(@Inject('DATABASE_CONNECTION') private db:Db,
      private numberTranformService: NumberTransformService
       ) {
 
     
-        this.collection = this.db.collection( CollectionNames.CONTACTS_COLLECTION);
    }
    /**
      * 
@@ -92,31 +91,33 @@ export class CallService {
                     try{
                                        
                         console.log(`searching in db rehasehdNum is ${rehasehdNum}`)
-                       const contactInfoFromDb:ContactNewDoc = await this.db.collection("contactsOfUser").findOne({_id: rehasehdNum.newHash})
+                       const contactInfoFromDb:ContactDocument = await this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).findOne({_id: rehasehdNum.newHash})
                        if(contactInfoFromDb !=null){
                             const obj = new RehashedItemWithOldHash()
                             obj.firstName = contactInfoFromDb.firstName;
                             obj.lastName = contactInfoFromDb.lastName
-                            obj.lineType = contactInfoFromDb.line_type;
+                            obj.nameInPhoneBook = contactInfoFromDb.nameInPhoneBook;
+                            // obj.lineType = contactInfoFromDb.line_type;
                             obj.phoneNumber = rehasehdNum.phoneNumber;
                             obj.newHash = ""
                             obj.spamCount = contactInfoFromDb.spamCount
                             obj.isInfoFoundInDb = Constants.INFO_FOUND_ID_DB
                             obj.imageThumbnail = contactInfoFromDb.image
-                            obj.hUid = contactInfoFromDb?.huid
+                            obj.hUid = contactInfoFromDb?.hUid
                             resultArray.push(obj)
                             // ob.carrier = rehasehdNum.carr
     
                        } else{
                            console.log("not found in db")
                            const obj = new RehashedItemWithOldHash()
-                            obj.firstName = "";
-                            obj.lineType = "";
-                            obj.phoneNumber = rehasehdNum.phoneNumber;
-                            obj.newHash = ""
-                            obj.spamCount = 0
-                           obj.isInfoFoundInDb = Constants.INFO_NOT_FOUND_IND_DB
-                           obj.imageThumbnail = ""
+                        //     obj.firstName = "";
+                        //     obj.lastName = "";
+                        //     obj.lineType = "";
+                        //     obj.phoneNumber = rehasehdNum.phoneNumber;
+                        //     obj.newHash = ""
+                        //     obj.spamCount = 0
+                        //    obj.isInfoFoundInDb = Constants.INFO_NOT_FOUND_IND_DB
+                        //    obj.imageThumbnail = ""
                            resultArray.push(obj)
                        }
                     }catch(e){

@@ -5,7 +5,6 @@ import { IsString } from "class-validator";
 export class BasicAccessTokenData {
     @IsString()
     uid:string;
-    
  }
 /**
  * For routes with users having huid

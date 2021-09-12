@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Inject, Injectable, Logger } from "@nestjs/common";
 import { Collection, Db } from "mongodb";
 import { FirebaseMiddleware } from 'src/auth/firebase.middleware';
-import { ContactDocument } from "src/contactManage/contactDocument";
+import { ContactDocument } from "src/contactManage/dto/contactDocument";
 import { CollectionNames } from "src/db/collection.names";
 import { DatabaseModule } from "src/db/Database.Module";
 import { NumberTransformService } from "src/utils/numbertransform.service";

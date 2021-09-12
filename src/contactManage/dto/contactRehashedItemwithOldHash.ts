@@ -9,8 +9,9 @@ export class ContactRehashedItemWithOldHash{
     carrier:string;
     country:string;
     spamCount:Number;
+    nameInPhoneBook:string;
     isRegistered: boolean = false;
-    hUname?: string = "";
+    // hUname?: string = "";
 
     isInfoFoundInDb:Number // to indicate whether the searched number is found in db 0 -> not found 1-> found
     imageThumbnail:String;

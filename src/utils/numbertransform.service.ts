@@ -17,7 +17,7 @@ export class NumberTransformService {
         //rehash num
         return new Promise((async (resolve, reject) => {
             try {
-                let no = await hash('sha256').update(hashedPhoneNum).digest('base64')
+                let no = await hash('sha256').update(hashedPhoneNum).digest('hex')
                 //todo add secret
                 resolve (no);
                 //UCqdkxQa5AI5lGubpIZ37+mgLOmjwgix/dj7isml/mU=

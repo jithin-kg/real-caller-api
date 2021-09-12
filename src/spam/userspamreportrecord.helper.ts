@@ -1,4 +1,3 @@
-import { User } from "src/users/user.schema";
 import { UserSpamReportRecord } from "./spam.dto";
 
 export class UserSpamReportRecordHelper {

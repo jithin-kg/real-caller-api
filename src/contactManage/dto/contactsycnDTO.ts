@@ -1,7 +1,7 @@
 import { Type } from "class-transformer";
 import { ArrayMaxSize, IsArray, IsString, Length, MaxLength, ValidateNested } from "class-validator";
 import { HAccessTokenData } from "src/auth/accessToken.dto";
-import { ContactRequestDTO } from "./contactRequestDTO";
+import { ContactRequestDTO } from "../contactRequestDTO";
 
 export class ContactSyncDTO{
     @IsArray()

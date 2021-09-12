@@ -1,5 +1,5 @@
 
-export class User  {
+export class UserDoc  {
     _id:string;
     hUid:string;
     firstName?: string;
