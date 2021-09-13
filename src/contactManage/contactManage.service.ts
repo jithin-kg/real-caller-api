@@ -21,7 +21,7 @@ import { do_AES_decryption, do_AES_encryption, findDifference } from './myContac
 import { RehashedReturnItem } from './dto/rehashedReturnItem';
 
 import { HAccessTokenData } from 'src/auth/accessToken.dto';
-import { NameAndUpvotes, PhoneNumNamAndUploaderDoc } from './dto/phoneNumNameUploaderAssocDoc';
+import { IdType, NameAndUpvotes, PhoneNumNamAndUploaderDoc } from './dto/phoneNumNameUploaderAssocDoc';
 import { NumberTransformService } from 'src/utils/numbertransform.service';
 import { UserDoc } from 'src/users/dto/user.doc';
 const hash = require('crypto').createHash;
@@ -51,7 +51,7 @@ export class ContactManageService {
         
         let contactsListForDb:ContactDocument[] = []
         let contactsListForResponse:ContactRehashedItemWithOldHash[] = []
-        let contatsListNumUploaderAssoc : PhoneNumNamAndUploaderDoc[] = []
+        let contatsListNumUploaderAssoc : IdType<NameAndUpvotes>[] = []
         let listOfRehasehdNums : string[] = [];
         return new Promise((resolve, reject)=> {            
             Promise.resolve().then(async res=> {
@@ -95,7 +95,7 @@ export class ContactManageService {
                             contactDoc.spamerType = new SpamerType()
                             let contactReturnObj = Helper.prepareContactReturnObj(contactWithCarrierInfo)
                            
-                            let numAndUploaderAssocDoc = new PhoneNumNamAndUploaderDoc()
+                            let numAndUploaderAssocDoc = {}  as IdType<NameAndUpvotes> 
                             numAndUploaderAssocDoc._id = contactWithCarrierInfo.hashedPhoneNumber;
                             const uploaderHuId = tokenData.huid;
                             // let uploaderAndSuggestedName = new UploaderAndSuggestedName()
@@ -228,7 +228,7 @@ export class ContactManageService {
             return GenericServiceResponseItem.returnGoodResponse(reshasehdItems.contactsListForRespones)
         }
     }
-    async performBulkUpsertAssociation(bulkOpNumUploaderAssoc: UnorderedBulkOperation, phoneNumUploaderAssociationList: PhoneNumNamAndUploaderDoc[]) {
+    async performBulkUpsertAssociation(bulkOpNumUploaderAssoc: UnorderedBulkOperation, phoneNumUploaderAssociationList: IdType<NameAndUpvotes>[]) {
         return new Promise((resolve, reject)=> {
             Promise.resolve().then(async res=> {
                 try{

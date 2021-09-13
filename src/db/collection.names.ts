@@ -44,10 +44,10 @@ export class CollectionNames {
    /**
     * Document containing a phone number and set of names
     * _id : phonenumber hash
-    * names: [] // set of names containing names
+    * names: [] // set of names 
     * refer UpvotedNumsCronDoc 
     */
-   static UPVOTED_NUMBER_FOR_CRON = "userUpvotedNumberCron"
+   static UPVOTED_NUMBER_FOR_CRON = "userUpvotedNumberForCron"
 
    
 
@@ -57,7 +57,7 @@ export class CollectionNames {
     * names: [] // set of names containing names
     * refer DownvotedNumsCronDoc 
     */
-    static DOWNVOTED_NUMBER_FOR_CRON = "userDownvotedNumberCron"
+    static DOWNVOTED_NUMBER_FOR_CRON = "userDownvotedNumberForCron"
 
    
 

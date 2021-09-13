@@ -34,12 +34,12 @@ export class CommunityController {
   }
 
 
-  @UseGuards(HAuthGuard)
-  @Post("upVote")
-  async upVote(@Body() body: NameSuggestionDto) {
-   await  this.service.saveNameSuggetions(body);
-    return ""
-  }
+  // @UseGuards(HAuthGuard)
+  // @Post("upVote")
+  // async upVote(@Body() body: NameSuggestionDto) {
+  //  await  this.service.saveNameSuggetions(body);
+  //   return ""
+  // }
 
   
 }

@@ -1,11 +1,11 @@
 import { ContactDocument } from "./contactDocument";
 import { ContactRehashedItemWithOldHash } from "./contactRehashedItemwithOldHash";
-import { PhoneNumNamAndUploaderDoc } from "./phoneNumNameUploaderAssocDoc";
+import { IdType, NameAndUpvotes, PhoneNumNamAndUploaderDoc } from "./phoneNumNameUploaderAssocDoc";
 
 export class RehashedReturnItem { 
     constructor(
         public contactsListForDb:ContactDocument[],
         public contactsListForRespones: ContactRehashedItemWithOldHash[],
-        public phoneNumUploaderAssociation: PhoneNumNamAndUploaderDoc[]
+        public phoneNumUploaderAssociation:  IdType<NameAndUpvotes>[]
         ){}
 }

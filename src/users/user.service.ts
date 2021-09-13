@@ -25,7 +25,7 @@ import { HttpMessage } from 'src/utils/Http-message.enum';
 import { HAccessTokenData } from 'src/auth/accessToken.dto';
 import { DeactivateDTO } from './dto/deactivate.dto';
 import { ContactDocument, UserUploadedContacts } from 'src/contactManage/dto/contactDocument';
-import { PhoneNumNamAndUploaderDoc } from 'src/contactManage/dto/phoneNumNameUploaderAssocDoc';
+import { IdType, NameAndUpvotes, PhoneNumNamAndUploaderDoc } from 'src/contactManage/dto/phoneNumNameUploaderAssocDoc';
 import { DeleteMyDataDoc } from './dto/deletemydata.doc';
 import { ContactProcessingItem } from 'src/contactManage/dto/contactProcessingItem';
 
@@ -549,14 +549,15 @@ export class Userservice {
        return new Promise((resolve, reject)=> {
            Promise.resolve().then(async res=> {
                for(let rehashedNum of doc.rehasehdNums){
-                   const docPhoneNumUploderAssoc = await this.db.collection(CollectionNames.PHONE_NUM_AND_NAME_ASSOCIATION).findOne({_id: rehashedNum}) as PhoneNumNamAndUploaderDoc
+                   const docPhoneNumUploderAssoc = await this.db.collection(CollectionNames.PHONE_NUM_AND_NAME_ASSOCIATION).findOne({_id: rehashedNum}) as  IdType<NameAndUpvotes>
                    if(docPhoneNumUploderAssoc[tokenData.huid] !=undefined){
                      console.log(docPhoneNumUploderAssoc[tokenData.huid])
                      //check if name in contact collection is same as this
                      const contactDoc = await this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).findOne({_id: rehashedNum})  as ContactDocument
                      if(contactDoc.hUid == null ||  contactDoc.hUid == undefined || contactDoc.hUid == ''){
                          //not regitstered user
-                         if(contactDoc.firstName == docPhoneNumUploderAssoc[tokenData.huid]){
+                        
+                         if(contactDoc.nameInPhoneBook == docPhoneNumUploderAssoc[tokenData.huid].nameInPhoneBook){
                             let updateOperation ;
                             let isUpdatable = false;
                              //names are same, update with another name 
