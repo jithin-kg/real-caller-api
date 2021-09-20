@@ -49,7 +49,6 @@ export class SpamService {
                     if (r) {
                         await this.associateTheReportedUserWithTheNumber(spamData, pno)
                     }
-                    console.log("updated spam recoed" + r);
                 }
             } else {
                 //insert new Record/because the spammer number is not present in db
@@ -193,7 +192,6 @@ export class SpamService {
                 if (userSpamReportRecord !=null) {
                     await this.decrementSpamCountOfNumber(phoneAfterPrepared, _spamDTO, userSpamReportRecord)
                     let response = await this.ublockTheReportedUser(_spamDTO, phoneAfterPrepared)
-                    console.log(response);
                     return response;
                 } else {
                     throw {

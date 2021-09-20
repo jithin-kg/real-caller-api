@@ -25,7 +25,7 @@ export class ContactManageController {
         res.status(result.statusCode)
         // return { contacts: res }
         console.timeEnd()
-        console.log("hi")
+
         return result;
     }
     @Post("savecontacts")
@@ -34,13 +34,5 @@ export class ContactManageController {
         const result = await this.contactManageService.saveMyContacts(ReqBody, _req)
         res.status(result.statusCode) 
          return {message:res.statusCode}
-        // .then(res => {
-            //     response.message = 1;
-            //     return response
-            // })
-            // .catch(err => {
-            //     console.log(err);
-            //     return response
-            // })
     }
 }

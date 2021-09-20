@@ -18,10 +18,14 @@ import { UserDataManageService } from './userDataManage/userDataManage.service';
 import { UserDataManageResponseDTO } from './userDataManage/userDataResponseDTO';
 import { UserInfoByMailRequestDTO } from "./dto/UserInfoByMailRequestDTO";
 import { UserInfoRequest } from "./dto/userinfoRequest.dto";
-import { UserInfoResponseDTO } from "./dto/userResponse.dto";
+
 import {HAccessTokenData} from "../auth/accessToken.dto"
 import { GetHAuthGuard } from "src/auth/guard/gethAuth.guard";
 import { DeactivateDTO } from "./dto/deactivate.dto";
+import { UpdateProfileBody } from "./updateProfileBody";
+import { UserInfoResponseDTO } from "./dto/userResponse.dto";
+import { UpdateProfileWithGoogleDTO } from "./updateProfileBodyWithGoogle";
+import { SignupWithGoogleDto } from "./signupWithGoogleDto";
 
 @Controller('user')
 export class Usercontroller {
@@ -42,7 +46,7 @@ export class Usercontroller {
     // @UseGuards(AuthGuard)
     @Get('verifyEmail')
     async verifyEmailAndSendPdf(@Query() query) {
-        console.log("inside verify email")
+
         await this.userService.sendPdf(query.value)
         return "Email containing your personal data is sent to your email."
     }
@@ -75,7 +79,7 @@ export class Usercontroller {
         @Body() userInfo: UserInfoRequest, 
         @Res({ passthrough: true }) res: Response
         ): Promise<GenericServiceResponseItem<UserInfoResponseDTO>> {
-        console.time("getInfo")
+
         let response = await this.userService.getUserInformationById(header, userInfo)
         // .catch(err => { throw err });
         res.status(response.statusCode)
@@ -92,7 +96,7 @@ export class Usercontroller {
             filename: editFileName,
         }),
         fileFilter: imageFileFilter,
-        limits: { fileSize: 35000 }
+        limits: { fileSize: 40971 }
     }))
     async signUp
         (
@@ -120,21 +124,46 @@ export class Usercontroller {
             filename: editFileName,
         }),
         fileFilter: imageFileFilter,
-        limits: { fileSize: 35000 }
+        limits: { fileSize: 40971 }
     }))
     async update
         (
             @Req() reqest: any,
             @UploadedFile() file: Express.Multer.File,
-            @Body() body: SignupBodyDto,
+            @Body() body: UpdateProfileBody,
             @Res({passthrough:true}) res:Response
         ) {
-
+        //unable to add token data to post body in multipart, so this is needed here    
         const userId = await FirebaseMiddleware.getUserId(reqest)
         const result = await this.userService.updateUserInfo(body, userId, file)
         res.status(result.statusCode)
         return result
     }
+
+    /**
+     * update user profile with profile image received from google auth
+     * and other details such as email and first and last name may be from 
+     * google 
+     */
+    @UseGuards(HAuthGuard)
+    @Post("updateProfile")
+    async updateProfileWithGoogle(@Body() body:UpdateProfileWithGoogleDTO, @Res({passthrough:true}) res:Response){
+        const result = await this.userService.updateProfileWithgoogle(body)
+        res.status(result.statusCode)
+        return result;
+    }
+
+    /**
+     * user complated profile with google auth
+     */
+     @UseGuards(HAuthGuard)
+     @Post("signupWithGoogle")
+     async signupWithGoogle(@Body() body:SignupWithGoogleDto, @Res({passthrough:true}) res:Response){
+         const result = await this.userService.signupWithGoogle(body)
+         res.status(result.statusCode)
+         return result;
+     }
+
     // validateRequest(request: any) {
     //    if(request.body.firstName)
     // }

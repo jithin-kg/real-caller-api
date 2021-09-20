@@ -44,8 +44,8 @@ export class CallService {
                 let arrWithSearchResults:RehashedItemWithOldHash[] =  await this.searchInDBForRehashedItems(rehashedItems)
             return GenericServiceResponseItem.returnGoodResponse(arrWithSearchResults);
             }catch(e){
-                return GenericServiceResponseItem.returnServerErrRes()
                 console.log(`Exception while getdetailsfronumber${e}`)
+                return GenericServiceResponseItem.returnServerErrRes()
             }
         }
     private async rehashArrayItems(arrayOfHahsedNums: ContactAdderssWithHashedNumber[]): Promise<RehashedItemWithOldHash[]>{
@@ -91,7 +91,7 @@ export class CallService {
                     try{
                                        
                         console.log(`searching in db rehasehdNum is ${rehasehdNum}`)
-                       const contactInfoFromDb:ContactDocument = await this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).findOne({_id: rehasehdNum.newHash})
+                       const contactInfoFromDb:ContactDocument = await this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).findOne({_id: rehasehdNum.newHash}) as ContactDocument
                        if(contactInfoFromDb !=null){
                             const obj = new RehashedItemWithOldHash()
                             obj.firstName = contactInfoFromDb.firstName;
@@ -104,20 +104,17 @@ export class CallService {
                             obj.isInfoFoundInDb = Constants.INFO_FOUND_ID_DB
                             obj.imageThumbnail = contactInfoFromDb.image
                             obj.hUid = contactInfoFromDb?.hUid
+                            obj.bio = contactInfoFromDb.bio
+                            obj.email = contactInfoFromDb.email
+                            obj.avatarGoogle = contactInfoFromDb.avatarGoogle
+                            obj.isVerifiedUser = contactInfoFromDb.isVerifiedUser
                             resultArray.push(obj)
                             // ob.carrier = rehasehdNum.carr
     
                        } else{
                            console.log("not found in db")
                            const obj = new RehashedItemWithOldHash()
-                        //     obj.firstName = "";
-                        //     obj.lastName = "";
-                        //     obj.lineType = "";
-                        //     obj.phoneNumber = rehasehdNum.phoneNumber;
-                        //     obj.newHash = ""
-                        //     obj.spamCount = 0
-                        //    obj.isInfoFoundInDb = Constants.INFO_NOT_FOUND_IND_DB
-                        //    obj.imageThumbnail = ""
+                    
                            resultArray.push(obj)
                        }
                     }catch(e){

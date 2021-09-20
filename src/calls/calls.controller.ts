@@ -21,12 +21,9 @@ export class CallsController {
       @Res({passthrough:true}) res: Response
       
       ): Promise<GenericServiceResponseItem<RehashedItemWithOldHash[]|null>>{
-      console.log(`size multiplesearch ${phoneNumbers.hashedPhoneNum.length}`)
-      console.log(`req body is ${phoneNumbers}`)
 
      let result = await this.service.getDetailsForNumbers(phoneNumbers)
      res.status(result.statusCode)
-     console.log("-----------------returning multiplenubmer search---------------------")
       return result;
      /**
       * for testing 

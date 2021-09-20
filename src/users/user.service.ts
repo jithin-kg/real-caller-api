@@ -19,19 +19,27 @@ import { Formatter } from './Formatter';
 import { SignupBodyDto } from "./singupBody";
 import { UserDoc } from "./dto/user.doc";
 import { UserInfoRequest } from './dto/userinfoRequest.dto';
-import { UserInfoResponseDTO } from "./dto/userResponse.dto";
 import { GenericServiceResponseItem } from 'src/utils/Generic.ServiceResponseItem';
 import { HttpMessage } from 'src/utils/Http-message.enum';
 import { HAccessTokenData } from 'src/auth/accessToken.dto';
 import { DeactivateDTO } from './dto/deactivate.dto';
-import { ContactDocument, UserUploadedContacts } from 'src/contactManage/dto/contactDocument';
+import { ContactDocument, CurrentlyActiveAvatar, UserUploadedContacts } from 'src/contactManage/dto/contactDocument';
 import { IdType, NameAndUpvotes, PhoneNumNamAndUploaderDoc } from 'src/contactManage/dto/phoneNumNameUploaderAssocDoc';
 import { DeleteMyDataDoc } from './dto/deletemydata.doc';
 import { ContactProcessingItem } from 'src/contactManage/dto/contactProcessingItem';
+import { UpdateProfileBody } from './updateProfileBody';
+import { UserInfoResponseDTO } from './dto/userResponse.dto';
+import { UpdateProfileResponseDTO } from './dto/updateProfileResponse.dto';
+import { UserDto } from './dto/user.dto';
+import { UpdateProfileWithGoogleDTO } from './updateProfileBodyWithGoogle';
+import { SignupWithGoogleDto } from './signupWithGoogleDto';
+import { query } from 'express';
+import { SpamerType } from 'src/spam/spam.type';
 
 
 @Injectable()
 export class Userservice {
+    
     
 
 
@@ -40,6 +48,8 @@ export class Userservice {
         private numberTransformService: NumberTransformService
     ) { }
 
+
+    
     /**
      * function to check if a user with the rehashed number exists in server
      * if exists then update the firebase uid of that user
@@ -51,7 +61,7 @@ export class Userservice {
             Promise.resolve().then(async res => {
                 try {
                     const rehashedNum = await this.numberTransformService.tranforNum(hashedNum)
-                    console.log('parallelProcess userInfo,customToken>>>start')
+
     
                     const _parallelProcessFunctions = [
                         this.db.collection(CollectionNames.USERS_COLLECTION).findOne({ _id: rehashedNum }),
@@ -60,7 +70,6 @@ export class Userservice {
     
                     const parallelRes = await processHelper.doParallelProcess(_parallelProcessFunctions);
     
-                    console.log('parallelProcess userInfo,customToken>>>end')
                     let result = Object.create(null); //to store userInfo
                     if (parallelRes && parallelRes[0]) result = parallelRes[0].value;
                     let CUSTOM_TOKEN: string = "";
@@ -87,13 +96,11 @@ export class Userservice {
                         let updationOp = { $set: { "uid": id } }
                         let existingUId = result.uid
                         try {
-                            console.log('parallelProcess updateUser,removeUserById>>>start')
                             const _parallelProcessFunctions = [
                                 this.db.collection(CollectionNames.USERS_COLLECTION).updateOne({ _id: rehashedNum }, updationOp),
                                 FirebaseMiddleware.removeUserById(existingUId)
                             ]
                             await processHelper.doParallelProcess(_parallelProcessFunctions);
-                            console.log('parallelProcess updateUser,removeUserById>>>end')
                         } catch (e) {
                             console.log(e)
                         }
@@ -133,7 +140,6 @@ export class Userservice {
                 const formatedNum = Formatter.getFormatedPhoneNumber(phoneNumInToken)
                 const formatedNumInRequestBody = Formatter.getFormatedPhoneNumber(userInfo.formattedPhoneNum);
                 if (formatedNum == formatedNumInRequestBody) {
-                    console.log(`returning user-before parallel process`, user)
                     let processList = [
                         this.getUserInfoByid(id, userInfo.hashedNum),
                         FirebaseMiddleware.removeUserPhoneNumberFromFirebase(id)
@@ -145,12 +151,10 @@ export class Userservice {
                     if(resultGetUsrBYId.status == processHelper.FULL_FILLED){
                         user = resultGetUsrBYId.value
                         if (user.isBlockedByAdmin) {
-                            console.log('user  blocked by admin')
                             // reject(new HttpException("Bad request", HttpStatus.FORBIDDEN))
                             resolve(GenericServiceResponseItem.returnBadRequestResponse())
                             return
                         } else {
-                            console.log('user not blocked by admin')
                         }
                     }
                     if(resultRemoveUserNumFirebase.status == processHelper.FULL_FILLED){
@@ -180,35 +184,6 @@ export class Userservice {
 
 
         })
-    }
-    async updateUserInfo(userDTO: SignupBodyDto, userIdDTO: UserIdDTO, imgFile: Express.Multer.File):Promise<GenericServiceResponseItem<UserInfoResponseDTO>> {
-        try {
-            let fileBuffer: Buffer = null
-            fileBuffer = await this.getImageBuffer(imgFile)
-            let updationOp
-            if (fileBuffer == null) {
-                updationOp = { $set: { "firstName": userDTO.firstName, "lastName": userDTO.lastName } }
-            } else {
-                updationOp = { $set: { "firstName": userDTO.firstName, "lastName": userDTO.lastName, "image": fileBuffer } }
-            }
-
-            await this.db.collection(CollectionNames.USERS_COLLECTION).updateOne({ hUserId: userIdDTO.hUserId }, updationOp)
-
-            const user = new UserInfoResponseDTO()
-            user.firstName = userDTO.firstName
-            user.lastName = userDTO.lastName
-            let fileEncodedString = ""
-            if (fileBuffer != null) {
-                fileEncodedString = fileBuffer.toString("base64")
-            }
-            user.image = fileEncodedString
-            return GenericServiceResponseItem.returnGoodResponse(user)
-        } catch (e) {
-            console.error(`error while updating user info ${e}`)
-            const user = new UserInfoResponseDTO()
-            return GenericServiceResponseItem.returnBadRequestResponse()
-
-        }
     }
 
     async signup(userDto: SignupBodyDto, hAccesstokenData: HAccessTokenData, imgFile?: Express.Multer.File,): Promise<GenericServiceResponseItem<UserInfoResponseDTO|null>> {
@@ -251,6 +226,179 @@ export class Userservice {
 
 
     }
+    async signupWithGoogle(userDto: SignupWithGoogleDto) {
+        try {
+
+            const rehasehdNum = await this.numberTransformService.tranforNum(userDto.hashedNum)
+            const user = await this.db.collection(CollectionNames.USERS_COLLECTION).findOne({ _id: rehasehdNum })
+            if (user == null) {
+
+
+                     //first signup the user
+                     //then update or insert the user info in contacts collection
+                     const newUser = new UserDoc()
+                     newUser._id =  rehasehdNum
+                     newUser.firstName = userDto.firstName
+                     newUser.lastName = userDto.lastName
+                     newUser.email = userDto.email
+                     newUser.hUid = userDto.tokenData.huid
+                     newUser.uid = userDto.tokenData.uid
+                     newUser.avatarGoogle = userDto.avatarGoogle;
+
+
+                     const contactsQuery = {
+                         _id: rehasehdNum
+                     }
+                     const contact = new ContactDocument()
+                     contact._id = rehasehdNum;
+                     contact.firstName = userDto.firstName
+                     contact.lastName = userDto.lastName
+                     contact.email = userDto.email
+                     contact.bio = userDto.bio;
+                     contact.avatarGoogle = userDto.avatarGoogle
+                     contact.hUid = userDto.tokenData.huid
+                     delete contact.spamCount;
+                     delete contact.spamerType;
+                     const updateOp = {
+                        $set: contact,
+                        $setOnInsert: {
+                            spamCount: 0,
+                            spamerType: new SpamerType()
+                        }
+                     }
+                     
+                     const option = {
+                         upsert: true
+                     }
+                     const processList = [
+                         this.db.collection(CollectionNames.USERS_COLLECTION).insertOne(newUser),
+                         this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).updateOne(contactsQuery, updateOp, option )
+                     ]
+                     const [resUser, resContacts] = await processHelper.doParallelProcess(processList)
+                     delete userDto.tokenData
+                     return GenericServiceResponseItem.returnGoodResponse(userDto, HttpStatus.CREATED)
+
+            } else {
+                 return GenericServiceResponseItem.returnBadRequestResponse(HttpMessage.USER_ALREADY_EXISTS);
+            }
+            // return GenericServiceResponseItem.returnGoodResponse(userDTO)
+        } catch (e) {
+            console.error(`error while updating user info ${e}`)
+            return GenericServiceResponseItem.returnBadRequestResponse()
+        }
+    }
+    async updateProfileWithgoogle(userDTO: UpdateProfileWithGoogleDTO) {
+        try {
+            let updationOp
+            let updateContact
+
+                updationOp = { $set: 
+                    { "firstName": userDTO.firstName,
+                     "lastName": userDTO.lastName,
+                    "email":userDTO.email,
+                    "bio":userDTO.bio,
+                    "avatarGoogle":userDTO.avatarGoogle,
+                    "currentlyActiveAvatar":CurrentlyActiveAvatar.GOOGLE
+
+                    } }
+
+                    updateContact = {
+                        $set: {
+                            "firstName": userDTO.firstName,
+                            "lastName": userDTO.lastName,
+                            "bio":userDTO.bio,
+                            "email": userDTO.email,
+                            "avatarGoogle":userDTO.avatarGoogle,
+                            "image": null
+                        }
+                    }
+            const queryContacts = {
+                hUid:userDTO.tokenData.huid
+            }
+            
+       const processList =  [
+            this.db.collection(CollectionNames.USERS_COLLECTION).updateOne({ hUid: userDTO.tokenData.huid }, updationOp),
+            this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).updateOne(queryContacts,updateContact)
+        ]
+        const [resUser, resContact] =  await processHelper.doParallelProcess(processList)
+          
+        delete userDTO.tokenData
+            return GenericServiceResponseItem.returnGoodResponse(userDTO)
+        } catch (e) {
+            console.error(`error while updating user info ${e}`)
+            const user = new UserInfoResponseDTO()
+            return GenericServiceResponseItem.returnBadRequestResponse()
+        }
+    }
+
+    async updateUserInfo(userDTO: UpdateProfileBody, userIdDTO: UserIdDTO, imgFile: Express.Multer.File):Promise<GenericServiceResponseItem<UpdateProfileResponseDTO>> {
+        try {
+            let fileBuffer: Buffer = null
+            fileBuffer = await this.getImageBuffer(imgFile)
+            let updationOp
+            let updateContact
+            if (fileBuffer == null) {
+                updationOp = { $set: 
+                    { "firstName": userDTO.firstName,
+                     "lastName": userDTO.lastName,
+                    "email":userDTO.email,
+                    "bio":userDTO.bio,
+                    "currentlyActiveAvatar": CurrentlyActiveAvatar.OTHER
+                    } }
+
+                    updateContact = {
+                        $set: {
+                            "bio":userDTO.bio,
+                            "email": userDTO.email,
+                            "avatarGoogle": ""
+                        }
+                    }
+            } else {
+                updationOp = { $set: { 
+                    "firstName":  userDTO.firstName, 
+                    "lastName": userDTO.lastName, 
+                    "email":userDTO.email,
+                    "bio":userDTO.bio,
+                    "image": fileBuffer } }
+            updateContact = {
+                $set: {
+                    "bio":userDTO.bio,
+                    "email": userDTO.email,
+                    "image": fileBuffer,
+                    "avatarGoogle": ""
+
+                }
+            }
+                    
+            }
+            const queryContacts = {
+                hUid:userIdDTO.hUserId
+            }
+            
+       const result =  [
+            this.db.collection(CollectionNames.USERS_COLLECTION).updateOne({ hUid: userIdDTO.hUserId }, updationOp),
+            this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).updateOne(queryContacts,updateContact)
+        ]
+        await processHelper.doParallelProcess(result)
+            const user = new UpdateProfileResponseDTO()
+            user.firstName = userDTO.firstName
+            user.lastName = userDTO.lastName
+            user.email = userDTO.email;
+            user.bio = userDTO.bio
+            let fileEncodedString = ""
+            if (fileBuffer != null) {
+                fileEncodedString = fileBuffer.toString("base64")
+            }
+            user.image = fileEncodedString
+            return GenericServiceResponseItem.returnGoodResponse(user)
+        } catch (e) {
+            console.error(`error while updating user info ${e}`)
+            const user = new UserInfoResponseDTO()
+            return GenericServiceResponseItem.returnBadRequestResponse()
+        }
+    }
+
+    
 
     /**
      * function to save user info into CollectionNames.CONTACTS_OF_COLLECTION
@@ -278,8 +426,7 @@ export class Userservice {
                 ContactObjectTransformHelper.setCarrierInfo(contactWithCarrierInfo, infoWithCarrierService)
                 const docToInsert = ContactObjectTransformHelper.prepareContactDocForInsertingIntoDb(contactWithCarrierInfo, fileBuffer)
                 docToInsert.hUid = hAccesstokenData.huid;
-               console.log('------------')
-               console.log("saveToContactsCollection", docToInsert._id)
+
                delete docToInsert.spamCount;
                 const res = await this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION)
                 .updateOne({ _id: docToInsert._id },
@@ -299,8 +446,6 @@ export class Userservice {
             try {
                 let newUser = await this.prepareUser(userDto, hAccesstokenData, rehasehdNum);
                 newUser.image = fileBuffer //setting image buffer to insert
-                console.log("---------------------------------")
-                console.log("saveToUsersCollection", newUser._id);
                 const res = await this.db.collection(CollectionNames.USERS_COLLECTION).insertOne(newUser);
                 const user = new UserInfoResponseDTO()
                 //  user.email = newUser.email
@@ -432,7 +577,6 @@ export class Userservice {
         const privateKey = await this.getPrivateKey()
         return new Promise((resolve, reject) => {
             jwt.sign({ userEmail: email, uid: uid }, privateKey, { algorithm: 'RS256' }, function (err, token) {
-                console.log(token);
                 if (err) {
                     reject(err)
                 } else {
@@ -468,8 +612,6 @@ export class Userservice {
                     console.log(err)
                     // reject(err)
                 } else {
-
-                    console.log(decoded.userEmail)
                     const emailAndUid = new EmailAndUID()
                     emailAndUid.email = decoded.userEmail
                     emailAndUid.uid = decoded.uid
@@ -551,7 +693,6 @@ export class Userservice {
                for(let rehashedNum of doc.rehasehdNums){
                    const docPhoneNumUploderAssoc = await this.db.collection(CollectionNames.PHONE_NUM_AND_NAME_ASSOCIATION).findOne({_id: rehashedNum}) as  IdType<NameAndUpvotes>
                    if(docPhoneNumUploderAssoc[tokenData.huid] !=undefined){
-                     console.log(docPhoneNumUploderAssoc[tokenData.huid])
                      //check if name in contact collection is same as this
                      const contactDoc = await this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).findOne({_id: rehashedNum})  as ContactDocument
                      if(contactDoc.hUid == null ||  contactDoc.hUid == undefined || contactDoc.hUid == ''){
@@ -567,7 +708,6 @@ export class Userservice {
                              if(arrOfValues != null && arrOfValues.length >1 ){
                                  //get the new name, 0 is _id value, so take value at position > 0   
                                  let newName = arrOfValues[1];
-                                 console.log(newName)
                                  isUpdatable = true
                                  updateOperation = {
                                      "firstName": newName
@@ -599,8 +739,6 @@ export class Userservice {
              let [updateContactsUser,
                  updatePhoneNumUploader
                 ] = await processHelper.doParallelProcess(processes)
-               console.log(updateContactsUser)
-               console.log(updatePhoneNumUploader)
            })
        })
       }catch(e){
@@ -619,7 +757,6 @@ export class Userservice {
                     console.log(err)
                     // reject(err)
                 } else {
-                    console.log('decoded token')
                     console.log(decoded.userEmail)
                     const obj = new EmailAndUID()
                     obj.email = decoded.userEmail

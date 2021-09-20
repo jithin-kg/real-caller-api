@@ -72,7 +72,7 @@ export class FirebaseMiddleware implements NestMiddleware {
                     .createCustomToken(uid, {
                         hUserId:hUserId
                     }).then((customtoken)=>{
-                    console.log(`custom token is ${customtoken}`)
+
                     resolve(customtoken)
 
                     return ;
@@ -100,7 +100,6 @@ export class FirebaseMiddleware implements NestMiddleware {
                 const token:string = header.authorization
                 const tokenVerify = await firebaseAdmin.auth().verifyIdToken(token)
                 const phoneNumber = tokenVerify.phone_number;
-                console.log(`phone number in token ${ tokenVerify.phone_number}`)
                 if(phoneNumber){
                     resolve(phoneNumber)
                 }else {
@@ -189,7 +188,7 @@ export class FirebaseMiddleware implements NestMiddleware {
     }
      async validateRequest(req: Request, token, next:NextFunction) {
         try{
-            console.log("----token:",token)
+
             const tokenVerify = await firebaseAdmin.auth().verifyIdToken(token)
              //her I can get phone number from tokenVerify.phone_number
             if (tokenVerify.admin == true) {

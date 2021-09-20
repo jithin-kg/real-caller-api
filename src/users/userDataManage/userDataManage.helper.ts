@@ -48,7 +48,6 @@ export class UserDataManageHelper {
                 const query = { hUid: hUid };
                 const result =
                     await db.collection(CollectionNames.USERS_COLLECTION).findOne(query)
-                console.log(`userinformation ${hUid}: `, result);
                 if (result)
                     resolve(result);
                 else resolve(null)

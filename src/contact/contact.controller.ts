@@ -13,7 +13,6 @@ export class ContactController {
     // async migrateIndiPrei
     @Post("migrate")
     async migrate(@Body() data: ContactSyncDTO){
-        console.log("migrate called")
 
         // this.contactService.migrate();
         return {"message":"1", "cntcts":[{"name":"jithin",

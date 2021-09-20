@@ -185,7 +185,7 @@ export class ContactService {
 
     async migrate(){
         // const res:TestDTO[] = await this.db.collection(Constants.COLLECCTION_INDIA_NUMBER_GEOINFO).find({}).toArray()
-        console.log("migrating")
+
         const bulktInsert = await this.db.collection("testcollection").initializeUnorderedBulkOp()
         const res : MongoInsertDTO[]= [{_id:"1", location:"kerala"}, {_id:"2", location:"banglore"}, {_id:"3", location:"delhi"}]
         for await(const contact of res){
@@ -194,7 +194,7 @@ export class ContactService {
             obj.location = contact.location
             bulktInsert.insert(obj)
 
-            console.log("inserting")
+
         }
         bulktInsert.execute();
     }
@@ -214,7 +214,7 @@ export class ContactService {
 
     private async performBulkInsert(bulkOp: any) {
         for await(const c of this.contactsListForDb){
-            console.log(`hashed num before inserting is ${c._id}`)
+
             bulkOp.insert(c)
 
         }

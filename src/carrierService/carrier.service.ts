@@ -106,7 +106,7 @@ export class CarrierService{
                     } else {
                         firstNDigitsToGetCarrierInfo = firstNDigitsToGetCarrierInfo.replace("+", "").substr(0, 7).trim();
                         const infoFromDb = await db.collection(Constants.COLLECTION_NUMBER_PREFIX_GEOINGO).findOne({_id: {$regex: new RegExp(firstNDigitsToGetCarrierInfo)}})
-                        console.log(info)
+
                         if(infoFromDb!=undefined){
                             resolve(infoFromDb)
                         }else{
@@ -117,7 +117,7 @@ export class CarrierService{
                 } else {
                     firstNDigitsToGetCarrierInfo = firstNDigitsToGetCarrierInfo.replace("+", "").substr(0, 7).trim();
                     const infoFromDb = await db.collection(Constants.COLLECTION_NUMBER_PREFIX_GEOINGO).findOne({_id: {$regex: new RegExp(firstNDigitsToGetCarrierInfo)}})
-                    console.log(info)
+
                     if(infoFromDb!=undefined){
                         resolve(infoFromDb)
                     }else{

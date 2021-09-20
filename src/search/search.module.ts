@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 
 import { DatabaseModule } from "src/db/Database.Module";
+import { NumberTransformService } from "src/utils/numbertransform.service";
 import { Searchcontroller } from "./search.controller";
 import { SearchService } from "./search.service";
 
@@ -11,7 +12,7 @@ import { SearchService } from "./search.service";
     imports: [DatabaseModule],
     // imports: [MongooseModule.forFeature([{ name: User.name, schema: UserSchema }])],
     controllers: [Searchcontroller],
-    providers: [SearchService]
+    providers: [SearchService, NumberTransformService]
 })
 
 export class SearchModule {

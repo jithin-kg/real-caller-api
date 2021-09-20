@@ -1,3 +1,5 @@
+import { CurrentlyActiveAvatar } from "./contactDocument";
+
 /**
  * this class instance cannot be inserted into database
  * because this contains actual phone number
@@ -17,4 +19,11 @@ export class ContactProcessingItem {
     isRegistered: boolean = false;
     firstName?: string = "";
     lastName?: string = "";
+
+    hUid: string="";
+    bio:string = "";
+    email:string = "";
+    avatarGoogle:string = "";
+    isVerifiedUser:boolean = false
+
 }

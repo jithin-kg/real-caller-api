@@ -14,6 +14,11 @@ export class RehashedItemWithOldHash{
     imageThumbnail:String="";
     carrier:string="";
     country:string="";
-    hUid: string = ""
+    hUid: string = "";
+    bio:string = "";
+    email:string = "";
+    avatarGoogle:string = "";
+    isVerifiedUser:boolean = false
+
 
 }

@@ -30,8 +30,7 @@ export function do_AES_encryption(source: ReqContactDTO[]): Promise<string> {
 }
 export function findDifference(A: ReqContactDTO[], B: ReqContactDTO[]): Promise<ReqContactDTO[]> {
     return new Promise(async resolve => {
-        console.log('A:', A)
-        console.log('B:', B)
+
         const results = A.filter(({
             hashedPhoneNumber: id1
         }) => !B.some(({

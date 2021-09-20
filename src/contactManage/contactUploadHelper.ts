@@ -23,7 +23,12 @@ export class ContactUploadHelper {
             contactReturnObj.isRegistered = cntct.isRegistered
             contactReturnObj.firstName = cntct.firstName
             contactReturnObj.lastName = cntct.lastName
+            contactReturnObj.bio = cntct.bio
+            contactReturnObj.hUid = cntct.hUid
+            contactReturnObj.email = cntct.email
+            contactReturnObj.avatarGoogle = cntct.avatarGoogle
         }
+        contactReturnObj.isVerifiedUser = cntct.isVerifiedUser
         return contactReturnObj;
 
     }

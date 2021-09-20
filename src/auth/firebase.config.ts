@@ -6,7 +6,6 @@ import { BasicAccessTokenData, HAccessTokenData } from "./accessToken.dto";
 export class Firebaseconfig { 
     static async validate(token:string, request: any):Promise<boolean>{
         try{
-            console.log("----token:",token)
             const decodedToken = await firebaseAdmin.auth().verifyIdToken(token)
              //her I can get phone number from tokenVerify.phone_number
             const tokenData = new BasicAccessTokenData()
@@ -25,7 +24,7 @@ export class Firebaseconfig {
 
     static async validateHuser(token:string, request:any):Promise<HAccessTokenData>{
         try{
-            console.log("----token:",token)
+            // console.log("----token:",token)
             const decodedtoken = await firebaseAdmin.auth().verifyIdToken(token)
             // tokenVerify.uid
             let tokenData = new HAccessTokenData()

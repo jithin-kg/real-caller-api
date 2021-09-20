@@ -28,8 +28,11 @@ import { Db, MongoClient } from "mongodb";
 })
 export class DatabaseModule {
     static uri = "mongodb+srv://rlclerDBUser:IJVezz622jI7k83m@rlcaller-rest-cluster0-40d1h.mongodb.net/phoneNumberPrefixLocationMap?retryWrites=true&w=majority";
-    // static uri = process.env.MONGO_URL || 'mongodb://localhost:27017/dev';
+    //kubernets 
     // static uri =  "mongodb://" + process.env.DATABASE_USER + ":" + process.env.DATABASE_PASSWORD + "@" + process.env.DATABASE_HOST + "/" + process.env.DATABASE_NAME;
+
+
+    // static uri = process.env.MONGO_URL || 'mongodb://localhost:27017/dev';
     
     // this one worked //jithinkg/hcallerapi:1.0.15  with below uri
     // static uri =  "mongodb://" + "root"+ ":" + "rf6f2k6KsJ"+ "@" + "10.128.122.3:27017" 
@@ -38,6 +41,7 @@ export class DatabaseModule {
     // helm install my-release \
     // --set auth.rootPassword=secretpassword,auth.username=my-user,auth.password=my-password,auth.database=my-database \
     // bitnami/mongodb
+    // adb 
 
 
     // static uri =  "mongodb://" + "my-user"+ ":" + "my-password"+ "@" + "10.128.165.8:27017" + "/"+ "my-database"

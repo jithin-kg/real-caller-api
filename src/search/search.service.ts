@@ -10,27 +10,30 @@ import {Constants} from "../calls/Constatns";
 import {ManualSearchDto} from "./manualSearch.dto";
 import { HttpMessage } from "src/utils/Http-message.enum";
 import { DatabaseModule } from "src/db/Database.Module";
+import { ContactDocument } from "src/contactManage/dto/contactDocument";
+import { NumberTransformService } from "src/utils/numbertransform.service";
 
 
-const hash = require('crypto').createHash;
 @Injectable()
 export class SearchService {
    
      private collection;
     // constructor(@InjectModel("User") private readonly userModel: Model<User>) { }
-    constructor(@Inject(DatabaseModule.DATABASE_CONNECTION) private db:Db ) {
-         this.collection = this.db.collection( CollectionNames.CONTACTS_OF_COLLECTION);
+    constructor(@Inject(DatabaseModule.DATABASE_CONNECTION) private db:Db,
+            private readonly numberTransformService : NumberTransformService
+    ) {
+         this.collection = this.db.collection( CollectionNames.CONTACTS_OF_COLLECTION
+            );
     }
 
 
 
     async search(pno:string): Promise<GenericServiceResponseItem<SearchResponseItem>> {
-        
-        let hashedPhone = await hash('sha256').update(pno).digest('base64');
-        console.log(`hashed phone individual search : ${hashedPhone}`);
+    
+        let hashedPhone = await this.numberTransformService.tranforNum(pno)
         let res = [];
             try{
-                let result = await this.getContacts(hashedPhone);
+                let result:SearchResponseItem = await this.getContacts(hashedPhone);
                 if(result!=undefined){
                     return GenericServiceResponseItem.returnGoodResponse(result)
                 }else {
@@ -53,19 +56,26 @@ export class SearchService {
         return new Promise(async (resolve, reject)=>{
             // this.collection.find({phoneNumber:new RegExp(pno)})
           try{
-              const res =  await  this.collection.findOne({_id:pno})
-              let responseitem:SearchResponseItem
+              const res =  await  this.collection.findOne({_id:pno}) as ContactDocument
+              let responseitem:SearchResponseItem 
               if(res!=null){
-                  responseitem = new SearchResponseItem()
-                  responseitem.firstName = res.firstName ?? ""
-                  responseitem.lastName = res.lastName ?? ""
-                  responseitem.carrier = res.carrier?? ""
-                  responseitem.location = res.location?? ""
-                  responseitem.lineType = res.lineType?? ""
-                  responseitem.country = res.country?? ""
-                  responseitem.spamCount = res.spamCount?? 0
-                  responseitem.thumbnailImg = res.image??""
-                  responseitem.isInfoFoundInDb = Constants.INFO_FOUND_ID_DB
+                    responseitem = new SearchResponseItem()
+                    responseitem.firstName = res.firstName ?? ""
+                    responseitem.lastName = res.lastName ?? ""
+                    responseitem.carrier = res.carrier?? ""
+                    responseitem.location = res.location?? ""
+                    responseitem.lineType = res.lineType?? ""
+                    responseitem.country = res.country?? ""
+                    responseitem.spamCount = res.spamCount?? 0
+                    responseitem.thumbnailImg = res.image??"" 
+                    responseitem.nameInPhoneBook = res.nameInPhoneBook??""
+                    responseitem.hUid = res.hUid??"";
+                    responseitem.email = res.email??"";
+                    responseitem.avatarGoogle = res.avatarGoogle??"";
+                    responseitem.bio = res.bio??"";
+                    responseitem.isInfoFoundInDb = Constants.INFO_FOUND_ID_DB;
+                    responseitem.isVerifiedUser = res.isVerifiedUser
+
               }
               resolve(responseitem)
           }catch(e){

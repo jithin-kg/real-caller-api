@@ -22,11 +22,9 @@ export class Searchcontroller {
 
     @Post('search')
     async search(@Body() searchData: SearchDTO, @Res({passthrough:true}) res:Response ):Promise<GenericServiceResponseItem< SearchResponseItem|null>> {
-        //5ede3a872c0a4a91ab488819296fd51ac9f06a50f383073eda31dc3dae04cd82 18086176331
     let result:GenericServiceResponseItem<SearchResponseItem> = await this.service.search(searchData.phoneNumber)
-    // console.log("search result " + d[0]);
+    //ethan fergus contact upload _id : 1ff3fb9ad01dceb6d1f140966088d3b5218e27e8d4c35bee4b4fed075bf08f62
     res.status(result.statusCode)
-    // return {"status":result.statusCode, "cntcts":result.data};
         return result 
     }
 

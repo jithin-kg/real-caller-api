@@ -24,7 +24,7 @@ import { HAccessTokenData } from 'src/auth/accessToken.dto';
 import { IdType, NameAndUpvotes, PhoneNumNamAndUploaderDoc } from './dto/phoneNumNameUploaderAssocDoc';
 import { NumberTransformService } from 'src/utils/numbertransform.service';
 import { UserDoc } from 'src/users/dto/user.doc';
-const hash = require('crypto').createHash;
+
 export class ContactManageService {
     constructor(@Inject(DatabaseModule.DATABASE_CONNECTION) private db: Db,
     private numberTransformService: NumberTransformService
@@ -68,30 +68,34 @@ export class ContactManageService {
                             let contactWithCarrierInfo = new ContactProcessingItem();
                             if (carrierInfo != undefined) {
                                 ContactObjectTransformHelper.setCarrierInfoPromiseType(contactWithCarrierInfo, carrierInfo)
-                                console.log(contactWithCarrierInfo.carrier)
+
                             }
                             contactWithCarrierInfo.spamCount = 0;
                             contactWithCarrierInfo.hashedPhoneNumber = contact.hashedPhoneNumber
                             contactWithCarrierInfo.nameInPhoneBook = contact.name;
                             contactWithCarrierInfo.prevHash = contact.hashedPhoneNumber;
-                            console.log(`first n digit while inserting is ${contactWithCarrierInfo.prevHash}`)
+
                     
                             //--------------old rehashAllNumbers()--------------------------
                             let hashedNum = await this.numberTransformService.tranforNum(contactWithCarrierInfo.hashedPhoneNumber)
                             contactWithCarrierInfo.hashedPhoneNumber = hashedNum
                             //-------isUserExist ? put isRegistered and hUname field
-                            let _userInfo = await this.db.collection(CollectionNames.USERS_COLLECTION) 
-                                .findOne({ _id: contactWithCarrierInfo.hashedPhoneNumber }) as UserDoc
+                            let alreadyExistingContactInDb = await this.db.collection(CollectionNames.CONTACTS_COLLECTION) 
+                                .findOne({ _id: contactWithCarrierInfo.hashedPhoneNumber }) as ContactDocument
                         
-                            if (_userInfo && _userInfo.firstName) {
+                            if (alreadyExistingContactInDb && alreadyExistingContactInDb.hUid) {
                                 contactWithCarrierInfo.isRegistered = true;
-                                contactWithCarrierInfo.firstName = _userInfo.firstName;
-                                contactWithCarrierInfo.firstName = _userInfo.lastName;
-                            } else {
-                                console.log(`${contactWithCarrierInfo.prevHash} !exist || !registered`)
+                                contactWithCarrierInfo.firstName = alreadyExistingContactInDb.firstName;
+                                contactWithCarrierInfo.firstName = alreadyExistingContactInDb.lastName;
+                                contactWithCarrierInfo.hUid = alreadyExistingContactInDb.hUid
+                                contactWithCarrierInfo.bio = alreadyExistingContactInDb.bio
+                                contactWithCarrierInfo.email = alreadyExistingContactInDb.email
+                                contactWithCarrierInfo.avatarGoogle = alreadyExistingContactInDb.avatarGoogle
+                                contactWithCarrierInfo.isVerifiedUser = alreadyExistingContactInDb.isVerifiedUser
                             }
                             //---------------------------------------------------------------------
                             let contactDoc = ContactObjectTransformHelper.prepareContactDocForInsertingIntoDb(contactWithCarrierInfo)
+                        
                             contactDoc.spamerType = new SpamerType()
                             let contactReturnObj = Helper.prepareContactReturnObj(contactWithCarrierInfo)
                            
@@ -111,7 +115,8 @@ export class ContactManageService {
                             // contatsListNumUploaderAssoc.push(numAndUploaderAssocDoc);
                            if(isLessThanLimit){
                                 try{
-                                    bulkdOp.insert(contactDoc)
+                                    if(alreadyExistingContactInDb == null || alreadyExistingContactInDb == undefined)
+                                          bulkdOp.insert(contactDoc)
                                 }catch(e){
                                     console.log("exception bulkOp ")
                                 }
@@ -249,7 +254,6 @@ export class ContactManageService {
                 const query = { _id: hUid };
                 const existData =
                     await this.db.collection(CollectionNames.MY_CONTACTS).findOne(query)
-                console.log("existData: ", existData);
                 resolve(existData?.contacts || "")
             } catch (error) {
                 console.log("fetchSavedContactsOfUser_error : ", error);
@@ -264,7 +268,7 @@ export class ContactManageService {
             const update = { $set: { "contacts": encryptedString } };
             await this.db.collection(CollectionNames.MY_CONTACTS).updateOne(
                 query, update, { upsert: true }).then(res => {
-                    console.log("upsert:success: ");
+                    // console.log("upsert:success: ");
                     resolve(1)
                 }).catch(err => {
                     console.log("upsert:failed: ", err);
@@ -274,7 +278,7 @@ export class ContactManageService {
     }
     async saveMyContacts(contacts: ReqBodyDTO, _req) : Promise<GenericServiceResponseItem<any>> {
             try {
-                console.log(chalk.green('going to save...'))
+
                 const _userData = await FirebaseMiddleware.getUserId(_req);
                 const hUid = _userData.hUserId || "";
                 //fetch contacts if exist
@@ -283,13 +287,12 @@ export class ContactManageService {
                     const { contacts: newContacts = [] } = contacts;         // A
                     //perform decryption to get stored contacts
                     let decryptedData = await do_AES_decryption(contactExisted_encrypted_string) // B
-                    console.log("decryptedData--existed : ", decryptedData)
+
                     //perform A-B >> to find new contacts
                     const results = await findDifference(newContacts, decryptedData);
-                    console.log('A-B >> unique data', results); //U
+
                     //perform B+U >> to append new contacts with existed contacts
                     contacts.contacts = decryptedData.concat(results);
-                    console.log('B+U >> existing data + unique data', contacts.contacts);
                 } else { console.log("there is no data for this user") }
                 //encrypt contacts array >> to save
                 const encryptedString = await do_AES_encryption(contacts.contacts)

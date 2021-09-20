@@ -48,7 +48,7 @@ export class Spamcontroller {
     }
     @Post('incrementTotalSpamCount')
     async incrementTotalSpamCount(@Body() ui: UidOnlyRequest) {
-        console.log('worked')
+
         await this.service.incrementTotalSpamCount()
     }
 }

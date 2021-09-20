@@ -48,9 +48,6 @@ export class MultipleNumberSearchService {
                    obj.newHash = rehasehdNum
                     obj.firstName = "sample"
                     obj.spamCount = 0
-                 console.log("--------------------hash ------------------------")
-                   console.log(rehasehdNum) 
-                   console.log("--------------------end hash ------------------------")
                    if(rehasehdNum !=null){
                         resultArray.push(obj)
                    }
@@ -71,10 +68,8 @@ export class MultipleNumberSearchService {
         return new Promise(async (resolve, rejects)=>{
             for await( const rehasehdNum of arrayOfHahsedNums){
                 try{
-                    console.log("rehsehdNum is  ",rehasehdNum.newHash)
-                    console.log(`searching in db rehasehdNum is ${rehasehdNum}`) 
                     // const contactInfoFromDb:ContactNewDoc = await this.db.collection("contactsOfUser").findOne({phoneNumber: })
-                    console.log(`new hash in multipleNumbersearach is :${rehasehdNum.newHash}`)
+
                     const contactInfoFromDb:ContactNewDoc = await this.db.collection("contactsOfUser").findOne({_id: rehasehdNum.newHash})
                  
                    if(contactInfoFromDb !=null){
@@ -100,7 +95,6 @@ export class MultipleNumberSearchService {
                         // ob.carrier = rehasehdNum.carr
 
                    } else{
-                       console.log("not found in db")
                        const obj = new RehashedItemWithOldHash()
                         obj.firstName = "";
                         obj.lineType = "";
@@ -110,8 +104,7 @@ export class MultipleNumberSearchService {
                        resultArray.push(obj)
                    }
                 }catch(e){
-                    console.log(`error while processing multiplenumbersearchservice \n`)
-                    console.log(e);
+                    console.log(`error multiplenumbersearchservice \n`,e )
                     rejects(e)
         
                 }

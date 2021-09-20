@@ -42,7 +42,6 @@ export class UserDataManageService {
 
                     let rejectedProcessList = result.filter(({ status }) => status === processHelper.REJECTED);
                     if (rejectedProcessList.length > 0) {
-                        console.log("rejectedProcessList: ", rejectedProcessList)
                         resolve(GenericServiceResponseItem.returnBadRequestResponse())
                         return;
                     } else {
@@ -56,7 +55,6 @@ export class UserDataManageService {
                         return;
                     }
                 } else {
-                    console.log("hUid not found")
                     resolve(GenericServiceResponseItem.returnBadRequestResponse())
                     return;
                 }
