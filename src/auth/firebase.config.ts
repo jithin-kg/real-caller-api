@@ -24,7 +24,7 @@ export class Firebaseconfig {
 
     static async validateHuser(token:string, request:any):Promise<HAccessTokenData>{
         try{
-            // console.log("----token:",token)
+            console.log("----token:",token)
             const decodedtoken = await firebaseAdmin.auth().verifyIdToken(token)
             // tokenVerify.uid
             let tokenData = new HAccessTokenData()

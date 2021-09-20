@@ -7,6 +7,8 @@ import {ConfigService} from './config.service'
 import * as bodyParser from 'body-parser';
 import { Firebaseconfig } from './auth/firebase.config';
 import * as helmet from 'helmet';
+import  * as rateLimit from 'express-rate-limit';
+import { NestExpressApplication } from '@nestjs/platform-express';
 //important mongodb security
 // https://docs.mongodb.com/manual/faq/fundamentals/#faq-developers-when-to-use-gridfs
 dotenv.config();
@@ -14,7 +16,8 @@ dotenv.config();
 async function bootstrap() {
   //initialise firebase admin sdk
   Firebaseconfig.initParams()
-  const app = await NestFactory.create(AppModule);
+  //app.set() is a function available in express app only
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const portNumber = process.env.APP_PORT || 8080;
 // app.useGlobalPipes(new ValidationPipe({disableErrorMessages:true}))
   app.use(helmet());
@@ -30,7 +33,12 @@ async function bootstrap() {
   
   app.use(bodyParser.json({limit: '50mb'}));
   app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
+  app.set('trust proxy', 1); // if app is behind a proxy (nginx )
 
+  app.use(rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 minute
+    max: 200 // limit each IP to 100 requests per windowMs
+  }))
   await app.listen(portNumber, ()=>{
     
     console.log(`app listening on port number ${portNumber}`)
