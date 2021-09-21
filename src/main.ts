@@ -33,7 +33,7 @@ async function bootstrap() {
   
   app.use(bodyParser.json({limit: '50mb'}));
   app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
-  app.set('trust proxy', 1); // if app is behind a proxy (nginx )
+  app.set('trust proxy', 1); // if app is behind a proxy (her in kubernets we are using nginx )
 
   app.use(rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minute

@@ -16,7 +16,7 @@ import { NumberTransformService } from "../utils/numbertransform.service";
 import { UserIdDTO } from "../utils/UserId.DTO";
 import { EmailAndUID } from "./dto/EmailAndUID";
 import { Formatter } from './Formatter';
-import { SignupBodyDto } from "./singupBody";
+import { SignupBodyDto } from "./dto/singupBody";
 import { UserDoc } from "./dto/user.doc";
 import { UserInfoRequest } from './dto/userinfoRequest.dto';
 import { GenericServiceResponseItem } from 'src/utils/Generic.ServiceResponseItem';
@@ -31,8 +31,8 @@ import { UpdateProfileBody } from './updateProfileBody';
 import { UserInfoResponseDTO } from './dto/userResponse.dto';
 import { UpdateProfileResponseDTO } from './dto/updateProfileResponse.dto';
 import { UserDto } from './dto/user.dto';
-import { UpdateProfileWithGoogleDTO } from './updateProfileBodyWithGoogle';
-import { SignupWithGoogleDto } from './signupWithGoogleDto';
+import { UpdateProfileWithGoogleDTO } from './dto/updateProfileBodyWithGoogle';
+import { SignupWithGoogleDto } from './dto/signupWithGoogleDto';
 import { query } from 'express';
 import { SpamerType } from 'src/spam/spam.type';
 
@@ -244,6 +244,11 @@ export class Userservice {
                      newUser.hUid = userDto.tokenData.huid
                      newUser.uid = userDto.tokenData.uid
                      newUser.avatarGoogle = userDto.avatarGoogle;
+                     newUser.googelFname = userDto.firstName
+                     newUser.googleLname = userDto.lastName
+                     newUser.googleEmail = userDto.email
+
+
 
 
                      const contactsQuery = {
@@ -298,8 +303,10 @@ export class Userservice {
                     "email":userDTO.email,
                     "bio":userDTO.bio,
                     "avatarGoogle":userDTO.avatarGoogle,
-                    "currentlyActiveAvatar":CurrentlyActiveAvatar.GOOGLE
-
+                    "currentlyActiveAvatar":CurrentlyActiveAvatar.GOOGLE,
+                    "googelFname" : userDTO.googleProfile.firstName,
+                    "googleLname" : userDTO.googleProfile.lastName,
+                    "googleEmail" : userDTO.googleProfile.email,
                     } }
 
                     updateContact = {
@@ -338,13 +345,27 @@ export class Userservice {
             let updationOp
             let updateContact
             if (fileBuffer == null) {
-                updationOp = { $set: 
-                    { "firstName": userDTO.firstName,
-                     "lastName": userDTO.lastName,
-                    "email":userDTO.email,
-                    "bio":userDTO.bio,
-                    "currentlyActiveAvatar": CurrentlyActiveAvatar.OTHER
-                    } }
+                if(userDTO.gEmail != ""){
+                    updationOp = { $set: 
+                        { "firstName": userDTO.firstName,
+                         "lastName": userDTO.lastName,
+                        "email":userDTO.email,
+                        "bio":userDTO.bio,
+                        "currentlyActiveAvatar": CurrentlyActiveAvatar.OTHER,
+                        "googelFname": userDTO.gFName,
+                        "googleLname": userDTO.gLName,
+                        "googleEmail": userDTO.gEmail
+                        } }
+                }else {
+                    updationOp = { $set: 
+                        { "firstName": userDTO.firstName,
+                         "lastName": userDTO.lastName,
+                        "email":userDTO.email,
+                        "bio":userDTO.bio,
+                        "currentlyActiveAvatar": CurrentlyActiveAvatar.OTHER
+                        } }
+                }
+                
 
                     updateContact = {
                         $set: {
@@ -354,12 +375,27 @@ export class Userservice {
                         }
                     }
             } else {
-                updationOp = { $set: { 
-                    "firstName":  userDTO.firstName, 
-                    "lastName": userDTO.lastName, 
-                    "email":userDTO.email,
-                    "bio":userDTO.bio,
-                    "image": fileBuffer } }
+                if(userDTO.gEmail != ""){
+                    updationOp = { $set: { 
+                        "firstName":  userDTO.firstName, 
+                        "lastName": userDTO.lastName, 
+                        "email":userDTO.email,
+                        "bio":userDTO.bio,
+                        "image": fileBuffer,
+                        "googelFname": userDTO.gFName,
+                        "googleLname": userDTO.gLName,
+                        "googleEmail": userDTO.gEmail
+                    
+                    } }
+                }else {
+                    updationOp = { $set: { 
+                        "firstName":  userDTO.firstName, 
+                        "lastName": userDTO.lastName, 
+                        "email":userDTO.email,
+                        "bio":userDTO.bio,
+                        "image": fileBuffer } }
+                }
+                
             updateContact = {
                 $set: {
                     "bio":userDTO.bio,

@@ -12,7 +12,7 @@ import { FirebaseUid } from "src/uids.dto";
 
 import { GenericServiceResponseItem } from "src/utils/Generic.ServiceResponseItem";
 import { editFileName, imageFileFilter } from './file/file-upload.utils';
-import { SignupBodyDto } from "./singupBody";
+import { SignupBodyDto } from "./dto/singupBody";
 import { Userservice } from "./user.service";
 import { UserDataManageService } from './userDataManage/userDataManage.service';
 import { UserDataManageResponseDTO } from './userDataManage/userDataResponseDTO';
@@ -24,8 +24,8 @@ import { GetHAuthGuard } from "src/auth/guard/gethAuth.guard";
 import { DeactivateDTO } from "./dto/deactivate.dto";
 import { UpdateProfileBody } from "./updateProfileBody";
 import { UserInfoResponseDTO } from "./dto/userResponse.dto";
-import { UpdateProfileWithGoogleDTO } from "./updateProfileBodyWithGoogle";
-import { SignupWithGoogleDto } from "./signupWithGoogleDto";
+import { UpdateProfileWithGoogleDTO } from "./dto/updateProfileBodyWithGoogle";
+import { SignupWithGoogleDto } from "./dto/signupWithGoogleDto";
 
 @Controller('user')
 export class Usercontroller {

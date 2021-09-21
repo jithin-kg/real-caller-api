@@ -14,5 +14,8 @@ export class UserDoc  {
     isBlockedByAdmin:Boolean = false;
     currentlyActiveAvatar:number = CurrentlyActiveAvatar.NONE;
     isVerifiedUser:boolean = false;
+    googelFname:string = ""; // these field are required/ helpfull to give verified badge
+    googleLname:string = "";
+    googleEmail:string = "";
 
 }

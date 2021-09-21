@@ -1,6 +1,7 @@
 import { Type } from "class-transformer";
-import {IsEmail, IsNumber, isString, IsString, Length, ValidateNested} from "class-validator";
+import { IsEmail, IsString, Length, ValidateNested} from "class-validator";
 import { BasicAccessTokenData, HAccessTokenData } from "src/auth/accessToken.dto";
+import { GoogleProfileDTo } from "./googleProfile.dto";
 
 export class UpdateProfileWithGoogleDTO {
     
@@ -23,15 +24,13 @@ export class UpdateProfileWithGoogleDTO {
     @Length(0, 10000)
     avatarGoogle:string;
 
-
+    @ValidateNested()
+    @Type(()=> GoogleProfileDTo)
+    googleProfile: GoogleProfileDTo
+    
     @ValidateNested()
     @Type(()=> HAccessTokenData)
     tokenData:HAccessTokenData
-    
-
-
-    
-
-
 
 }
+

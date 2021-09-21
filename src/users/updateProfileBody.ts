@@ -26,6 +26,15 @@ export class UpdateProfileBody {
 
     @IsString()
     countryISO: string;
+
+    @IsString()
+    gFName: string;
+
+    @IsString()
+    gLName: string;
+    
+    @IsString()
+    gEmail: string;
     
 
 
