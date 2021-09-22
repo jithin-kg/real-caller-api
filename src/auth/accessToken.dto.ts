@@ -12,7 +12,7 @@ export class BasicAccessTokenData {
 export class HAccessTokenData {
     @IsString()
     uid:string;
- 
+
     @IsString()
     huid:string;
  

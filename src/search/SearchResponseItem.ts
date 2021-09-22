@@ -1,5 +1,5 @@
 import { CurrentlyActiveAvatar } from "src/contactManage/dto/contactDocument";
-import { SpamerType } from "src/spam/spam.type";
+import { SpamerType } from "src/spam/dto/spam.type";
 import {Constants} from "../calls/Constatns";
 
 export class SearchResponseItem {

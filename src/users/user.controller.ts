@@ -152,6 +152,7 @@ export class Usercontroller {
         res.status(result.statusCode)
         return result;
     }
+    // Error while removeUserPhoneNumberFromFirebase Error: Error while making request: timeout of 25000ms exceeded.
 
     /**
      * user complated profile with google auth

@@ -1,4 +1,4 @@
-import { SpamerType } from "src/spam/spam.type";
+import { SpamerType } from "src/spam/dto/spam.type";
 
 export class ContactDocument {
     _id:string = "";

@@ -1,4 +1,4 @@
-import { UserSpamReportRecord } from "./spam.dto";
+import { UserSpamReportRecord } from "./dto/spam.dto";
 
 export class UserSpamReportRecordHelper {
     /**

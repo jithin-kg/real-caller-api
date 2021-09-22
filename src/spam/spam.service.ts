@@ -4,9 +4,12 @@ import { FirebaseMiddleware } from 'src/auth/firebase.middleware';
 import { ContactDocument } from "src/contactManage/dto/contactDocument";
 import { CollectionNames } from "src/db/collection.names";
 import { DatabaseModule } from "src/db/Database.Module";
+import { GenericServiceResponseItem } from "src/utils/Generic.ServiceResponseItem";
 import { NumberTransformService } from "src/utils/numbertransform.service";
-import { SpamDTO, UserSpamReportRecord } from "./spam.dto";
-import { SpammerTypeVAlues } from "./spam.type";
+import { SpamDTO, UserSpamReportRecord } from "./dto/spam.dto";
+import { SpammerTypeVAlues } from "./dto/spam.type";
+import { SpamThresholdDoc } from "./dto/spamthreshold.doc";
+import { SpamThresholdUpdateResultDto } from "./dto/thresholdupdateresult.dto";
 import { UserSpamReportRecordHelper } from "./userspamreportrecord.helper";
 const hash = require('crypto').createHash;
 
@@ -244,6 +247,23 @@ export class SpamService {
             }
        }
        return incOperation
+    }
+
+    async getSpamThreshold(): Promise<GenericServiceResponseItem<SpamThresholdUpdateResultDto>>{
+        try{
+            let res = new SpamThresholdUpdateResultDto()
+            res.threshold = 10
+            const resultDoc = await this.db.collection(CollectionNames.SPAM_THRESHOLD).findOne({}) as SpamThresholdDoc
+            if(resultDoc.threshold <= 0  || resultDoc.threshold >= 100 ){
+                console.log("Spam threshold is greater or less than limit")
+            }else {
+                res.threshold = resultDoc.threshold;
+            }
+            return GenericServiceResponseItem.returnGoodResponse(res);
+        }catch(e){
+            console.log('exception getSpamThreshold()',e)
+            return GenericServiceResponseItem.returnServerErrRes()
+        }
     }
 }
 

@@ -4,6 +4,7 @@ export class CollectionNames {
     static USERS_COLLECTION: string = "users";
     static MY_CONTACTS: string = "myContacts";
     
+    
     /**
      * document containing user id and contacts uploaded by user
      * _id : userId,
@@ -58,6 +59,12 @@ export class CollectionNames {
     * refer DownvotedNumsCronDoc 
     */
     static DOWNVOTED_NUMBER_FOR_CRON = "userDownvotedNumberForCron"
+
+    /**
+     * Document containing current spam threshold 
+     * refer SpamThresholdDoc
+     */
+    static SPAM_THRESHOLD = "spamThreshold"
 
    
 

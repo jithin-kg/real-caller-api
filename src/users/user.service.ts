@@ -34,7 +34,7 @@ import { UserDto } from './dto/user.dto';
 import { UpdateProfileWithGoogleDTO } from './dto/updateProfileBodyWithGoogle';
 import { SignupWithGoogleDto } from './dto/signupWithGoogleDto';
 import { query } from 'express';
-import { SpamerType } from 'src/spam/spam.type';
+import { SpamerType } from 'src/spam/dto/spam.type';
 
 
 @Injectable()
@@ -61,29 +61,39 @@ export class Userservice {
             Promise.resolve().then(async res => {
                 try {
                     const rehashedNum = await this.numberTransformService.tranforNum(hashedNum)
-
     
                     const _parallelProcessFunctions = [
                         this.db.collection(CollectionNames.USERS_COLLECTION).findOne({ _id: rehashedNum }),
                         FirebaseMiddleware.createCustomToken(id, rehashedNum)
                     ];
     
-                    const parallelRes = await processHelper.doParallelProcess(_parallelProcessFunctions);
-    
-                    let result = Object.create(null); //to store userInfo
-                    if (parallelRes && parallelRes[0]) result = parallelRes[0].value;
-                    let CUSTOM_TOKEN: string = "";
-                    if (parallelRes && parallelRes[1]) CUSTOM_TOKEN = parallelRes[1].value;
+                    const [resUser,resFirebase ] = await processHelper.doParallelProcess(_parallelProcessFunctions);
+
+                    // let result = Object.create(null); //to store userInfo
+                    // if (parallelRes && parallelRes[0]) result = parallelRes[0].value;
+                    const CUSTOM_TOKEN: string =  resFirebase.value
+
                     const user = new UserInfoResponseDTO()
-    
-                    if (result) { //result != null || result != undefined
+                    user.customToken = CUSTOM_TOKEN;
+                    // const doc = resUser.value as UserDoc
+                    if (resUser.value) { //result != null || result != undefined
+                        const doc = resUser.value as UserDoc
                         // user.email = result.email
-                        user.firstName = result.firstName
-                        user.lastName = result.lastName
-                        user.image = result.image
+                        user.firstName = doc.firstName
+                        user.lastName = doc.lastName
+                        user.bio = doc.bio
+                        user.email = doc.email
+                        user.avatarGoogle = doc.avatarGoogle
+                        user.isVerifiedUser = doc.isVerifiedUser
+                        if(doc.currentlyActiveAvatar == CurrentlyActiveAvatar.GOOGLE){
+                            user.image = ""
+                        }else if(doc.currentlyActiveAvatar == CurrentlyActiveAvatar.OTHER){
+                            user.avatarGoogle = ""
+                            user.image = doc.image.toString("base64")
+                        }
                         //todo remove this in production, this is for project only
     
-                        if (result.isBlockedByAdmin) {
+                        if (doc.isBlockedByAdmin) {
                             user.isBlockedByAdmin = 1
                             await FirebaseMiddleware.desableUser(id)
                         } else {
@@ -94,7 +104,7 @@ export class Userservice {
                         }
     
                         let updationOp = { $set: { "uid": id } }
-                        let existingUId = result.uid
+                        let existingUId = doc.uid
                         try {
                             const _parallelProcessFunctions = [
                                 this.db.collection(CollectionNames.USERS_COLLECTION).updateOne({ _id: rehashedNum }, updationOp),
@@ -107,9 +117,10 @@ export class Userservice {
                         // console.timeEnd("getUserInfoByid")
                         resolve(user);
                         return;
-                    } else {
-                        user.customToken = CUSTOM_TOKEN;
-                    }
+                    } 
+                    // else {
+                    //     user.customToken = CUSTOM_TOKEN;
+                    // }
                     // console.timeEnd("getUserInfoByid")
                     resolve(user);
                     return;
@@ -328,7 +339,7 @@ export class Userservice {
             this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).updateOne(queryContacts,updateContact)
         ]
         const [resUser, resContact] =  await processHelper.doParallelProcess(processList)
-          
+          console.log(resUser)
         delete userDTO.tokenData
             return GenericServiceResponseItem.returnGoodResponse(userDTO)
         } catch (e) {
@@ -351,7 +362,6 @@ export class Userservice {
                          "lastName": userDTO.lastName,
                         "email":userDTO.email,
                         "bio":userDTO.bio,
-                        "currentlyActiveAvatar": CurrentlyActiveAvatar.OTHER,
                         "googelFname": userDTO.gFName,
                         "googleLname": userDTO.gLName,
                         "googleEmail": userDTO.gEmail
@@ -362,7 +372,6 @@ export class Userservice {
                          "lastName": userDTO.lastName,
                         "email":userDTO.email,
                         "bio":userDTO.bio,
-                        "currentlyActiveAvatar": CurrentlyActiveAvatar.OTHER
                         } }
                 }
                 
@@ -384,7 +393,8 @@ export class Userservice {
                         "image": fileBuffer,
                         "googelFname": userDTO.gFName,
                         "googleLname": userDTO.gLName,
-                        "googleEmail": userDTO.gEmail
+                        "googleEmail": userDTO.gEmail,
+                        "currentlyActiveAvatar": CurrentlyActiveAvatar.OTHER
                     
                     } }
                 }else {
@@ -393,7 +403,9 @@ export class Userservice {
                         "lastName": userDTO.lastName, 
                         "email":userDTO.email,
                         "bio":userDTO.bio,
-                        "image": fileBuffer } }
+                        "image": fileBuffer,
+                        "currentlyActiveAvatar": CurrentlyActiveAvatar.OTHER
+                    } }
                 }
                 
             updateContact = {
@@ -480,8 +492,11 @@ export class Userservice {
     async saveToUsersCollection(userDto: SignupBodyDto, hAccesstokenData: HAccessTokenData, rehasehdNum: string, fileBuffer?: Buffer): Promise<UserInfoResponseDTO> {
         return new Promise(async (resolve, reject) => {
             try {
-                let newUser = await this.prepareUser(userDto, hAccesstokenData, rehasehdNum);
+                let newUser :UserDoc= await this.prepareUser(userDto, hAccesstokenData, rehasehdNum);
                 newUser.image = fileBuffer //setting image buffer to insert
+                if(fileBuffer != null){
+                    newUser.currentlyActiveAvatar = CurrentlyActiveAvatar.OTHER
+                }
                 const res = await this.db.collection(CollectionNames.USERS_COLLECTION).insertOne(newUser);
                 const user = new UserInfoResponseDTO()
                 //  user.email = newUser.email

@@ -5,7 +5,7 @@ import { Db, UnorderedBulkOperation } from 'mongodb';
 import { Indiaprefixlocationmaps } from 'src/carrierService/carrier.info.schema';
 import { CollectionNames } from 'src/db/collection.names';
 import { DatabaseModule } from 'src/db/Database.Module';
-import { SpamerType } from 'src/spam/spam.type';
+import { SpamerType } from 'src/spam/dto/spam.type';
 import { ContactObjectTransformHelper } from 'src/utils/ContactObjectTransformHelper';
 import { GenericServiceResponseItem } from 'src/utils/Generic.ServiceResponseItem';
 import { HttpMessage } from 'src/utils/Http-message.enum';
