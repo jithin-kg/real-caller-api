@@ -82,7 +82,7 @@ export class Userservice {
                         user.firstName = doc.firstName
                         user.lastName = doc.lastName
                         user.bio = doc.bio
-                        user.email = doc.email
+                        user.email = doc.email??""
                         user.avatarGoogle = doc.avatarGoogle
                         user.isVerifiedUser = doc.isVerifiedUser
                         if(doc.currentlyActiveAvatar == CurrentlyActiveAvatar.GOOGLE){
