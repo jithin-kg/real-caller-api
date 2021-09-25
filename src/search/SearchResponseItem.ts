@@ -18,7 +18,8 @@ export class SearchResponseItem {
     email:string = "";
     avatarGoogle:string = "";
     bio:string = "";
-    isVerifiedUser:boolean = false
+    isVerifiedUser:boolean = false;
+    clientHashedNum:string ="" // searched phone number hash
 
 
 }

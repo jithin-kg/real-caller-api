@@ -33,7 +33,7 @@ export class ContactUploadHelper {
 
     }
 
-    static async getCarrierInfo( countryCode: number, countryISO: string): Promise<Indiaprefixlocationmaps> {
+    static async getCarrierInfo( countryCode: string, countryISO: string): Promise<Indiaprefixlocationmaps> {
 
         let info: Indiaprefixlocationmaps = new Indiaprefixlocationmaps();
         return info;

@@ -20,6 +20,7 @@ export class AuthGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest()
     // request.
+    request.body.tokenData = null;
     if (!request.headers.authorization) {
       return false;
     }
@@ -27,9 +28,12 @@ export class AuthGuard implements CanActivate {
     if (!accessToken) {
       return false;
     }
-    const isvalid = await Firebaseconfig.validate(accessToken, request)
-    
-    return isvalid;
+    const tokenData = await Firebaseconfig.validate(accessToken, request)
+    if(tokenData){
+      request.body.tokenData = tokenData
+      return true;
+    }
+    return false;
     // return true;
   }
   

@@ -135,13 +135,14 @@ export class Userservice {
         })
 
     }
-    async getUserInformationById(req, userInfo: UserInfoRequest): Promise<GenericServiceResponseItem<UserInfoResponseDTO>> {
+    async getUserInformationById( userInfo: UserInfoRequest): Promise<GenericServiceResponseItem<UserInfoResponseDTO>> {
         return new Promise(async (resolve) => {
             // console.time("getUserInfo");
             try {
                 let user: UserInfoResponseDTO;
                 const id = userInfo.tokenData.uid;
-                const phoneNumInToken: string = await FirebaseMiddleware.getPhoneNumberFromToken(req)
+                // const phoneNumInToken: string = await FirebaseMiddleware.getPhoneNumberFromToken(req)
+                const phoneNumInToken: string = userInfo.tokenData.phoneNumber
 
                 if (!phoneNumInToken) {
                     resolve(GenericServiceResponseItem.returnBadRequestResponse())
@@ -478,7 +479,12 @@ export class Userservice {
                delete docToInsert.spamCount;
                 const res = await this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION)
                 .updateOne({ _id: docToInsert._id },
-                    {$inc:{"spamCount":0} , $set:docToInsert}, { upsert: true })
+                    {$inc:{"spamCount":0} ,
+                     $set:docToInsert,
+                     $setOnInsert:{
+                        spamerType: new SpamerType()
+                     }
+                    }, { upsert: true })
                 resolve()
                 return;
             } catch (e) {

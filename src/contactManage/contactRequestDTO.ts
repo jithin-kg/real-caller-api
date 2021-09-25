@@ -1,11 +1,9 @@
 import { IsString, Length, MaxLength } from "class-validator";
 
 export class ContactRequestDTO{  
-  @IsString()
-  @MaxLength(100)
+  @Length(0, 150)
   name:string;
 
-  @IsString()
-  @Length(64, 64)
+  @Length(1, 150)
   hashedPhoneNumber:string
 }

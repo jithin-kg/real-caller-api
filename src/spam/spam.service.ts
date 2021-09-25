@@ -28,9 +28,9 @@ export class SpamService {
      * 
      * @param pno :String phone num
      */
-    async reportSpam(spamData: SpamDTO, req) {
-        // const pno = spamData.phoneNumber
-        // const uid = req.ß
+    async reportSpam(spamData: SpamDTO): Promise<GenericServiceResponseItem<string>> {
+
+
         let res = [];
 
         // try{
@@ -46,9 +46,7 @@ export class SpamService {
                 const isAlreadyReported = await this.isUserAlreadyReported(spamData, pno)
                 if (isAlreadyReported == null) {
                     //the user have not reported this phone number as spam
-                    let r = await this.incrementSpamCountOfNumber(pno, spamData.spammerType).catch(e => {
-                        console.log(`error while updating spam record ${e}`)
-                    });
+                    let r = await this.incrementSpamCountOfNumber(pno, spamData.spammerType)
                     if (r) {
                         await this.associateTheReportedUserWithTheNumber(spamData, pno)
                     }
@@ -64,12 +62,10 @@ export class SpamService {
                 }
             }
             }
-
-
-            return "You have already reported this number"
+            return GenericServiceResponseItem.returnGoodResponse("")
         } catch (e) {
             console.log(e);
-            throw new HttpException('Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
+            return GenericServiceResponseItem.returnServerErrRes()
         }
 
 
@@ -184,7 +180,7 @@ export class SpamService {
     }
 
 
-    async unblockService(_spamDTO: SpamDTO) {
+    async unblockService(_spamDTO: SpamDTO): Promise<GenericServiceResponseItem<string>> {
         try {
             for(let pno of _spamDTO.phoneNumbers){
                 const phoneAfterPrepared = await (await this.numberTransformService.tranforNum (pno)).trim();
@@ -194,18 +190,18 @@ export class SpamService {
                 const userSpamReportRecord = await this.isUserAlreadyReported(_spamDTO, phoneAfterPrepared)
                 if (userSpamReportRecord !=null) {
                     await this.decrementSpamCountOfNumber(phoneAfterPrepared, _spamDTO, userSpamReportRecord)
-                    let response = await this.ublockTheReportedUser(_spamDTO, phoneAfterPrepared)
-                    return response;
+                   await this.ublockTheReportedUser(_spamDTO, phoneAfterPrepared)
+                    return GenericServiceResponseItem.returnGoodResponse("");
                 } else {
                     throw {
                         message: "phonenumber not exist in DB or not blocked yet"
                     }
                 }
             }
-            
+            return GenericServiceResponseItem.returnGoodResponse("")
         } catch (e) {
             console.log(e);
-            throw new HttpException('Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
+            return GenericServiceResponseItem.returnServerErrRes()
         }
     }
     /**

@@ -1,39 +1,39 @@
 import { Type } from "class-transformer";
-import {IsNumber, isString, IsString, ValidateNested} from "class-validator";
+import {IsNumber, isString, IsString, Length, ValidateNested} from "class-validator";
 import { BasicAccessTokenData, HAccessTokenData } from "src/auth/accessToken.dto";
 
 export class UpdateProfileBody {
-    @IsString()
+    @Length(1, 100)
     firstName: string
 
-    @IsString()
+    @Length(1, 100)
     lastName: string
 
-    @IsString()
+    @Length(0, 100)
     email:string;
 
-    @IsString()
+    @Length(0, 300)
     bio:string;
 
-    @IsString()
+    @Length(20, 100)
     hashedNum: string;
 
-    @IsString()
+    @Length(0, 100)
     phoneNumber: string;
 
-    @IsString()
+    @Length(0, 10)
     countryCode :string
 
-    @IsString()
+    @Length(0, 10)
     countryISO: string;
 
-    @IsString()
+    @Length(0, 100)
     gFName: string;
 
-    @IsString()
+    @Length(0, 100)
     gLName: string;
     
-    @IsString()
+    @Length(0, 150)
     gEmail: string;
     
 

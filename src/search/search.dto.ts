@@ -4,7 +4,7 @@ import { HAccessTokenData } from "src/auth/accessToken.dto";
 
 export class SearchDTO{
 
-    @Length(64, 64)
+    @Length(10, 100)
     @IsString()
     phoneNumber:string;
 

@@ -1,29 +1,25 @@
 import { Type } from "class-transformer";
-import {IsNumber, isString, IsString, ValidateNested} from "class-validator";
+import {IsNumber, isString, IsString, Length, ValidateNested} from "class-validator";
 import { BasicAccessTokenData, HAccessTokenData } from "src/auth/accessToken.dto";
 
 export class SignupBodyDto {
 
 
-    @IsString()
+    @Length(1, 100)
     firstName: string
 
-    @IsString()
+    @Length(1, 100)
     lastName: string
-    @IsString()
+
+    @Length(5, 100)
     hashedNum: string;
 
-    @IsString()
+    @Length(5, 100)
     phoneNumber: string;
 
-    @IsString()
+    @Length(0, 10)
     countryCode :string
 
-    @IsString()
+    @Length(0, 10)
     countryISO: string
-
-    
-
-
-
 }

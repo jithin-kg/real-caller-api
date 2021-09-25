@@ -23,6 +23,7 @@ async function bootstrap() {
   app.use(helmet());
   app.useGlobalPipes(new ValidationPipe({whitelist: true,forbidNonWhitelisted:true, 
     transform:true,
+    disableErrorMessages:true
   }))
   /**
    * To avoid 

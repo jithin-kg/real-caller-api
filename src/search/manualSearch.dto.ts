@@ -4,15 +4,16 @@ import { HAccessTokenData } from "src/auth/accessToken.dto";
 
 export class ManualSearchDto{
     // @Length(7, 12)
-    @IsString()
+    @Length(0, 100)
     phoneNumber:string;
-    @IsString()
+    
+    @Length(0, 100)
     uid:string;
 
-    @IsString()
+    @Length(0, 100)
     countryIso:string;
 
-    @IsString()
+    @Length(0, 100)
     countryCode:string
 
     @ValidateNested()

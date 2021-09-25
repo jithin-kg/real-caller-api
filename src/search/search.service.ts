@@ -12,6 +12,7 @@ import { HttpMessage } from "src/utils/Http-message.enum";
 import { DatabaseModule } from "src/db/Database.Module";
 import { ContactDocument } from "src/contactManage/dto/contactDocument";
 import { NumberTransformService } from "src/utils/numbertransform.service";
+import { SpammerTypeVAlues, SpammerTypeVAluesNum } from "src/spam/dto/spam.type";
 
 
 @Injectable()
@@ -33,7 +34,7 @@ export class SearchService {
         let hashedPhone = await this.numberTransformService.tranforNum(pno)
         let res = [];
             try{
-                let result:SearchResponseItem = await this.getContacts(hashedPhone);
+                let result:SearchResponseItem = await this.getContacts(hashedPhone, pno);
                 if(result!=undefined){
                     return GenericServiceResponseItem.returnGoodResponse(result)
                 }else {
@@ -52,7 +53,7 @@ export class SearchService {
      * returns null/undefined if pno not found in database
      * else returns SearchREsponseItem
      */
-   async getContacts(pno) : Promise<SearchResponseItem|null>{
+   async getContacts(pno, reqPhoneNumber) : Promise<SearchResponseItem|null>{
         return new Promise(async (resolve, reject)=>{
             // this.collection.find({phoneNumber:new RegExp(pno)})
           try{
@@ -75,6 +76,34 @@ export class SearchService {
                     responseitem.bio = res.bio??"";
                     responseitem.isInfoFoundInDb = Constants.INFO_FOUND_ID_DB;
                     responseitem.isVerifiedUser = res.isVerifiedUser
+                    responseitem.clientHashedNum = reqPhoneNumber
+                    if(res.spamerType != null || res.spamerType != undefined){
+                         var big = res.spamerType.business
+                        responseitem.spamerType = SpammerTypeVAluesNum.SPAMMER_TYPE_BUSINESS
+                    if(res.spamerType.notSpecific > big){
+                        big = res.spamerType.notSpecific
+                        responseitem.spamerType = SpammerTypeVAluesNum.SPAMMER_TYPE_NOT_SPECIFIC
+
+                    }
+                     if(res.spamerType.person > big){
+                        big = res.spamerType.person
+                    responseitem.spamerType = SpammerTypeVAluesNum.SPAMMER_TYPE_PEERSON
+
+                    }
+
+                    if(res.spamerType.sales > big){
+                        big = res.spamerType.sales
+                    responseitem.spamerType = SpammerTypeVAluesNum.SPAMMER_TYPE_SALES
+
+                    }
+                    if(res.spamerType.scam > big){
+                        big = res.spamerType.scam
+                    responseitem.spamerType = SpammerTypeVAluesNum.SPAMMER_TYPE_SCAM
+
+                    }
+                    }
+
+                    
 
               }
               resolve(responseitem)

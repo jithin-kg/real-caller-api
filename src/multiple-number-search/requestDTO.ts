@@ -8,7 +8,9 @@ export class RequestDTO{
    // @IsString({each:true})
    // @MaxLength(100,{each:true}) // todo set to 64, bit hash length
    // @MinLength(3, {each:true})
-   @ArrayMaxSize(3780)
+   @ArrayMaxSize(15)
+   @ValidateNested({each:true})
+   @Type(() => ContactAdderssWithHashedNumber)
    readonly hashedPhoneNum: ContactAdderssWithHashedNumber[];
    
 

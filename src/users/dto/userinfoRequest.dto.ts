@@ -1,17 +1,19 @@
 import { Type } from "class-transformer";
-import { IsString, ValidateNested } from "class-validator";
-import { BasicAccessTokenData } from "src/auth/accessToken.dto";
+import { IsString, Length, ValidateNested } from "class-validator";
+import { BasicAccessTokenData, TokenDataWithPhoneNumber } from "src/auth/accessToken.dto";
 
 
 
 
 export class UserInfoRequest {
-   @IsString()
+   @Length(40, 100)
    hashedNum:string;
-   @IsString()
+
+   @Length(3,100 )
    formattedPhoneNum:string
+   
    @ValidateNested()
-   @Type(()=>BasicAccessTokenData)
-   tokenData:BasicAccessTokenData
+   @Type(()=>TokenDataWithPhoneNumber)
+   tokenData:TokenDataWithPhoneNumber
 }
 

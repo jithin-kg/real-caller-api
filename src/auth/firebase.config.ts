@@ -1,23 +1,21 @@
 
 import * as firebaseAdmin from "firebase-admin"
-import { BasicAccessTokenData, HAccessTokenData } from "./accessToken.dto";
+import { BasicAccessTokenData, HAccessTokenData, TokenDataWithPhoneNumber } from "./accessToken.dto";
 
 
 export class Firebaseconfig { 
-    static async validate(token:string, request: any):Promise<boolean>{
+    static async validate(token:string, request: any):Promise<TokenDataWithPhoneNumber>{
         try{
             const decodedToken = await firebaseAdmin.auth().verifyIdToken(token)
              //her I can get phone number from tokenVerify.phone_number
-            const tokenData = new BasicAccessTokenData()
+            const tokenData = new TokenDataWithPhoneNumber()
             tokenData.uid = decodedToken.uid
-            request.body.tokenData = tokenData
-            
-            return true;
-               
+            tokenData.phoneNumber =  decodedToken.phone_number
+            return tokenData;
         }
         catch(e){
             console.log(`Firebaseconfig exception ${e}`)
-            return false;
+            return null;
             // throw new HttpException("Bad request" , HttpStatus.BAD_REQUEST)
         }
     }
@@ -30,6 +28,7 @@ export class Firebaseconfig {
             let tokenData = new HAccessTokenData()
             tokenData.uid = decodedtoken.uid
             tokenData.huid = decodedtoken.hUserId;
+
             
             
             return tokenData;

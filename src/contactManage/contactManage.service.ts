@@ -40,7 +40,7 @@ export class ContactManageService {
 
 
     async doRehashAllNumbers(contacts: ContactRequestDTO[], 
-        countryCode: number, 
+        countryCode: string, 
         countryISO: string,
         tokenData:HAccessTokenData,
         bulkdOp: UnorderedBulkOperation,
@@ -172,7 +172,8 @@ export class ContactManageService {
     }
     //called from controller
     async uploadBulkContacts(contacts: ContactRequestDTO[],
-         countryCode: number,
+         countryCode: string
+         ,
           countryISO: string,
           tokenData: HAccessTokenData
           

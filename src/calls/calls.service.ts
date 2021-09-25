@@ -100,14 +100,18 @@ export class CallService {
                             // obj.lineType = contactInfoFromDb.line_type;
                             obj.phoneNumber = rehasehdNum.phoneNumber;
                             obj.newHash = ""
-                            obj.spamCount = contactInfoFromDb.spamCount
+                            obj.spamCount = contactInfoFromDb.spamCount??0
                             obj.isInfoFoundInDb = Constants.INFO_FOUND_ID_DB
                             obj.imageThumbnail = contactInfoFromDb.image
-                            obj.hUid = contactInfoFromDb?.hUid
+                            obj.hUid = contactInfoFromDb?.hUid??""
                             obj.bio = contactInfoFromDb.bio
-                            obj.email = contactInfoFromDb.email
-                            obj.avatarGoogle = contactInfoFromDb.avatarGoogle
-                            obj.isVerifiedUser = contactInfoFromDb.isVerifiedUser
+                            obj.email = contactInfoFromDb.email??""
+                            obj.avatarGoogle = contactInfoFromDb.avatarGoogle??""
+                            if(contactInfoFromDb.avatarGoogle != "" ||contactInfoFromDb.avatarGoogle != null){
+                                console.log(contactInfoFromDb.avatarGoogle)
+                            }
+                            
+                            obj.isVerifiedUser = contactInfoFromDb.isVerifiedUser??false
                             resultArray.push(obj)
                             // ob.carrier = rehasehdNum.carr
     

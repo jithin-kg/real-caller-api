@@ -13,13 +13,13 @@ import { HAuthGuard } from "src/auth/guard/hAuth.guard";
 
 
 @Controller('find')
-@UseGuards(HAuthGuard)
 export class Searchcontroller {
     
     constructor(private readonly service: SearchService) { }
 
-   
 
+
+    @UseGuards(HAuthGuard)
     @Post('search')
     async search(@Body() searchData: SearchDTO, @Res({passthrough:true}) res:Response ):Promise<GenericServiceResponseItem< SearchResponseItem|null>> {
     let result:GenericServiceResponseItem<SearchResponseItem> = await this.service.search(searchData.phoneNumber)
@@ -28,9 +28,10 @@ export class Searchcontroller {
         return result 
     }
 
-    @Post('manualSearch')
-    async searchManual(@Body() searchData: ManualSearchDto) {
-        let d:GenericServiceResponseItem< any> = await this.service.manualSearch(searchData)
-        return {"status":d.statusCode, "cntcts":d.data};
-    }
+    // @UseGuards(HAuthGuard)
+    // @Post('manualSearch')
+    // async searchManual(@Body() searchData: ManualSearchDto) {
+    //     let d:GenericServiceResponseItem< any> = await this.service.manualSearch(searchData)
+    //     return {"status":d.statusCode, "cntcts":d.data};
+    // }
 }

@@ -1,5 +1,4 @@
 import { Body, Controller, Post, Res, UseGuards } from "@nestjs/common";
-import { AuthGuard } from "src/auth/guard/auth.guard";
 import { HAuthGuard } from "src/auth/guard/hAuth.guard";
 import { CommunityService } from "./community.service";
 import { NameSuggestionDto } from "./dto/suggestedName.dto";

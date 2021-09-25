@@ -33,25 +33,19 @@ export class Spamcontroller {
         
     @UseGuards(HAuthGuard)
     @Post('report')
-    async report(@Body() spamData: SpamDTO, @Req() _request: any) {
+    async report(@Body() spamData: SpamDTO, @Res({passthrough:true}) res:Response) {
         Logger.log("spamController", "inside report ");
         //   await this.sleep()
-        let d = await this.service.reportSpam(spamData, _request)
-        return {
-            "message": "1",
-            "cntcts": d
-        };
+        let result = await this.service.reportSpam(spamData)
+        res.status(result.statusCode)
+        return result
     }
     @UseGuards(HAuthGuard)
     @Post('unblock')
-    async unblock(@Body() _spamData: SpamDTO) {
-        let response = 1;
-        await this.service.unblockService(_spamData).catch(() => {
-            response = 0;
-        })
-        return {
-            "message": response,
-        }
+    async unblock(@Body() _spamData: SpamDTO, @Res({passthrough:true}) res:Response) {
+        const result = await this.service.unblockService(_spamData)
+        res.status(result.statusCode)
+        return result
     }
     @UseGuards(HAuthGuard)
     @Post('incrementTotalSpamCount')

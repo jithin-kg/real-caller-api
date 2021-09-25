@@ -33,23 +33,24 @@ export class Usercontroller {
         private userDataManageService: UserDataManageService) { }
 
     /**
+     * currently this api is not called from android client
      * function to return phone number from token
+     * 
      * @param param 
      */
-
-    @UseGuards(AuthGuard)
-    @Post("getInfo")
-    async getPhoneNumberFromToken(@Headers() header, @Body() param: UserInfoRequest): Promise<any> {
-        const phonenumber: string = await FirebaseMiddleware.getPhoneNumberFromToken(header)
-        return { message: phonenumber }
-    }
     // @UseGuards(AuthGuard)
-    @Get('verifyEmail')
-    async verifyEmailAndSendPdf(@Query() query) {
+    // @Post("getInfo")
+    // async getPhoneNumberFromToken(@Headers() header, @Body() param: UserInfoRequest): Promise<any> {
+    //     const phonenumber: string = await FirebaseMiddleware.getPhoneNumberFromToken(header)
+    //     return { message: phonenumber }
+    // }
+    // @UseGuards(AuthGuard)
+    // @Get('verifyEmail')
+    // async verifyEmailAndSendPdf(@Query() query) {
 
-        await this.userService.sendPdf(query.value)
-        return "Email containing your personal data is sent to your email."
-    }
+    //     await this.userService.sendPdf(query.value)
+    //     return "Email containing your personal data is sent to your email."
+    // }
 
     /**
      * 
@@ -74,13 +75,13 @@ export class Usercontroller {
      * @param userInfo
      */
     @UseGuards(AuthGuard)
+    
     @Post("getUserInfoForUid")
     async getUserInfo(@Headers() header: any, 
         @Body() userInfo: UserInfoRequest, 
         @Res({ passthrough: true }) res: Response
         ): Promise<GenericServiceResponseItem<UserInfoResponseDTO>> {
-
-        let response = await this.userService.getUserInformationById(header, userInfo)
+        let response = await this.userService.getUserInformationById(userInfo)
         // .catch(err => { throw err });
         res.status(response.statusCode)
         console.timeEnd("getInfo")
@@ -116,6 +117,14 @@ export class Usercontroller {
         console.timeEnd("signup")
         return result
     }
+    /**
+     * profile update with body and image
+     * @param reqest 
+     * @param file 
+     * @param body 
+     * @param res 
+     * @returns 
+     */
     @UseGuards(HAuthGuard)
     @Post('updateUserInfo')
     @UseInterceptors(FileInterceptor('image', {

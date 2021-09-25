@@ -10,11 +10,9 @@ export class ContactSyncDTO{
     @Type(() => ContactRequestDTO)
      contacts: ContactRequestDTO[];
      
-     @IsString()
      @Length(0,5)
-     countryCode: number;
+     countryCode: string;
 
-     @IsString()
      @Length(0,5)
      countryISO:string
 

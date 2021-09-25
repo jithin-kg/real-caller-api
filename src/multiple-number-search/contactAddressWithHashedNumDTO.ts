@@ -1,9 +1,9 @@
-import { IsString } from "class-validator";
+import { IsEmpty, IsString, Length } from "class-validator";
 
 export class ContactAdderssWithHashedNumber{
-    @IsString()
+    @IsEmpty()
     contactAddressString:string;
 
-    @IsString()
+    @Length(10, 150)
     contactAddressHashed:string;
 }

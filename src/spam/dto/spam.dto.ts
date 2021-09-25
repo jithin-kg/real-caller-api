@@ -5,12 +5,15 @@ import { HAccessTokenData } from "src/auth/accessToken.dto";
 export class SpamDTO{
     // @Length(7, 12)
     @IsArray()
+    @MaxLength(100, {
+        each:true
+    })
     phoneNumbers:string[];
     
-    @IsString()
+    @Length(0, 10)
     country:String;
 
-    @IsString()
+    @Length(0, 10)
     spammerType:string;
     
     @ValidateNested()
