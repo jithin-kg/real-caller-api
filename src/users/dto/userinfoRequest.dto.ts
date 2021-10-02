@@ -9,8 +9,8 @@ export class UserInfoRequest {
    @Length(40, 100)
    hashedNum:string;
 
-   @Length(3,100 )
-   formattedPhoneNum:string
+   // @Length(3,100 )
+   // formattedPhoneNum:string
    
    @ValidateNested()
    @Type(()=>TokenDataWithPhoneNumber)

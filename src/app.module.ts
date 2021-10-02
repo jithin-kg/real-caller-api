@@ -11,6 +11,7 @@ import { DatabaseModule } from './db/Database.Module';
 
 import { SearchModule } from './search/search.module';
 import { SpamModule } from './spam/spam.module';
+import { SystemModule } from './system/system.module';
 import { UserModule } from './users/user.module';
 import { NumberTransformService } from './utils/numbertransform.service';
 
@@ -25,6 +26,7 @@ import { NumberTransformService } from './utils/numbertransform.service';
     CallsModule,
     DatabaseModule,
     CommunityModule,
+    SystemModule,
     MulterModule.register({ dest: './files', })
     // MongooseModule.forRoot("mongodb+srv://rlclerDBUser:IJVezz622jI7k83m@rlcaller-rest-cluster0-40d1h.mongodb.net/phoneNumberPrefixLocationMap?retryWrites=true&w=majority")
   ],

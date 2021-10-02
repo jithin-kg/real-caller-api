@@ -150,8 +150,8 @@ export class Userservice {
                 }
 
                 const formatedNum = Formatter.getFormatedPhoneNumber(phoneNumInToken)
-                const formatedNumInRequestBody = Formatter.getFormatedPhoneNumber(userInfo.formattedPhoneNum);
-                if (formatedNum == formatedNumInRequestBody) {
+                // const formatedNumInRequestBody = Formatter.getFormatedPhoneNumber(userInfo.formattedPhoneNum);
+                // if (formatedNum == formatedNumInRequestBody) {
                     let processList = [
                         this.getUserInfoByid(id, userInfo.hashedNum),
                         FirebaseMiddleware.removeUserPhoneNumberFromFirebase(id)
@@ -183,11 +183,11 @@ export class Userservice {
 
                     resolve(GenericServiceResponseItem.returnGoodResponse(user))
                     return;
-                } else {
-                    // reject(new HttpException("Bad request", 400))
-                    resolve(GenericServiceResponseItem.returnBadRequestResponse())
-                    return
-                }
+                // } else {
+                //     // reject(new HttpException("Bad request", 400))
+                //     resolve(GenericServiceResponseItem.returnBadRequestResponse())
+                //     return
+                // }
             } catch (e) {
                 console.log(`Exception while getUserInformationById ${e}`)
                 resolve(GenericServiceResponseItem.returnServerErrRes())

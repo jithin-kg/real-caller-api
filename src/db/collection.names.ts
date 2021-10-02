@@ -66,6 +66,11 @@ export class CollectionNames {
      */
     static SPAM_THRESHOLD = "spamThreshold"
 
+    /**
+     * Document containing playstore release verion codes and thier priority
+     * refer VersionCodeAndPriorityDoc
+     */
+    static STORE_VERSION_CODE_AND_PRIORITY = "storeVersionCodeNPriority"
    
 
 }

@@ -20,6 +20,4 @@ export class SearchResponseItem {
     bio:string = "";
     isVerifiedUser:boolean = false;
     clientHashedNum:string ="" // searched phone number hash
-
-
 }

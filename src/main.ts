@@ -19,11 +19,12 @@ async function bootstrap() {
   //app.set() is a function available in express app only
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const portNumber = process.env.APP_PORT || 8080;
+  // const portNumber = 8050;
 // app.useGlobalPipes(new ValidationPipe({disableErrorMessages:true}))
   app.use(helmet());
   app.useGlobalPipes(new ValidationPipe({whitelist: true,forbidNonWhitelisted:true, 
     transform:true,
-    disableErrorMessages:true
+    disableErrorMessages:false
   }))
   /**
    * To avoid 
@@ -40,6 +41,7 @@ async function bootstrap() {
     windowMs: 1 * 60 * 1000, // 1 minute
     max: 200 // limit each IP to 100 requests per windowMs
   }))
+  
   await app.listen(portNumber, ()=>{
     
     console.log(`app listening on port number ${portNumber}`)

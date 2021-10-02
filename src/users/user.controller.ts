@@ -177,9 +177,7 @@ export class Usercontroller {
     // validateRequest(request: any) {
     //    if(request.body.firstName)
     // }
-    @Get('test')
-    async test() {
-    }
+    
 
     @UseGuards(GetHAuthGuard)
     @Get('getMyData')
