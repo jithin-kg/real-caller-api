@@ -92,13 +92,15 @@ export class CallService {
                                        
                         console.log(`searching in db rehasehdNum is ${rehasehdNum}`)
                        const contactInfoFromDb:ContactDocument = await this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).findOne({_id: rehasehdNum.newHash}) as ContactDocument
+                       const obj = new RehashedItemWithOldHash()
+                      
+                       obj.phoneNumber = rehasehdNum.phoneNumber;
+                      
                        if(contactInfoFromDb !=null){
-                            const obj = new RehashedItemWithOldHash()
                             obj.firstName = contactInfoFromDb.firstName;
                             obj.lastName = contactInfoFromDb.lastName
                             obj.nameInPhoneBook = contactInfoFromDb.nameInPhoneBook;
                             // obj.lineType = contactInfoFromDb.line_type;
-                            obj.phoneNumber = rehasehdNum.phoneNumber;
                             obj.newHash = ""
                             obj.spamCount = contactInfoFromDb.spamCount??0
                             obj.isInfoFoundInDb = Constants.INFO_FOUND_ID_DB
@@ -112,15 +114,10 @@ export class CallService {
                             }
                             
                             obj.isVerifiedUser = contactInfoFromDb.isVerifiedUser??false
-                            resultArray.push(obj)
                             // ob.carrier = rehasehdNum.carr
     
-                       } else{
-                           console.log("not found in db")
-                           const obj = new RehashedItemWithOldHash()
-                    
-                           resultArray.push(obj)
-                       }
+                       } 
+                       resultArray.push(obj)
                     }catch(e){
                         console.log(`error while processing multiplenumbersearchservice ${e}`)
                         rejects(e)
