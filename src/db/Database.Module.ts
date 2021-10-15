@@ -9,10 +9,10 @@ import { Db, MongoClient } from "mongodb";
             provide: 'DATABASE_CONNECTION',
             useFactory: async (): Promise<Db> =>{
                 try{
-                    console.log(`Trying to connect to mongodb using uris ${DatabaseModule.uri} `)
+                    // console.log(`Trying to connect to mongodb using uris ${DatabaseModule.uri} `)
                     const client = await  MongoClient.connect(DatabaseModule.uri,
                         {useUnifiedTopology:true})
-                        console.log(`client is ${client}`)
+                        // console.log(`client is ${client}`)
                         const db = client.db()
                         //for creating index
                         // await db.collection('users').createIndex({ email: 1 }, { unique: true, sparse: true });

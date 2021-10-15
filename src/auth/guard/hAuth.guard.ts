@@ -29,7 +29,6 @@ export class HAuthGuard implements CanActivate {
     const tokenData = await Firebaseconfig.validateHuser(accessToken, request)
     if(tokenData){
       request.body.tokenData = tokenData
-      console.log(request.body);
       return true
     }
     return false;

@@ -62,9 +62,6 @@ export class CallService {
                        obj.newHash = rehasehdNum   
                         obj.firstName = ""
                         obj.spamCount = 0
-                     console.log("--------------------hash ------------------------")
-                       console.log(rehasehdNum)
-                       console.log("--------------------end hash ------------------------")
                        if(rehasehdNum !=null){
     
                             resultArray.push(obj)

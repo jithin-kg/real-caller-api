@@ -58,16 +58,16 @@ export class Usercontroller {
      * @returns 
      */
 
-    @UseGuards(HAuthGuard)
-    @Post("getUserInfoByMail")
-    async getUserDataByMail(@Body() reqest: UserInfoByMailRequestDTO) {
+    // @UseGuards(HAuthGuard)
+    // @Post("getUserInfoByMail")
+    // async getUserDataByMail(@Body() reqest: UserInfoByMailRequestDTO) {
 
-        await this.userService.sendVerificationEmail(
-            reqest.email,
-            reqest.tokenData.uid)
+    //     await this.userService.sendVerificationEmail(
+    //         reqest.email,
+    //         reqest.tokenData.uid)
 
-        return { code: "200" }
-    }
+    //     return { code: "200" }
+    // }
 
     /**
      * This route is used to create custom token for user, with hUserid
@@ -106,15 +106,11 @@ export class Usercontroller {
             @Body() body: SignupBodyDto,
             @Res({passthrough:true}) res:Response
         ): Promise<GenericServiceResponseItem<UserInfoResponseDTO|null>> {
-        console.time("signup")
         const tokenData = await FirebaseMiddleware.getTokenDataFromHeader(reqest)
-        console.log('user phone num', body.hashedNum)
         // fe8c2783e0a8ce63df3a5585b3d463554559a0da9724127907b22a6599bdfed2
         
-        console.log('user phone num', body.phoneNumber)
         const result = await this.userService.signup(body, tokenData, file)
         res.status(res.statusCode)
-        console.timeEnd("signup")
         return result
     }
     /**

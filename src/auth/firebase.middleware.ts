@@ -122,7 +122,6 @@ export class FirebaseMiddleware implements NestMiddleware {
         return new Promise(async (res, rej)=> {
             try {
                 await firebaseAdmin.auth().deleteUser(uid)
-                console.log("firebase user removed ", uid)
                 res()
                 return ;
             }catch (e){

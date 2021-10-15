@@ -59,7 +59,6 @@ export class ContactService {
  * @param countryISO
  */
   async uploadBulk(contacts:ContactRequestDTO[], countryCode:number, countryISO:string): Promise<RehashedItemWithOldHash[]>{
-      console.log("inside upload bule contactservice")
       const bulkOp = await this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).initializeUnorderedBulkOp()
       this.contactsListWithCarrierInfoProcessing = []
       this.contactsListForResponse = []
@@ -76,8 +75,6 @@ export class ContactService {
      */
     await this.performBulkInsert(bulkOp)
 
-       
-    console.log("performing  bulk insert contactservice")
     try{
         await bulkOp.execute()
     }catch(e){

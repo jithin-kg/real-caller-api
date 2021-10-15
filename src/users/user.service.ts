@@ -340,7 +340,6 @@ export class Userservice {
             this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).updateOne(queryContacts,updateContact)
         ]
         const [resUser, resContact] =  await processHelper.doParallelProcess(processList)
-          console.log(resUser)
         delete userDTO.tokenData
             return GenericServiceResponseItem.returnGoodResponse(userDTO)
         } catch (e) {
@@ -698,7 +697,6 @@ export class Userservice {
                             console.log(error);
                             // res.send("error");
                         } else {
-                            console.log("Message sent: " + response);
                             // res.send("sent");
                         }
                     });
@@ -814,7 +812,6 @@ export class Userservice {
                     console.log(err)
                     // reject(err)
                 } else {
-                    console.log(decoded.userEmail)
                     const obj = new EmailAndUID()
                     obj.email = decoded.userEmail
                     obj.uid = decoded.uid

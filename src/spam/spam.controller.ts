@@ -55,7 +55,6 @@ export class Spamcontroller {
     @UseGuards(GetHAuthGuard)
     @Get('spamThreshold')
     async getLatestSpamThreshold(@Param() tokenData: HAccessTokenData, @Res({passthrough:true}) res:Response){
-        console.log('spamThreshold',tokenData)
         const result = await this.service.getSpamThreshold()
         res.status(result.statusCode)
         return result;

@@ -118,7 +118,7 @@ export class ContactManageService {
                                     if(alreadyExistingContactInDb == null || alreadyExistingContactInDb == undefined)
                                           bulkdOp.insert(contactDoc)
                                 }catch(e){
-                                    console.log("exception bulkOp ")
+                                    console.log("exception bulkOp ",e)
                                 }
                                 try{
                                     
