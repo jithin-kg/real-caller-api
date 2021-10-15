@@ -27,12 +27,14 @@ import { Db, MongoClient } from "mongodb";
     exports: [DatabaseModule.DATABASE_CONNECTION],
 })
 export class DatabaseModule {
+    // atlas
     // static uri = "mongodb+srv://rlclerDBUser:IJVezz622jI7k83m@rlcaller-rest-cluster0-40d1h.mongodb.net/phoneNumberPrefixLocationMap?retryWrites=true&w=majority";
     
     //kubernets 
     static uri =  "mongodb://" + process.env.DATABASE_USER + ":" + process.env.DATABASE_PASSWORD + "@" + process.env.DATABASE_HOST + "/" + process.env.DATABASE_NAME;
 
 
+    //all below are experimenting
     // static uri = process.env.MONGO_URL || 'mongodb://localhost:27017/dev';
     
     // this one worked //jithinkg/hcallerapi:1.0.15  with below uri

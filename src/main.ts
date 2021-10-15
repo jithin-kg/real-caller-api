@@ -45,6 +45,8 @@ async function bootstrap() {
   await app.listen(portNumber, ()=>{
     
     console.log(`app listening on port number ${portNumber}`)
+  console.log(`pepper is ${process.env.PEPPER}`)
+
   });
 
 }

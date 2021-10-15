@@ -4,7 +4,7 @@ import { Injectable } from "@nestjs/common";
  * script that tranform hashed number recieved from client 
  * and add secret and hash again
  */
-const hash = require('crypto').createHash;
+const crypto = require('crypto').createHash;
 
 @Injectable()
 export class NumberTransformService {  
@@ -17,7 +17,8 @@ export class NumberTransformService {
         //rehash num ****
         return new Promise((async (resolve, reject) => {
             try {
-                let no = await hash('sha256').update(hashedPhoneNum).digest('hex')
+                // let no = await crypto('sha256').update(hashedPhoneNum).digest('hex')
+                let no = crypto.createHmac("sha256", process.env.PEPPER + "eom47K4J4aNHAEKocSdwlL6QcgIyUxpU").update(hashedPhoneNum).digest("base64")
                 //todo add secret
                 resolve (no);
                 //UCqdkxQa5AI5lGubpIZ37+mgLOmjwgix/dj7isml/mU=
