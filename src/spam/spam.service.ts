@@ -250,10 +250,11 @@ export class SpamService {
             let res = new SpamThresholdUpdateResultDto()
             res.threshold = 10
             const resultDoc = await this.db.collection(CollectionNames.SPAM_THRESHOLD).findOne({}) as SpamThresholdDoc
-            if(resultDoc.threshold <= 0  || resultDoc.threshold >= 100 ){
+            if(resultDoc != null ){
+                if(resultDoc.threshold <= 0  || resultDoc.threshold >= 100){
+                    res.threshold = resultDoc.threshold;
+                }
                 console.log("Spam threshold is greater or less than limit")
-            }else {
-                res.threshold = resultDoc.threshold;
             }
             return GenericServiceResponseItem.returnGoodResponse(res);
         }catch(e){

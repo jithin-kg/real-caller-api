@@ -84,7 +84,7 @@ export class Usercontroller {
         let response = await this.userService.getUserInformationById(userInfo)
         // .catch(err => { throw err });
         res.status(response.statusCode)
-        console.timeEnd("getInfo")
+
         // return { result: await response };
         return response
     }

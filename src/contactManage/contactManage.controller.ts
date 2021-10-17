@@ -15,7 +15,6 @@ export class ContactManageController {
     
     @Post("uploadcontacts")
     async uploadContacts(@Body() contactsDTO: ContactSyncDTO, @Res({passthrough:true}) res:Response):Promise<GenericServiceResponseItem<ContactRehashedItemWithOldHash[]>> {
-        console.time()
         let result = await this.contactManageService.uploadBulkContacts(
             contactsDTO.contacts,
              contactsDTO.countryCode,
@@ -24,7 +23,6 @@ export class ContactManageController {
               )
         res.status(result.statusCode)
         // return { contacts: res }
-        console.timeEnd()
 
         return result;
     }

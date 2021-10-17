@@ -63,7 +63,6 @@ export class CallService {
                         obj.firstName = ""
                         obj.spamCount = 0
                        if(rehasehdNum !=null){
-    
                             resultArray.push(obj)
                        }
                     }catch(e){
@@ -87,7 +86,6 @@ export class CallService {
                 for await( const rehasehdNum of arrayOfHahsedNums){
                     try{
                                        
-                        console.log(`searching in db rehasehdNum is ${rehasehdNum}`)
                        const contactInfoFromDb:ContactDocument = await this.db.collection(CollectionNames.CONTACTS_OF_COLLECTION).findOne({_id: rehasehdNum.newHash}) as ContactDocument
                        const obj = new RehashedItemWithOldHash()
                       
@@ -105,11 +103,7 @@ export class CallService {
                             obj.hUid = contactInfoFromDb?.hUid??""
                             obj.bio = contactInfoFromDb.bio
                             obj.email = contactInfoFromDb.email??""
-                            obj.avatarGoogle = contactInfoFromDb.avatarGoogle??""
-                            if(contactInfoFromDb.avatarGoogle != "" ||contactInfoFromDb.avatarGoogle != null){
-                                console.log(contactInfoFromDb.avatarGoogle)
-                            }
-                            
+                            obj.avatarGoogle = contactInfoFromDb.avatarGoogle??""                            
                             obj.isVerifiedUser = contactInfoFromDb.isVerifiedUser??false
                             // ob.carrier = rehasehdNum.carr
     

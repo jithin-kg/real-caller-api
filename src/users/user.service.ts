@@ -162,7 +162,7 @@ export class Userservice {
                     // if (results && results[0]) user = results[0].;
                     if(resultGetUsrBYId.status == processHelper.FULL_FILLED){
                         user = resultGetUsrBYId.value
-                        if (user.isBlockedByAdmin) {
+                        if (user != null && user.isBlockedByAdmin) {
                             // reject(new HttpException("Bad request", HttpStatus.FORBIDDEN))
                             resolve(GenericServiceResponseItem.returnBadRequestResponse())
                             return
