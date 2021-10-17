@@ -10,7 +10,7 @@ export class UserDoc  {
     avatarGoogle:String = "";
     accountType?: string;
     uid?: string;
-    image? : Buffer;
+    image? : string;
     isBlockedByAdmin:Boolean = false;
     currentlyActiveAvatar:number = CurrentlyActiveAvatar.NONE;
     isVerifiedUser:boolean = false;

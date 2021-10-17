@@ -89,7 +89,8 @@ export class Userservice {
                             user.image = ""
                         }else if(doc.currentlyActiveAvatar == CurrentlyActiveAvatar.OTHER){
                             user.avatarGoogle = ""
-                            user.image = doc.image.toString("base64")
+                            // user.image = doc.image.toString("base64")
+                            user.image = doc.image
                         }
                         //todo remove this in production, this is for project only
     
@@ -390,7 +391,7 @@ export class Userservice {
                         "lastName": userDTO.lastName, 
                         "email":userDTO.email,
                         "bio":userDTO.bio,
-                        "image": fileBuffer,
+                        "image": fileBuffer.toString("base64"),
                         "googelFname": userDTO.gFName,
                         "googleLname": userDTO.gLName,
                         "googleEmail": userDTO.gEmail,
@@ -403,7 +404,7 @@ export class Userservice {
                         "lastName": userDTO.lastName, 
                         "email":userDTO.email,
                         "bio":userDTO.bio,
-                        "image": fileBuffer,
+                        "image": fileBuffer.toString("base64"),
                         "currentlyActiveAvatar": CurrentlyActiveAvatar.OTHER
                     } }
                 }
@@ -412,7 +413,7 @@ export class Userservice {
                 $set: {
                     "bio":userDTO.bio,
                     "email": userDTO.email,
-                    "image": fileBuffer,
+                    "image": fileBuffer.toString("base64"),
                     "avatarGoogle": ""
 
                 }
@@ -498,7 +499,7 @@ export class Userservice {
         return new Promise(async (resolve, reject) => {
             try {
                 let newUser :UserDoc= await this.prepareUser(userDto, hAccesstokenData, rehasehdNum);
-                newUser.image = fileBuffer //setting image buffer to insert
+                newUser.image = fileBuffer.toString("base64") //setting image buffer to insert
                 if(fileBuffer != null){
                     newUser.currentlyActiveAvatar = CurrentlyActiveAvatar.OTHER
                 }
